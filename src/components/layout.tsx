@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
+import AIFab from './ai-fab';
 import { Footer } from './footer';
 import { Header } from './header';
 
@@ -25,6 +26,7 @@ export const Layout: React.FC<
   return (
     <div className="min-h-screen w-full">
       <Header ref={headerRef} />
+      <AIFab />
       <main
         style={{ paddingTop: disableHeaderHeight ? 0 : headerHeight }}
         className="px-4 sm:px-6 lg:px-8"
