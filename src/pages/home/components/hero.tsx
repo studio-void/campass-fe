@@ -9,7 +9,7 @@ export default function Hero() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
           <div className="lg:col-span-7">
-            <p className="font-medium text-blue-600 text-xl">
+            <p className="font-medium text-primary text-xl">
               Make campus life more convenient
             </p>
 
