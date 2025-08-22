@@ -16,7 +16,6 @@ export const Layout: React.FC<
     setIsAIPopupOpen(!isAIPopupOpen);
   };
 
-  // ESC 키로 팝업 닫기
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && isAIPopupOpen) {
