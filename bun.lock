@@ -2,7 +2,7 @@
   "lockfileVersion": 1,
   "workspaces": {
     "": {
-      "name": "campass-fe",
+      "name": "template-fe",
       "dependencies": {
         "@radix-ui/react-slot": "^1.2.3",
         "@tailwindcss/vite": "^4.0.6",
@@ -100,7 +100,7 @@
           "@babel/helper-module-transforms": "^7.28.3",
           "@babel/helpers": "^7.28.3",
           "@babel/parser": "^7.28.3",
-          "@babel/campass": "^7.27.2",
+          "@babel/template": "^7.27.2",
           "@babel/traverse": "^7.28.3",
           "@babel/types": "^7.28.2",
           "convert-source-map": "^2.0.0",
@@ -279,7 +279,7 @@
       "",
       {
         "dependencies": {
-          "@babel/campass": "^7.27.2",
+          "@babel/template": "^7.27.2",
           "@babel/types": "^7.28.2",
         },
       },
@@ -388,8 +388,8 @@
       "sha512-9uIQ10o0WGdpP6GDhXcdOJPJuDgFtIDtN/9+ArJQ2NAfAmiuhTQdzkaTGR33v43GYS2UrSA0eX2pPPHoFVvpxA==",
     ],
 
-    "@babel/campass": [
-      "@babel/campass@7.27.2",
+    "@babel/template": [
+      "@babel/template@7.27.2",
       "",
       {
         "dependencies": {
@@ -410,7 +410,7 @@
           "@babel/generator": "^7.28.3",
           "@babel/helper-globals": "^7.28.0",
           "@babel/parser": "^7.28.3",
-          "@babel/campass": "^7.27.2",
+          "@babel/template": "^7.27.2",
           "@babel/types": "^7.28.2",
           "debug": "^4.3.1",
         },
@@ -1512,7 +1512,7 @@
           "@babel/core": "^7.27.7",
           "@babel/plugin-syntax-jsx": "^7.27.1",
           "@babel/plugin-syntax-typescript": "^7.27.1",
-          "@babel/campass": "^7.27.2",
+          "@babel/template": "^7.27.2",
           "@babel/traverse": "^7.27.7",
           "@babel/types": "^7.27.7",
           "@tanstack/router-core": "1.131.27",
@@ -1656,7 +1656,7 @@
           "@babel/parser": "^7.20.7",
           "@babel/types": "^7.20.7",
           "@types/babel__generator": "*",
-          "@types/babel__campass": "*",
+          "@types/babel__template": "*",
           "@types/babel__traverse": "*",
         },
       },
@@ -1670,8 +1670,8 @@
       "sha512-ufFd2Xi92OAVPYsy+P4n7/U7e68fex0+Ee8gSG9KX7eo084CWiQ4sdxktvdl0bOPupXtVJPY19zk6EwWqUQ8lg==",
     ],
 
-    "@types/babel__campass": [
-      "@types/babel__campass@7.4.4",
+    "@types/babel__template": [
+      "@types/babel__template@7.4.4",
       "",
       {
         "dependencies": { "@babel/parser": "^7.1.0", "@babel/types": "^7.0.0" },
