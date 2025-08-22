@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import AIFab from './ai-fab';
-import { Footer } from './footer';
+// import { Footer } from './footer';
 import { Header } from './header';
 
 export const Layout: React.FC<
@@ -33,7 +33,7 @@ export const Layout: React.FC<
       >
         {children}
       </main>
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 };
