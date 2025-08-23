@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { FileText, Image as ImageIcon } from 'lucide-react';
-<<<<<<< Updated upstream
 
 import { Dropzone, Layout } from '@/components';
 import { Button } from '@/components/ui/button';
@@ -25,38 +24,6 @@ async function uploadDocumentMock(file: File): Promise<{ ok: true }> {
 export default function VerificationPage() {
   const [status, setStatus] = useState<VerifiedStatus>('none');
   const [loading, setLoading] = useState(true);
-||||||| Stash base
-import { Button, Dropzone, Layout } from '@/components';
-=======
->>>>>>> Stashed changes
-
-<<<<<<< Updated upstream
-||||||| Stash base
-function VerificationPage() {
-=======
-import { Dropzone, Layout } from '@/components';
-import { Button } from '@/components/ui/button';
-
-type VerifiedStatus = 'none' | 'pending' | 'verified';
-
-const ACCEPT = 'image/*,.pdf';
-const MAX_SIZE = 10 * 1024 * 1024;
-
-async function fetchVerifiedStatusMock(): Promise<VerifiedStatus> {
-  await new Promise((r) => setTimeout(r, 300));
-  return Math.random() < 0.5 ? 'none' : 'pending';
-}
-
-async function uploadDocumentMock(file: File): Promise<{ ok: true }> {
-  void file;
-  await new Promise((r) => setTimeout(r, 500));
-  return { ok: true };
-}
-
-export default function VerificationPage() {
-  const [status, setStatus] = useState<VerifiedStatus>('none');
-  const [loading, setLoading] = useState(true);
->>>>>>> Stashed changes
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
