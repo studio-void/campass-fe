@@ -129,7 +129,7 @@ export default function RetirementMaintenanceIntroPage() {
         {/* Inspection Types */}
         <div className="space-y-4">
           <h2 className="text-xl font-semibold text-gray-900">
-            Select Inspection Type
+            Inspection Types
           </h2>
           <div className="grid gap-6 lg:grid-cols-3">
             {INSPECTION_TYPES.map((type) => (
