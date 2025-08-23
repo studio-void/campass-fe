@@ -9,11 +9,7 @@ export const postUserVerifyReject = async (userId: number): Promise<void> => {
   } catch (error) {
     console.error('Failed to reject user verification:', error);
 
-    if (error instanceof Response) {
-      toast.error('Failed to reject user verification.', {
-        description: `Status: ${error.statusText || error.status}`,
-      });
-    } else if (isAxiosError(error)) {
+    if (isAxiosError(error)) {
       toast.error('Failed to reject user verification.', {
         description: error.message,
       });

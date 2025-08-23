@@ -27,11 +27,7 @@ export const postAuthLogin = async (
   } catch (error) {
     console.error('Failed to get user:', error);
 
-    if (error instanceof Response) {
-      toast.error('Failed to login.', {
-        description: `Status: ${error.statusText || error.status}`,
-      });
-    } else if (isAxiosError(error)) {
+    if (isAxiosError(error)) {
       toast.error('Failed to login.', {
         description: error.message,
       });

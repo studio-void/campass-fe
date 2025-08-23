@@ -29,11 +29,7 @@ export const getUserVerify = async (): Promise<
   } catch (error) {
     console.error('Failed to fetch user verification data:', error);
 
-    if (error instanceof Response) {
-      toast.error('Error fetching user verification data.', {
-        description: `Status: ${error.statusText || error.status}`,
-      });
-    } else if (isAxiosError(error)) {
+    if (isAxiosError(error)) {
       toast.error('Error fetching user verification data.', {
         description: error.message,
       });

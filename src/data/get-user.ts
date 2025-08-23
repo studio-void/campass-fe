@@ -41,11 +41,7 @@ export const getUser = async (): Promise<GetUserResponse | undefined> => {
   } catch (error) {
     console.error('Failed to get user:', error);
 
-    if (error instanceof Response) {
-      toast.error('Error fetching user information.', {
-        description: `Status: ${error.statusText || error.status}`,
-      });
-    } else if (isAxiosError(error)) {
+    if (isAxiosError(error)) {
       toast.error('Error fetching user information.', {
         description: error.message,
       });

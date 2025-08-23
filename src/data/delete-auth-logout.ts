@@ -21,11 +21,7 @@ export const deleteAuthLogout = async (): Promise<
   } catch (error) {
     console.error('Failed to logout:', error);
 
-    if (error instanceof Response) {
-      toast.error('Failed to logout.', {
-        description: `Status: ${error.statusText || error.status}`,
-      });
-    } else if (isAxiosError(error)) {
+    if (isAxiosError(error)) {
       toast.error('Failed to logout.', {
         description: error.message,
       });
