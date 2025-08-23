@@ -12,7 +12,7 @@ export default function WarehouseUseIntroPage() {
         className="mx-auto max-w-6xl px-4 py-10 md:py-14"
         data-warehouse-guide="true"
       >
-        <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight">
+        <h1 className="text-[28px] md:text-[32px] font-extrabold tracking-tight">
           Dormitory : Application for warehouse use
         </h1>
         <p className="mt-3 text-neutral-600">
@@ -24,7 +24,6 @@ export default function WarehouseUseIntroPage() {
 
         <div className="mt-12 mx-auto max-w-5xl grid grid-cols-1 md:grid-cols-[360px_40px_1fr] gap-10 items-center">
           <Row
-            to="/dorm/warehouse-form"
             title="Put your luggage in"
             sectionTitle="During the semester"
             bullets={[
@@ -37,7 +36,6 @@ export default function WarehouseUseIntroPage() {
           />
 
           <Row
-            to="/dorm/warehouse-form"
             title="Take off your luggage"
             sectionTitle="During vacation"
             bullets={[
@@ -64,23 +62,18 @@ export default function WarehouseUseIntroPage() {
 }
 
 function Row({
-  to,
   title,
   sectionTitle,
   bullets,
 }: {
-  to: string;
   title: string;
   sectionTitle: string;
   bullets: string[];
 }) {
   return (
     <>
-      <Link
-        to={to}
-        className="block focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-2xl mx-auto md:mx-0"
-      >
-        <Card className="rounded-2xl border-2 border-blue-500 shadow-sm hover:shadow-md transition-shadow">
+      <div className="rounded-2xl mx-auto md:mx-0" role="presentation">
+        <Card className="rounded-2xl border-2 border-blue-500 shadow-sm cursor-default select-none">
           <CardContent className="h-24 md:h-28 px-8">
             <div className="h-full w-full flex items-center justify-center">
               <div className="text-xl md:text-2xl font-semibold text-center leading-snug whitespace-nowrap">
@@ -89,9 +82,12 @@ function Row({
             </div>
           </CardContent>
         </Card>
-      </Link>
+      </div>
 
-      <div className="hidden md:flex items-center justify-center" aria-hidden>
+      <div
+        className="hidden md:flex items-center justify-center"
+        aria-hidden="true"
+      >
         <ArrowRight className="h-6 w-6 text-blue-500" />
       </div>
 

@@ -53,7 +53,7 @@ export default function RetirementFormPage() {
   return (
     <Layout>
       <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
-        <h1 className="text-2xl md:text-3xl font-semibold">
+        <h1 className="text-[28px] md:text-[32px] font-extrabold tracking-tight">
           Dormitory : Application for Retirement / Maintenance Inspection
         </h1>
         <p className="mt-2 text-[15px] md:text-base text-neutral-600">
