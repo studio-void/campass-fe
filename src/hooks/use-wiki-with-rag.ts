@@ -59,7 +59,6 @@ export function useCreateWiki() {
           console.log(`Successfully added wiki "${data.title}" to RAG system`);
         } catch (error) {
           console.error('Failed to add wiki to RAG:', error);
-          // RAG 추가 실패는 사용자에게 별도 알림 (위키 생성은 성공)
         }
       }
     },
@@ -92,7 +91,9 @@ export function useUpdateWiki() {
             author: updatedWiki.author,
             createdAt: updatedWiki.createdAt,
           });
-          console.log(`Successfully updated wiki "${updatedWiki.title}" in RAG system`);
+          console.log(
+            `Successfully updated wiki "${updatedWiki.title}" in RAG system`,
+          );
         } catch (error) {
           console.error('Failed to update wiki in RAG:', error);
         }

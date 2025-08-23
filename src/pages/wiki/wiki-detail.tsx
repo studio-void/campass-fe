@@ -133,8 +133,10 @@ function WikiDetailPage() {
           <Button
             variant="outline"
             onClick={() => {
-              // Navigate to history page logic to be implemented later
-              console.log('Navigate to wiki history:', wiki.id);
+              navigate({
+                to: '/wiki/$wikiId/history',
+                params: { wikiId: wiki.id.toString() },
+              });
             }}
           >
             <History className="w-4 h-4 mr-2" />

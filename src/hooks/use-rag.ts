@@ -34,7 +34,9 @@ export function useRAG(): UseRAGReturn {
   const [isIndexing, setIsIndexing] = useState(false);
   const [documentCount, setDocumentCount] = useState(0);
   const [chunkCount, setChunkCount] = useState(0);
-  const [chunkDistribution, setChunkDistribution] = useState<{ [articleTitle: string]: number }>({});
+  const [chunkDistribution, setChunkDistribution] = useState<{
+    [articleTitle: string]: number;
+  }>({});
   const [indexingProgress, setIndexingProgress] = useState<{
     current: number;
     total: number;
@@ -45,11 +47,11 @@ export function useRAG(): UseRAGReturn {
     const docCount = vectorStore.getDocumentCount();
     const chunkCnt = vectorStore.getChunkCount();
     const distribution = vectorStore.getChunkDistribution();
-    
+
     setDocumentCount(docCount);
     setChunkCount(chunkCnt);
     setChunkDistribution(distribution);
-    
+
     console.log(`Updated counts - Articles: ${docCount}, Chunks: ${chunkCnt}`);
   };
 
@@ -57,7 +59,7 @@ export function useRAG(): UseRAGReturn {
   useEffect(() => {
     const docCount = vectorStore.getDocumentCount();
     const chunkCnt = vectorStore.getChunkCount();
-    
+
     if (docCount > 0) {
       setIsInitialized(true);
       updateDocumentCount();

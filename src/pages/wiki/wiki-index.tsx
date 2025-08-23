@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 
+import { useNavigate } from '@tanstack/react-router';
 import {
   Calendar,
   Edit,
@@ -30,11 +31,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  WikiDetailModal,
-  WikiEditModal,
-  WikiHistoryModal,
-} from '@/components/wiki-modals';
 import { type Wiki, createWiki, deleteWiki, getWikis } from '@/data/wiki';
 import { useCurrentUser } from '@/hooks/use-current-user';
 
@@ -79,6 +75,7 @@ function ConfirmDialog({
 }
 
 function WikiIndexPage() {
+  const navigate = useNavigate();
   const [wikis, setWikis] = useState<Wiki[]>([]);
   const [loading, setLoading] = useState(true);
   const { user: currentUser } = useCurrentUser();
@@ -142,16 +139,11 @@ function WikiIndexPage() {
   };
 
   const navigateToWiki = (wikiId: number) => {
-    // Create a simple navigation using the current wiki system
-    // We'll implement a modal-based system for now
-    setSelectedWiki(wikiId);
-    setShowWikiDetail(true);
+    navigate({
+      to: '/wiki/$wikiId',
+      params: { wikiId: wikiId.toString() },
+    });
   };
-
-  const [selectedWiki, setSelectedWiki] = useState<number | null>(null);
-  const [showWikiDetail, setShowWikiDetail] = useState(false);
-  const [showWikiEdit, setShowWikiEdit] = useState(false);
-  const [showWikiHistory, setShowWikiHistory] = useState(false);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -170,7 +162,7 @@ function WikiIndexPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 mb-24">
       {/* Header and Create Button */}
       <div className="flex justify-between items-center">
         <div>
@@ -316,8 +308,10 @@ function WikiIndexPage() {
                       variant="ghost"
                       size="sm"
                       onClick={() => {
-                        setSelectedWiki(wiki.id);
-                        setShowWikiHistory(true);
+                        navigate({
+                          to: '/wiki/$wikiId/history',
+                          params: { wikiId: wiki.id.toString() },
+                        });
                       }}
                     >
                       <History className="w-4 h-4" />
@@ -327,8 +321,10 @@ function WikiIndexPage() {
                       variant="ghost"
                       size="sm"
                       onClick={() => {
-                        setSelectedWiki(wiki.id);
-                        setShowWikiEdit(true);
+                        navigate({
+                          to: '/wiki/$wikiId/edit',
+                          params: { wikiId: wiki.id.toString() },
+                        });
                       }}
                     >
                       <Edit className="w-4 h-4" />
@@ -379,45 +375,6 @@ function WikiIndexPage() {
         title="Delete Wiki?"
         description="This action cannot be undone. The wiki and all its edit history will be permanently deleted."
       />
-
-      {/* Wiki Detail Modal */}
-      {showWikiDetail && selectedWiki && (
-        <WikiDetailModal
-          wikiId={selectedWiki}
-          onClose={() => setShowWikiDetail(false)}
-          onEdit={() => {
-            setShowWikiDetail(false);
-            setShowWikiEdit(true);
-          }}
-          onHistory={() => {
-            setShowWikiDetail(false);
-            setShowWikiHistory(true);
-          }}
-          currentUser={currentUser}
-        />
-      )}
-
-      {/* Wiki Edit Modal */}
-      {showWikiEdit && selectedWiki && (
-        <WikiEditModal
-          wikiId={selectedWiki}
-          onClose={() => setShowWikiEdit(false)}
-          onSave={(updatedWiki: Wiki) => {
-            setWikis(
-              wikis.map((w) => (w.id === updatedWiki.id ? updatedWiki : w)),
-            );
-            setShowWikiEdit(false);
-          }}
-        />
-      )}
-
-      {/* Wiki History Modal */}
-      {showWikiHistory && selectedWiki && (
-        <WikiHistoryModal
-          wikiId={selectedWiki}
-          onClose={() => setShowWikiHistory(false)}
-        />
-      )}
     </div>
   );
 }

@@ -100,7 +100,7 @@ function WikiEditPage() {
   // 위키는 누구나 편집할 수 있습니다
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 mb-24">
       {/* Header */}
       <div className="flex items-center justify-between">
         <Button
