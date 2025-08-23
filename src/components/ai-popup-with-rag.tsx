@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { useNavigate } from '@tanstack/react-router';
 import {
   IconDatabase,
   IconExternalLink,
@@ -9,6 +8,7 @@ import {
   IconTrash,
   IconUser,
 } from '@tabler/icons-react';
+import { useNavigate } from '@tanstack/react-router';
 import ReactMarkdown from 'react-markdown';
 
 import { useUpstageApiWithRAG } from '../hooks';
@@ -69,9 +69,9 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
   };
 
   const handleWikiNavigation = (wikiId: number) => {
-    navigate({ 
-      to: '/wiki/$wikiId', 
-      params: { wikiId: wikiId.toString() } 
+    navigate({
+      to: '/wiki/$wikiId',
+      params: { wikiId: wikiId.toString() },
     });
   };
 
