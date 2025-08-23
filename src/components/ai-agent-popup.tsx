@@ -1,8 +1,17 @@
 import React, { useEffect, useRef } from 'react';
 
-import { Bot, FileSearch, Loader2, Send, User, Wrench } from 'lucide-react';
+import {
+  Bot,
+  Calendar,
+  FileSearch,
+  Loader2,
+  Send,
+  User,
+  Wrench,
+} from 'lucide-react';
 
 import { type AgentMessage, useAIAgent } from '../hooks/use-ai-agent';
+import { useGoogleCalendar } from '../hooks/use-google-calendar';
 import { MarkdownRenderer } from './markdown-renderer';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
@@ -14,6 +23,7 @@ interface AIAgentPopupProps {
 }
 
 export function AIAgentPopup({ isOpen, onClose }: AIAgentPopupProps) {
+  const googleCalendar = useGoogleCalendar();
   const {
     messages,
     isLoading,
@@ -121,18 +131,26 @@ export function AIAgentPopup({ isOpen, onClose }: AIAgentPopupProps) {
               </div>
             )}
 
-            {message.toolCalls && message.toolCalls.length > 0 && (
+            {message.usedTools && message.usedTools.length > 0 && (
               <div className="mt-3 pt-3 border-t border-gray-200">
                 <div className="text-sm font-medium text-gray-600 mb-2">
-                  🔧 Using tools:
+                  🔧 Tools used:
                 </div>
                 <div className="space-y-1">
-                  {message.toolCalls.map((toolCall: any, index: number) => (
+                  {message.usedTools.map((tool, index) => (
                     <div
-                      key={`${toolCall.id}-${index}`}
-                      className="text-xs bg-gray-100 rounded px-2 py-1"
+                      key={`${tool.name}-${index}`}
+                      className={`text-xs rounded px-2 py-1 flex items-center justify-between ${
+                        tool.success
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}
                     >
-                      {toolCall.function.name}
+                      <span className="flex items-center space-x-1">
+                        <span>{tool.success ? '✅' : '❌'}</span>
+                        <span>{tool.description}</span>
+                      </span>
+                      {tool.name.includes('calendar') && <Calendar size={12} />}
                     </div>
                   ))}
                 </div>
@@ -197,6 +215,23 @@ export function AIAgentPopup({ isOpen, onClose }: AIAgentPopupProps) {
             </div>
           </div>
           <div className="flex items-center space-x-2">
+            {googleCalendar.isReady && !googleCalendar.isAuthed && (
+              <Button
+                onClick={googleCalendar.signIn}
+                size="sm"
+                variant="outline"
+                className="flex items-center space-x-2"
+              >
+                <Calendar size={14} />
+                <span>Connect Calendar</span>
+              </Button>
+            )}
+            {googleCalendar.isAuthed && (
+              <div className="text-xs text-green-600 flex items-center space-x-1">
+                <Calendar size={12} />
+                <span>Calendar ✓</span>
+              </div>
+            )}
             {!ragStatus.isInitialized && (
               <Button
                 onClick={initializeRAG}
@@ -260,6 +295,21 @@ export function AIAgentPopup({ isOpen, onClose }: AIAgentPopupProps) {
 
         {/* Input */}
         <div className="p-4 border-t border-gray-200 bg-white">
+          {/* Google Calendar Status */}
+          {googleCalendar.isReady && !googleCalendar.isAuthed && (
+            <div className="mb-3 p-2 bg-orange-50 border border-orange-200 rounded-lg">
+              <div className="text-sm text-orange-800">
+                📅 Connect your Google Calendar to enable scheduling features.{' '}
+                <button
+                  onClick={googleCalendar.signIn}
+                  className="text-orange-600 underline hover:text-orange-800"
+                >
+                  Connect now
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="flex space-x-3">
             <Input
               ref={inputRef}
@@ -268,7 +318,11 @@ export function AIAgentPopup({ isOpen, onClose }: AIAgentPopupProps) {
                 setInputValue(e.target.value)
               }
               onKeyPress={handleKeyPress}
-              placeholder="Ask me anything... I can search wikis, check weather, calculate, and more!"
+              placeholder={
+                googleCalendar.isAuthed
+                  ? 'Ask me anything... I can search wikis, manage calendar, check weather, and more!'
+                  : 'Ask me anything... I can search wikis, check weather, calculate, and more!'
+              }
               disabled={isLoading}
               className="flex-1"
             />

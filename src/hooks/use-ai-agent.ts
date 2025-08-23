@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import type { NavigationFunctions } from './use-agent-navigation';
 import { createNavigationFunctions } from './use-agent-navigation';
 import { useCurrentUser } from './use-current-user';
+import { useGoogleCalendar } from './use-google-calendar';
 import { useRAG } from './use-rag';
 
 export interface AgentMessage {
@@ -72,6 +73,7 @@ interface UseAIAgentReturn {
 // Available functions for the AI agent
 const createAvailableFunctions = (
   navigationFunctions?: NavigationFunctions,
+  googleCalendar?: ReturnType<typeof useGoogleCalendar>,
 ) => ({
   search_wiki: async (query: string, school?: string) => {
     return JSON.stringify({
@@ -88,17 +90,140 @@ const createAvailableFunctions = (
     });
   },
 
+  get_current_date: async (
+    format: 'full' | 'date' | 'time' | 'iso' = 'date',
+  ) => {
+    const now = new Date();
+
+    switch (format) {
+      case 'full':
+        return JSON.stringify({
+          message: 'Current date and time retrieved',
+          date: now.toLocaleDateString('ko-KR'),
+          time: now.toLocaleTimeString('ko-KR'),
+          datetime: now.toLocaleString('ko-KR'),
+          iso: now.toISOString(),
+          timestamp: now.getTime(),
+        });
+      case 'date':
+        return JSON.stringify({
+          message: 'Current date retrieved',
+          date: now.toISOString().split('T')[0], // YYYY-MM-DD format
+          formatted: now.toLocaleDateString('ko-KR'),
+        });
+      case 'time':
+        return JSON.stringify({
+          message: 'Current time retrieved',
+          time: now.toLocaleTimeString('ko-KR'),
+          time24: now.toTimeString().split(' ')[0].substring(0, 5), // HH:MM format
+        });
+      case 'iso':
+        return JSON.stringify({
+          message: 'Current date and time in ISO format',
+          iso: now.toISOString(),
+          timestamp: now.getTime(),
+        });
+      default:
+        return JSON.stringify({
+          message: 'Current date retrieved',
+          date: now.toISOString().split('T')[0],
+        });
+    }
+  },
+
   create_calendar_event: async (
     title: string,
     date: string,
+    time?: string,
+    duration?: number,
     description?: string,
   ) => {
+    if (!googleCalendar?.isAuthed) {
+      return JSON.stringify({
+        error: 'Google Calendar not authorized. Please sign in first.',
+        needsAuth: true,
+      });
+    }
+
+    try {
+      const result = await googleCalendar.createQuickEvent(
+        title,
+        date,
+        time,
+        duration,
+        description,
+      );
+
+      return JSON.stringify({
+        message: `Calendar event "${title}" created successfully for ${date}${time ? ` at ${time}` : ' (all day)'}`,
+        title,
+        date,
+        time: time || null,
+        duration: duration || (time ? 1 : null),
+        description: description || null,
+        status: 'created',
+        eventId: result.id,
+        htmlLink: result.htmlLink,
+      });
+    } catch (error) {
+      return JSON.stringify({
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to create calendar event',
+        status: 'failed',
+      });
+    }
+  },
+
+  list_calendar_events: async (maxResults: number = 5) => {
+    if (!googleCalendar?.isAuthed) {
+      return JSON.stringify({
+        error: 'Google Calendar not authorized. Please sign in first.',
+        needsAuth: true,
+      });
+    }
+
+    try {
+      const events = await googleCalendar.listUpcomingEvents(maxResults);
+      return JSON.stringify({
+        message: `Found ${events.length} upcoming events`,
+        events: events.map((event) => ({
+          id: event.id,
+          title: event.summary,
+          start: event.start?.dateTime || event.start?.date,
+          end: event.end?.dateTime || event.end?.date,
+          description: event.description,
+          location: event.location,
+          htmlLink: event.htmlLink,
+        })),
+      });
+    } catch (error) {
+      return JSON.stringify({
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to list calendar events',
+        status: 'failed',
+      });
+    }
+  },
+
+  check_calendar_auth: async () => {
+    if (!googleCalendar) {
+      return JSON.stringify({
+        isAuthed: false,
+        message: 'Google Calendar not initialized',
+      });
+    }
+
     return JSON.stringify({
-      message: `Calendar event "${title}" created for ${date}`,
-      title,
-      date,
-      description: description || null,
-      status: 'created',
+      isAuthed: googleCalendar.isAuthed,
+      isReady: googleCalendar.isReady,
+      error: googleCalendar.error,
+      message: googleCalendar.isAuthed
+        ? 'Google Calendar is authorized and ready to use'
+        : 'Google Calendar authorization required',
     });
   },
 
@@ -236,6 +361,7 @@ const createAvailableFunctions = (
 // Function definitions for OpenAI
 const createTools = (
   hasNavigation: boolean = false,
+  hasCalendar: boolean = false,
 ): OpenAI.Chat.Completions.ChatCompletionTool[] => {
   const baseTools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
     {
@@ -273,25 +399,18 @@ const createTools = (
     {
       type: 'function',
       function: {
-        name: 'create_calendar_event',
-        description: 'Create a calendar event',
+        name: 'get_current_date',
+        description: 'Get current date and time information',
         parameters: {
           type: 'object',
           properties: {
-            title: {
+            format: {
               type: 'string',
-              description: 'Event title',
-            },
-            date: {
-              type: 'string',
-              description: 'Event date in YYYY-MM-DD format',
-            },
-            description: {
-              type: 'string',
-              description: 'Optional event description',
+              enum: ['full', 'date', 'time', 'iso'],
+              description:
+                'Format of the date/time to return. "date" returns YYYY-MM-DD, "time" returns current time, "full" returns both, "iso" returns ISO format',
             },
           },
-          required: ['title', 'date'],
         },
       },
     },
@@ -336,6 +455,75 @@ const createTools = (
       },
     },
   ];
+
+  const calendarTools: OpenAI.Chat.Completions.ChatCompletionTool[] =
+    hasCalendar
+      ? [
+          {
+            type: 'function',
+            function: {
+              name: 'create_calendar_event',
+              description: 'Create a new Google Calendar event',
+              parameters: {
+                type: 'object',
+                properties: {
+                  title: {
+                    type: 'string',
+                    description: 'Event title/summary',
+                  },
+                  date: {
+                    type: 'string',
+                    description: 'Event date in YYYY-MM-DD format',
+                  },
+                  time: {
+                    type: 'string',
+                    description:
+                      'Event start time in HH:MM format (optional, omit for all-day events)',
+                  },
+                  duration: {
+                    type: 'number',
+                    description:
+                      'Event duration in hours (default: 1 hour, ignored for all-day events)',
+                  },
+                  description: {
+                    type: 'string',
+                    description: 'Optional event description',
+                  },
+                },
+                required: ['title', 'date'],
+              },
+            },
+          },
+          {
+            type: 'function',
+            function: {
+              name: 'list_calendar_events',
+              description: 'List upcoming Google Calendar events',
+              parameters: {
+                type: 'object',
+                properties: {
+                  maxResults: {
+                    type: 'number',
+                    description:
+                      'Maximum number of events to return (default: 5)',
+                  },
+                },
+              },
+            },
+          },
+          {
+            type: 'function',
+            function: {
+              name: 'check_calendar_auth',
+              description: 'Check Google Calendar authorization status',
+              parameters: {
+                type: 'object',
+                properties: {},
+              },
+            },
+          },
+        ]
+      : [];
 
   const navigationTools: OpenAI.Chat.Completions.ChatCompletionTool[] =
     hasNavigation
@@ -468,7 +656,7 @@ const createTools = (
         ]
       : [];
 
-  return [...baseTools, ...navigationTools];
+  return [...baseTools, ...calendarTools, ...navigationTools];
 };
 
 // Helper function to get tool descriptions
@@ -476,7 +664,10 @@ const getToolDescription = (toolName: string): string => {
   const descriptions: Record<string, string> = {
     search_wiki: 'Search for information in wiki documents',
     get_user_info: 'Get current user information',
-    create_calendar_event: 'Create a calendar event',
+    get_current_date: 'Get current date and time information',
+    create_calendar_event: 'Create a Google Calendar event',
+    list_calendar_events: 'List upcoming Google Calendar events',
+    check_calendar_auth: 'Check Google Calendar authorization status',
     get_weather: 'Get weather information for a location',
     calculate: 'Perform mathematical calculations',
     navigate_to_page: 'Navigate to a specific page',
@@ -497,6 +688,7 @@ export function useAIAgent(
   navigate?: (options: ToOptions & NavigateOptions) => void,
 ): UseAIAgentReturn {
   const { user } = useCurrentUser();
+  const googleCalendar = useGoogleCalendar();
   const {
     isInitialized,
     isIndexing,
@@ -513,11 +705,14 @@ export function useAIAgent(
     ? createNavigationFunctions(navigate)
     : undefined;
 
-  // Create available functions with navigation support
-  const availableFunctions = createAvailableFunctions(navigationFunctions);
+  // Create available functions with navigation and calendar support
+  const availableFunctions = createAvailableFunctions(
+    navigationFunctions,
+    googleCalendar,
+  );
 
-  // Create tools with navigation support
-  const tools = createTools(!!navigationFunctions);
+  // Create tools with navigation and calendar support
+  const tools = createTools(!!navigationFunctions, googleCalendar.isReady);
 
   // Initialize OpenAI client
   const openai = new OpenAI({
@@ -533,8 +728,12 @@ export function useAIAgent(
 
 I'm an advanced AI assistant that can:
 - 🔍 Search wiki documents
-- 📅 Create calendar events${navigationFunctions ? '\n- 🧭 Navigate to different pages' : ''}
+- 📅 Create and manage Google Calendar events${googleCalendar.isAuthed ? ' (authorized ✅)' : ' (authorization needed)'}${navigationFunctions ? '\n- 🧭 Navigate to different pages' : ''}
+- 🌤️ Get weather information
+- 🧮 Perform calculations
 - And much more!
+
+${googleCalendar.isReady && !googleCalendar.isAuthed ? 'To use calendar features, please authorize Google Calendar access first.' : ''}
 
 How can I help you today?`,
     timestamp: new Date(),
@@ -580,6 +779,28 @@ How can I help you today?`,
             school: user?.school || 'Unknown',
           });
 
+        case 'get_current_date':
+          return await (availableFunctions.get_current_date as any)(
+            args.format,
+          );
+
+        case 'create_calendar_event':
+          return await (availableFunctions.create_calendar_event as any)(
+            args.title,
+            args.date,
+            args.time,
+            args.duration,
+            args.description,
+          );
+
+        case 'list_calendar_events':
+          return await (availableFunctions.list_calendar_events as any)(
+            args.maxResults,
+          );
+
+        case 'check_calendar_auth':
+          return await (availableFunctions.check_calendar_auth as any)();
+
         default:
           const func =
             availableFunctions[functionName as keyof typeof availableFunctions];
@@ -589,8 +810,16 @@ How can I help you today?`,
               return await (func as any)(
                 args.title,
                 args.date,
+                args.time,
+                args.duration,
                 args.description,
               );
+            } else if (functionName === 'list_calendar_events') {
+              return await (func as any)(args.maxResults);
+            } else if (functionName === 'check_calendar_auth') {
+              return await (func as any)();
+            } else if (functionName === 'get_current_date') {
+              return await (func as any)(args.format);
             } else if (functionName === 'get_weather') {
               return await (func as any)(args.location, args.unit);
             } else if (functionName === 'calculate') {
@@ -633,11 +862,26 @@ How can I help you today?`,
         [
           {
             role: 'system',
-            content: `You are Campass AI Agent, a helpful assistant for university students. You have access to various tools including wiki search, weather information, calculations, calendar management${navigationFunctions ? ', and page navigation' : ''}. 
+            content: `You are Campass AI Agent, a helpful assistant for university students. You have access to various tools including wiki search, weather information, calculations, Google Calendar management${navigationFunctions ? ', and page navigation' : ''}. 
+
+Google Calendar Features:
+- create_calendar_event: Create new calendar events with date, time, and duration
+- list_calendar_events: List upcoming events
+- check_calendar_auth: Check if user is authorized for calendar access
+
+Date/Time Features:
+- get_current_date: Get current date and time in various formats (useful for scheduling)
+${!googleCalendar.isAuthed ? '\nNote: User needs to authorize Google Calendar for calendar features to work.' : ''}
 
 IMPORTANT: When a user asks to navigate to a page AND search for content (e.g., "go to wiki about library"), handle both actions in sequence but provide a single comprehensive response that combines the navigation result with the search results. Do not create separate messages for each tool call.
 
-Use the appropriate tools to provide accurate and helpful responses.${user?.school ? ` The user is from ${user.school}.` : ''}${navigationFunctions ? ' You can help users navigate to different pages in the application by using navigation functions.' : ''}`,
+Use the appropriate tools to provide accurate and helpful responses.${user?.school ? ` The user is from ${user.school}.` : ''}${navigationFunctions ? ' You can help users navigate to different pages in the application by using navigation functions.' : ''}
+
+For calendar events:
+- If only date is provided, create an all-day event
+- If time is provided, default to 1-hour duration unless specified
+- Always confirm the event details after creation
+- Check authorization status if calendar operations fail`,
           },
           ...messages
             .filter((msg) => msg.role !== 'tool')
