@@ -4,6 +4,7 @@ import {
   IconDatabase,
   IconExternalLink,
   IconRefresh,
+  IconResize,
   IconSearch,
   IconSend,
   IconTool,
@@ -33,7 +34,54 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
 
   const [input, setInput] = useState('');
   const [showSources, setShowSources] = useState<string | null>(null);
+  const [dimensions, setDimensions] = useState({ width: 384, height: 500 });
+  const [targetDimensions, setTargetDimensions] = useState({
+    width: 384,
+    height: 500,
+  });
+  const [isResizing, setIsResizing] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const resizeRef = useRef<HTMLDivElement>(null);
+  const animationRef = useRef<number>(0);
+
+  const [cornerRadius, setCornerRadius] = useState(12);
+
+  // Spring animation function
+  const lerp = (start: number, end: number, factor: number) => {
+    return start + (end - start) * factor;
+  };
+
+  const animateToTarget = () => {
+    const springFactor = 0.15; // Adjust this for more/less bounce
+    const threshold = 0.5;
+
+    const widthDiff = Math.abs(dimensions.width - targetDimensions.width);
+    const heightDiff = Math.abs(dimensions.height - targetDimensions.height);
+
+    if (widthDiff > threshold || heightDiff > threshold) {
+      setDimensions((prev) => ({
+        width: lerp(prev.width, targetDimensions.width, springFactor),
+        height: lerp(prev.height, targetDimensions.height, springFactor),
+      }));
+
+      animationRef.current = requestAnimationFrame(animateToTarget);
+    } else {
+      setDimensions(targetDimensions);
+    }
+  };
+
+  useEffect(() => {
+    if (!isDragging) {
+      animationRef.current = requestAnimationFrame(animateToTarget);
+    }
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [targetDimensions, isDragging]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -42,6 +90,85 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    const el = resizeRef.current;
+    if (!el) return;
+
+    const updateRadius = () => {
+      const cs = getComputedStyle(el);
+      const r = parseFloat(cs.borderTopLeftRadius || '12');
+      if (!Number.isNaN(r)) setCornerRadius(r);
+    };
+
+    updateRadius();
+    window.addEventListener('resize', updateRadius);
+    return () => window.removeEventListener('resize', updateRadius);
+  }, [dimensions.width, dimensions.height]);
+
+  // Resize functionality with spring animation
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing || !resizeRef.current) return;
+
+      const rect = resizeRef.current.getBoundingClientRect();
+      const newWidth = Math.max(320, rect.right - e.clientX);
+      const newHeight = Math.max(300, rect.bottom - e.clientY);
+
+      if (isDragging) {
+        // Direct update while dragging for immediate feedback
+        setDimensions({ width: newWidth, height: newHeight });
+      } else {
+        // Use spring animation when not actively dragging
+        setTargetDimensions({ width: newWidth, height: newHeight });
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      setIsDragging(false);
+
+      // Add a subtle overshoot effect
+      if (resizeRef.current) {
+        const rect = resizeRef.current.getBoundingClientRect();
+        const finalWidth = Math.max(320, rect.width);
+        const finalHeight = Math.max(300, rect.height);
+
+        // Slight overshoot for rubber effect
+        const overshootFactor = 1.02;
+        setTargetDimensions({
+          width: finalWidth * overshootFactor,
+          height: finalHeight * overshootFactor,
+        });
+
+        // Return to normal size after a brief delay
+        setTimeout(() => {
+          setTargetDimensions({ width: finalWidth, height: finalHeight });
+        }, 100);
+      }
+    };
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing, isDragging]);
+
+  const handleResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+    setIsDragging(true);
+
+    // Cancel any ongoing animation
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
+  };
 
   const handleSendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -80,7 +207,58 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed bottom-28 right-8 w-96 h-[500px] bg-white rounded-xl shadow-2xl z-40 flex flex-col">
+    <div
+      ref={resizeRef}
+      className={`fixed bottom-28 right-8 bg-white rounded-xl shadow-2xl z-40 flex flex-col overflow-hidden transition-all duration-75 ease-out ${
+        isResizing ? 'select-none' : ''
+      }`}
+      style={{
+        width: `${dimensions.width}px`,
+        height: `${dimensions.height}px`,
+        minWidth: '320px',
+        minHeight: '300px',
+        transform: isDragging ? 'scale(1.01)' : 'scale(1)',
+        boxShadow: isDragging
+          ? '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)'
+          : '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+      }}
+    >
+      {/* Resize Handle */}
+      {(() => {
+        const stroke = Math.max(2, Math.round(cornerRadius * 0.18)); // visual thickness
+        const size = Math.max(24, Math.round(cornerRadius * 2)); // square sized to the corner radius
+        const r = Math.max(2, cornerRadius - stroke / 2); // inner radius so the stroke sits inside the curve
+        return (
+          <div
+            className="group absolute top-0 left-0 z-50 cursor-nw-resize select-none"
+            style={{ width: size, height: size }}
+            onMouseDown={handleResizeStart}
+            title="Drag to resize"
+            aria-label="Drag to resize"
+          >
+            {/* bigger invisible hit area */}
+            <div className="absolute -top-1 -left-1 w-[40px] h-[40px]" />
+            <svg
+              className="absolute top-0 left-0 pointer-events-none"
+              width={size}
+              height={size}
+              viewBox={`0 0 ${size} ${size}`}
+            >
+              <path
+                d={`M ${stroke / 2} ${r + stroke / 2} A ${r} ${r} 0 0 1 ${r + stroke / 2} ${stroke / 2}`}
+                fill="none"
+                stroke={
+                  isDragging
+                    ? 'rgba(255,255,255,0.95)'
+                    : 'rgba(255,255,255,0.75)'
+                }
+                strokeWidth={stroke}
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
+        );
+      })()}
       {/* Header */}
       <div className="bg-gradient-to-r from-primary to-secondary text-white p-4 rounded-t-xl">
         <div className="flex items-center justify-between">
@@ -146,7 +324,7 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
         {messages.map((message) => (
           <div key={message.id}>
             <div
