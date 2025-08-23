@@ -27,6 +27,8 @@ interface UseUpstageApiWithRAGReturn {
     isInitialized: boolean;
     isIndexing: boolean;
     documentCount: number;
+    chunkCount: number;
+    chunkDistribution: { [articleTitle: string]: number };
     indexingProgress: {
       current: number;
       total: number;
@@ -42,6 +44,8 @@ export function useUpstageApiWithRAG(): UseUpstageApiWithRAGReturn {
     isInitialized,
     isIndexing,
     documentCount,
+    chunkCount,
+    chunkDistribution,
     indexingProgress,
     searchDocuments,
     initializeRAG,
@@ -303,6 +307,8 @@ export function useUpstageApiWithRAG(): UseUpstageApiWithRAGReturn {
       isInitialized,
       isIndexing,
       documentCount,
+      chunkCount,
+      chunkDistribution,
       indexingProgress,
     },
     initializeRAG,

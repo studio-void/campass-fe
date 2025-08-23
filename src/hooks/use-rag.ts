@@ -9,6 +9,8 @@ interface UseRAGReturn {
   isInitialized: boolean;
   isIndexing: boolean;
   documentCount: number;
+  chunkCount: number;
+  chunkDistribution: { [articleTitle: string]: number };
   indexingProgress: {
     current: number;
     total: number;
@@ -31,6 +33,8 @@ export function useRAG(): UseRAGReturn {
   const [isInitialized, setIsInitialized] = useState(false);
   const [isIndexing, setIsIndexing] = useState(false);
   const [documentCount, setDocumentCount] = useState(0);
+  const [chunkCount, setChunkCount] = useState(0);
+  const [chunkDistribution, setChunkDistribution] = useState<{ [articleTitle: string]: number }>({});
   const [indexingProgress, setIndexingProgress] = useState<{
     current: number;
     total: number;
@@ -38,17 +42,27 @@ export function useRAG(): UseRAGReturn {
   } | null>(null);
 
   const updateDocumentCount = () => {
-    setDocumentCount(vectorStore.getDocumentCount());
+    const docCount = vectorStore.getDocumentCount();
+    const chunkCnt = vectorStore.getChunkCount();
+    const distribution = vectorStore.getChunkDistribution();
+    
+    setDocumentCount(docCount);
+    setChunkCount(chunkCnt);
+    setChunkDistribution(distribution);
+    
+    console.log(`Updated counts - Articles: ${docCount}, Chunks: ${chunkCnt}`);
   };
 
   // Check if RAG is already initialized from localStorage on mount
   useEffect(() => {
-    const count = vectorStore.getDocumentCount();
-    if (count > 0) {
+    const docCount = vectorStore.getDocumentCount();
+    const chunkCnt = vectorStore.getChunkCount();
+    
+    if (docCount > 0) {
       setIsInitialized(true);
-      setDocumentCount(count);
+      updateDocumentCount();
       console.log(
-        `RAG system loaded from localStorage with ${count} documents`,
+        `RAG system loaded from localStorage with ${docCount} articles (${chunkCnt} chunks)`,
       );
     }
   }, []);
@@ -87,7 +101,7 @@ export function useRAG(): UseRAGReturn {
       // Use setTimeout to make the initialization non-blocking
       setTimeout(async () => {
         try {
-          await vectorStore.addWikiDocuments(
+          const result = await vectorStore.addWikiDocuments(
             wikiData,
             (current, total, status) => {
               setIndexingProgress({ current, total, status });
@@ -99,7 +113,7 @@ export function useRAG(): UseRAGReturn {
           setIndexingProgress(null);
 
           console.log(
-            `RAG system initialized with ${wikis.length} wiki documents`,
+            `RAG system initialized with ${result.processedArticles} articles (${result.totalChunks} chunks)`,
           );
         } catch (error) {
           console.error('Failed to initialize RAG:', error);
@@ -172,6 +186,8 @@ export function useRAG(): UseRAGReturn {
     isInitialized,
     isIndexing,
     documentCount,
+    chunkCount,
+    chunkDistribution,
     indexingProgress,
     searchDocuments,
     initializeRAG,

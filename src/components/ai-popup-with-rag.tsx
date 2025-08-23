@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
+import { useNavigate } from '@tanstack/react-router';
 import {
   IconDatabase,
   IconExternalLink,
@@ -18,6 +19,7 @@ interface AIPopupWithRAGProps {
 }
 
 function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
+  const navigate = useNavigate();
   const {
     messages,
     isLoading,
@@ -66,6 +68,13 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
     setShowSources(showSources === messageId ? null : messageId);
   };
 
+  const handleWikiNavigation = (wikiId: number) => {
+    navigate({ 
+      to: '/wiki/$wikiId', 
+      params: { wikiId: wikiId.toString() } 
+    });
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -108,7 +117,7 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
           <IconDatabase className="h-3 w-3" />
           <span>
             {ragStatus.isInitialized
-              ? `RAG Active (${ragStatus.documentCount} docs)`
+              ? `RAG Active (${ragStatus.documentCount} articles, ${ragStatus.chunkCount} chunks)`
               : ragStatus.isIndexing
                 ? ragStatus.indexingProgress
                   ? `Indexing: ${ragStatus.indexingProgress.current}/${ragStatus.indexingProgress.total} - ${ragStatus.indexingProgress.status}`
@@ -281,9 +290,12 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
                         className="bg-white rounded p-2 border border-blue-200"
                       >
                         <div className="flex items-center justify-between mb-1">
-                          <h5 className="text-xs font-medium text-blue-900">
+                          <button
+                            onClick={() => handleWikiNavigation(source.wikiId)}
+                            className="text-xs font-medium text-blue-900 hover:text-blue-700 hover:underline cursor-pointer transition-colors duration-200 text-left"
+                          >
                             {source.title}
-                          </h5>
+                          </button>
                           <span className="text-xs text-blue-600">
                             {(source.score * 100).toFixed(0)}% relevant
                           </span>

@@ -89,43 +89,61 @@ class VectorStore {
   }
 
   /**
-   * Function to chunk text
+   * Function to chunk text by sentences (splitting by dots)
    */
   private chunkText(
     text: string,
     chunkSize: number = this.CHUNK_SIZE,
     overlap: number = this.CHUNK_OVERLAP,
   ): string[] {
-    if (text.length <= chunkSize) {
+    // First, split by sentences (dots)
+    const sentences = text
+      .split(/[.!?]\s+/)
+      .map(s => s.trim())
+      .filter(s => s.length > 0)
+      .map(s => s + '.'); // Add dots back
+    
+    if (sentences.length === 0) {
       return [text];
     }
 
-    const chunks: string[] = [];
-    let start = 0;
-
-    while (start < text.length) {
-      let end = Math.min(start + chunkSize, text.length);
-
-      // Try to cut at sentence boundaries
-      if (end < text.length) {
-        const lastPeriod = text.lastIndexOf('.', end);
-        const lastNewline = text.lastIndexOf('\n', end);
-        const lastSentenceEnd = Math.max(lastPeriod, lastNewline);
-
-        if (lastSentenceEnd > start + chunkSize * 0.5) {
-          end = lastSentenceEnd + 1;
-        }
-      }
-
-      const chunk = text.slice(start, end).trim();
-      if (chunk.length > 0) {
-        chunks.push(chunk);
-      }
-
-      start = end - overlap;
+    // If we have very few sentences, return them as is
+    if (sentences.length <= 3) {
+      return [sentences.join(' ')];
     }
 
-    return chunks;
+    const chunks: string[] = [];
+    let currentChunk = '';
+    let i = 0;
+
+    while (i < sentences.length) {
+      const sentence = sentences[i];
+      
+      // If adding this sentence would exceed chunk size, finalize current chunk
+      if (currentChunk.length > 0 && 
+          (currentChunk.length + sentence.length) > chunkSize) {
+        chunks.push(currentChunk.trim());
+        
+        // Start new chunk with overlap (previous sentence(s))
+        const overlapSentences = currentChunk
+          .split(/[.!?]\s+/)
+          .slice(-Math.max(1, Math.floor(overlap / 100))) // Use overlap as sentence count
+          .filter(s => s.trim().length > 0)
+          .map(s => s.trim() + '.');
+        
+        currentChunk = overlapSentences.join(' ') + ' ';
+      }
+      
+      currentChunk += sentence + ' ';
+      i++;
+    }
+
+    // Add the final chunk
+    if (currentChunk.trim().length > 0) {
+      chunks.push(currentChunk.trim());
+    }
+
+    return chunks.length > 0 ? chunks : [text];
   }
 
   /**
@@ -166,7 +184,7 @@ class VectorStore {
             Authorization: `Bearer ${apiKey}`,
           },
           body: JSON.stringify({
-            model: 'solar-embedding-1-large-passage',
+            model: 'solar-embedding-1-large-query',
             input: inputText,
           }),
         },
@@ -226,7 +244,7 @@ class VectorStore {
   }
 
   /**
-   * Add wiki document to vector store
+   * Add wiki document to vector store with chunk list structure
    */
   async addWikiDocument(
     wiki: {
@@ -238,7 +256,7 @@ class VectorStore {
       createdAt: string;
     },
     onProgress?: (current: number, total: number, status: string) => void,
-  ): Promise<void> {
+  ): Promise<{ chunks: string[] }> {
     try {
       console.log(`Starting to process wiki: "${wiki.title}" (ID: ${wiki.id})`);
       onProgress?.(0, 1, `Processing wiki: ${wiki.title}`);
@@ -253,10 +271,13 @@ class VectorStore {
         (doc) => doc.metadata.wikiId !== wiki.id,
       );
 
-      // Split content into chunks
+      // Split content into chunks by sentences (dots)
       const chunks = this.chunkText(wiki.content);
-      console.log(`Wiki "${wiki.title}" divided into ${chunks.length} chunks`);
+      console.log(`Wiki "${wiki.title}" divided into ${chunks.length} chunks by sentence separation`);
 
+      // Process chunks in batch
+      const chunkDocuments: VectorDocument[] = [];
+      
       for (let i = 0; i < chunks.length; i++) {
         const chunk = chunks[i];
         console.log(
@@ -269,9 +290,9 @@ class VectorStore {
         );
 
         try {
-          const embedding = await this.generateEmbedding(
-            `${wiki.title}\n\n${chunk}`,
-          );
+          // Include title context for better embedding
+          const embeddingText = `Title: ${wiki.title}\n\nContent: ${chunk}`;
+          const embedding = await this.generateEmbedding(embeddingText);
 
           const document: VectorDocument = {
             id: `wiki_${wiki.id}_chunk_${i}`,
@@ -288,19 +309,27 @@ class VectorStore {
             embedding,
           };
 
-          this.documents.push(document);
+          chunkDocuments.push(document);
           console.log(
             `Successfully processed chunk ${i + 1} for wiki "${wiki.title}"`,
           );
+          
+          // Small delay to prevent API rate limiting
+          if (i < chunks.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
         } catch (chunkError) {
           console.error(
             `Failed to process chunk ${i + 1} for wiki "${wiki.title}":`,
             chunkError,
           );
-          throw chunkError; // Stop entire document processing if chunk processing fails
+          throw chunkError;
         }
       }
 
+      // Add all chunks to documents at once
+      this.documents.push(...chunkDocuments);
+      
       // Save to localStorage after successful processing
       this.saveToLocalStorage();
       onProgress?.(chunks.length, chunks.length, `Completed: ${wiki.title}`);
@@ -308,6 +337,8 @@ class VectorStore {
       console.log(
         `Successfully added wiki "${wiki.title}" with ${chunks.length} chunks to vector store`,
       );
+      
+      return { chunks };
     } catch (error) {
       console.error(`Failed to add wiki document "${wiki.title}":`, error);
       toast.error(
@@ -315,8 +346,8 @@ class VectorStore {
       );
       throw error;
     }
-  } /**
-   * Add multiple wiki documents in batch
+  }  /**
+   * Add multiple wiki documents in batch with improved processing
    */
   async addWikiDocuments(
     wikis: Array<{
@@ -328,26 +359,33 @@ class VectorStore {
       createdAt: string;
     }>,
     onProgress?: (current: number, total: number, status: string) => void,
-  ): Promise<void> {
+  ): Promise<{ processedArticles: number; totalChunks: number }> {
     const errors: Array<{ title: string; error: string }> = [];
     let successCount = 0;
+    let totalChunks = 0;
+    const articleChunks: { [key: string]: string[] } = {};
 
-    console.log(`Starting batch processing of ${wikis.length} wiki documents`);
+    console.log(`Starting batch processing of ${wikis.length} wiki articles`);
     onProgress?.(0, wikis.length, 'Starting batch processing...');
 
     for (let i = 0; i < wikis.length; i++) {
       const wiki = wikis[i];
-      console.log(`Processing wiki ${i + 1}/${wikis.length}: "${wiki.title}"`);
-      onProgress?.(i, wikis.length, `Processing: ${wiki.title}`);
+      console.log(`Processing article ${i + 1}/${wikis.length}: "${wiki.title}"`);
+      onProgress?.(i, wikis.length, `Processing article: ${wiki.title}`);
 
       try {
-        await this.addWikiDocument(wiki, (_, __, chunkStatus) => {
+        const result = await this.addWikiDocument(wiki, (_, __, chunkStatus) => {
           // Report sub-progress within current wiki
           onProgress?.(i, wikis.length, `${wiki.title}: ${chunkStatus}`);
         });
+        
+        // Store chunk information for this article
+        articleChunks[wiki.title] = result.chunks;
+        totalChunks += result.chunks.length;
         successCount++;
+        
         console.log(
-          `✓ Successfully processed wiki ${i + 1}/${wikis.length}: "${wiki.title}"`,
+          `✓ Successfully processed article ${i + 1}/${wikis.length}: "${wiki.title}" (${result.chunks.length} chunks)`,
         );
 
         // Yield control to prevent UI blocking
@@ -355,14 +393,14 @@ class VectorStore {
 
         // Wait to avoid API rate limiting (only if not the last document)
         if (i < wikis.length - 1) {
-          console.log('Waiting 200ms before next wiki...');
-          await new Promise((resolve) => setTimeout(resolve, 200));
+          console.log('Waiting 300ms before next article...');
+          await new Promise((resolve) => setTimeout(resolve, 300));
         }
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : 'Unknown error';
         console.error(
-          `✗ Failed to process wiki ${i + 1}/${wikis.length}: "${wiki.title}":`,
+          `✗ Failed to process article ${i + 1}/${wikis.length}: "${wiki.title}":`,
           error,
         );
         errors.push({ title: wiki.title, error: errorMessage });
@@ -377,30 +415,37 @@ class VectorStore {
 
     onProgress?.(wikis.length, wikis.length, 'Batch processing completed');
     console.log(
-      `Batch processing completed: ${successCount}/${wikis.length} successful`,
+      `Batch processing completed: ${successCount}/${wikis.length} articles processed (${totalChunks} total chunks)`,
     );
+    
+    // Log chunk distribution
+    Object.entries(articleChunks).forEach(([title, chunks]) => {
+      console.log(`Article "${title}": ${chunks.length} chunks`);
+    });
 
     if (errors.length > 0) {
       const errorTitles = errors.map((e) => e.title).join(', ');
-      console.error('Failed wikis:', errors);
+      console.error('Failed articles:', errors);
 
       if (successCount === 0) {
         toast.error(
-          'All wiki document processing failed. Please check your API settings.',
+          'All wiki articles failed to process. Please check your API settings.',
         );
       } else {
         toast.error(
-          `Some wiki documents failed to process (${errors.length}): ${errorTitles}`,
+          `Some wiki articles failed to process (${errors.length}): ${errorTitles}`,
         );
         toast.success(
-          `${successCount} wiki documents were successfully vectorized`,
+          `${successCount} articles successfully processed with ${totalChunks} total chunks`,
         );
       }
     } else {
       toast.success(
-        `All ${successCount} wiki documents were successfully vectorized`,
+        `All ${successCount} articles successfully processed with ${totalChunks} total chunks`,
       );
     }
+    
+    return { processedArticles: successCount, totalChunks };
   }
 
   /**
@@ -459,10 +504,36 @@ class VectorStore {
   }
 
   /**
-   * Return number of documents in vector store
+   * Return number of wiki articles in vector store (not chunks)
    */
   getDocumentCount(): number {
+    const uniqueWikiIds = new Set<number>();
+    this.documents.forEach((doc) => {
+      if (doc.metadata.type === 'wiki_chunk') {
+        uniqueWikiIds.add(doc.metadata.wikiId);
+      }
+    });
+    return uniqueWikiIds.size;
+  }
+  
+  /**
+   * Return number of chunks in vector store
+   */
+  getChunkCount(): number {
     return this.documents.length;
+  }
+  
+  /**
+   * Get chunk distribution by article
+   */
+  getChunkDistribution(): { [articleTitle: string]: number } {
+    const distribution: { [articleTitle: string]: number } = {};
+    this.documents.forEach((doc) => {
+      if (doc.metadata.type === 'wiki_chunk') {
+        distribution[doc.metadata.title] = (distribution[doc.metadata.title] || 0) + 1;
+      }
+    });
+    return distribution;
   }
 
   /**

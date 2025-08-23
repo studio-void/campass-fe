@@ -121,7 +121,7 @@ function WikiDetailPage() {
   const isAuthor = currentUser?.id === wiki.authorId;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 mb-24">
       {/* Header */}
       <div className="flex items-center justify-between">
         <Button variant="ghost" onClick={() => navigate({ to: '/wiki' })}>
