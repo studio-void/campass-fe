@@ -263,16 +263,95 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
               height={size}
               viewBox={`0 0 ${size} ${size}`}
             >
+              <defs>
+                {/* Outer-only shadow: dilate alpha, blur, subtract original to keep only outside */}
+                <filter
+                  id="outerShadow"
+                  x="-50%"
+                  y="-50%"
+                  width="200%"
+                  height="200%"
+                  filterUnits="objectBoundingBox"
+                >
+                  <feMorphology
+                    in="SourceAlpha"
+                    operator="dilate"
+                    radius="1.2"
+                    result="dilated"
+                  />
+                  <feGaussianBlur
+                    in="dilated"
+                    stdDeviation="1.5"
+                    result="blurred"
+                  />
+                  <feComposite
+                    in="blurred"
+                    in2="SourceAlpha"
+                    operator="out"
+                    result="outerOnly"
+                  />
+                  <feColorMatrix
+                    in="outerOnly"
+                    type="matrix"
+                    values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0   0 0 0 0.28 0"
+                    result="shadow"
+                  />
+                  <feMerge>
+                    <feMergeNode in="shadow" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+                <filter
+                  id="outerShadowStrong"
+                  x="-50%"
+                  y="-50%"
+                  width="200%"
+                  height="200%"
+                  filterUnits="objectBoundingBox"
+                >
+                  <feMorphology
+                    in="SourceAlpha"
+                    operator="dilate"
+                    radius="1.6"
+                    result="dilated"
+                  />
+                  <feGaussianBlur
+                    in="dilated"
+                    stdDeviation="2.2"
+                    result="blurred"
+                  />
+                  <feComposite
+                    in="blurred"
+                    in2="SourceAlpha"
+                    operator="out"
+                    result="outerOnly"
+                  />
+                  <feColorMatrix
+                    in="outerOnly"
+                    type="matrix"
+                    values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0   0 0 0 0.4 0"
+                    result="shadow"
+                  />
+                  <feMerge>
+                    <feMergeNode in="shadow" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+
               <path
                 d={`M ${stroke / 2} ${r + stroke / 2} A ${r} ${r} 0 0 1 ${r + stroke / 2} ${stroke / 2}`}
                 fill="none"
                 stroke={
                   isDragging
                     ? 'rgba(255,255,255,0.95)'
-                    : 'rgba(255,255,255,0.75)'
+                    : 'rgba(255,255,255,0.85)'
                 }
                 strokeWidth={stroke}
                 strokeLinecap="round"
+                filter={
+                  isDragging ? 'url(#outerShadowStrong)' : 'url(#outerShadow)'
+                }
               />
             </svg>
           </div>
