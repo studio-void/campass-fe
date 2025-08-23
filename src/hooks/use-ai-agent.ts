@@ -1,8 +1,11 @@
 import { useState } from 'react';
 
+import type { NavigateOptions, ToOptions } from '@tanstack/react-router';
 import OpenAI from 'openai';
 import { toast } from 'sonner';
 
+import type { NavigationFunctions } from './use-agent-navigation';
+import { createNavigationFunctions } from './use-agent-navigation';
 import { useCurrentUser } from './use-current-user';
 import { useRAG } from './use-rag';
 
@@ -32,6 +35,17 @@ export interface AgentMessage {
     arguments: any;
     result: any;
   };
+  usedTools?: Array<{
+    name: string;
+    description: string;
+    success: boolean;
+    args?: any;
+    result?: any;
+  }>;
+  ragUsed?: {
+    searchQuery: string;
+    documentsFound: number;
+  };
 }
 
 interface UseAIAgentReturn {
@@ -52,18 +66,26 @@ interface UseAIAgentReturn {
     } | null;
   };
   initializeRAG: () => Promise<void>;
+  navigationFunctions?: NavigationFunctions;
 }
 
 // Available functions for the AI agent
-const availableFunctions = {
+const createAvailableFunctions = (
+  navigationFunctions?: NavigationFunctions,
+) => ({
   search_wiki: async (query: string, school?: string) => {
-    // This will be implemented to search wiki documents
-    return `Searching for "${query}" in wiki documents${school ? ` for ${school}` : ''}...`;
+    return JSON.stringify({
+      message: `Searching for "${query}" in wiki documents${school ? ` for ${school}` : ''}`,
+      query,
+      school: school || null,
+    });
   },
 
   get_user_info: async () => {
-    // Get current user information
-    return 'Getting user information...';
+    return JSON.stringify({
+      message: 'Getting user information',
+      action: 'get_user_info',
+    });
   },
 
   create_calendar_event: async (
@@ -71,8 +93,13 @@ const availableFunctions = {
     date: string,
     description?: string,
   ) => {
-    // Create a calendar event (mock implementation)
-    return `Calendar event "${title}" created for ${date}${description ? ` with description: ${description}` : ''}`;
+    return JSON.stringify({
+      message: `Calendar event "${title}" created for ${date}`,
+      title,
+      date,
+      description: description || null,
+      status: 'created',
+    });
   },
 
   get_weather: async (
@@ -113,110 +140,362 @@ const availableFunctions = {
       return JSON.stringify({ expression, error: 'Invalid expression' });
     }
   },
-};
+
+  // Navigation functions
+  navigate_to_page: async (page: string, wikiId?: string) => {
+    if (!navigationFunctions) {
+      return JSON.stringify({ error: 'Navigation not available' });
+    }
+
+    try {
+      const result = await navigationFunctions.navigateToPage({
+        page,
+        ...(wikiId && { wikiId }),
+      });
+      return JSON.stringify(result);
+    } catch (error) {
+      return JSON.stringify({
+        error: error instanceof Error ? error.message : 'Navigation failed',
+      });
+    }
+  },
+
+  get_available_pages: async () => {
+    if (!navigationFunctions) {
+      return JSON.stringify({ error: 'Navigation not available' });
+    }
+
+    const pages = navigationFunctions.getAvailablePages();
+    return JSON.stringify({ pages });
+  },
+
+  search_pages: async (keyword: string) => {
+    if (!navigationFunctions) {
+      return JSON.stringify({ error: 'Navigation not available' });
+    }
+
+    const results = navigationFunctions.searchPages(keyword);
+    return JSON.stringify({ results });
+  },
+
+  go_home: async () => {
+    if (!navigationFunctions) {
+      return JSON.stringify({ error: 'Navigation not available' });
+    }
+
+    const result = await navigationFunctions.goHome();
+    return JSON.stringify(result);
+  },
+
+  go_to_wiki: async () => {
+    if (!navigationFunctions) {
+      return JSON.stringify({ error: 'Navigation not available' });
+    }
+
+    const result = await navigationFunctions.goToWiki();
+    return JSON.stringify(result);
+  },
+
+  go_to_wiki_article: async (wikiId: string) => {
+    if (!navigationFunctions) {
+      return JSON.stringify({ error: 'Navigation not available' });
+    }
+
+    const result = await navigationFunctions.goToWikiArticle(wikiId);
+    return JSON.stringify(result);
+  },
+
+  go_to_dorm: async () => {
+    if (!navigationFunctions) {
+      return JSON.stringify({ error: 'Navigation not available' });
+    }
+
+    const result = await navigationFunctions.goToDorm();
+    return JSON.stringify(result);
+  },
+
+  go_to_admin: async () => {
+    if (!navigationFunctions) {
+      return JSON.stringify({ error: 'Navigation not available' });
+    }
+
+    const result = await navigationFunctions.goToAdmin();
+    return JSON.stringify(result);
+  },
+
+  go_to_document_parsing: async () => {
+    if (!navigationFunctions) {
+      return JSON.stringify({ error: 'Navigation not available' });
+    }
+
+    const result = await navigationFunctions.goToDocumentParsing();
+    return JSON.stringify(result);
+  },
+});
 
 // Function definitions for OpenAI
-const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
-  {
-    type: 'function',
-    function: {
-      name: 'search_wiki',
-      description: 'Search for information in wiki documents',
-      parameters: {
-        type: 'object',
-        properties: {
-          query: {
-            type: 'string',
-            description: 'Search query for wiki documents',
+const createTools = (
+  hasNavigation: boolean = false,
+): OpenAI.Chat.Completions.ChatCompletionTool[] => {
+  const baseTools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
+    {
+      type: 'function',
+      function: {
+        name: 'search_wiki',
+        description: 'Search for information in wiki documents',
+        parameters: {
+          type: 'object',
+          properties: {
+            query: {
+              type: 'string',
+              description: 'Search query for wiki documents',
+            },
+            school: {
+              type: 'string',
+              description: 'Optional school filter for search',
+            },
           },
-          school: {
-            type: 'string',
-            description: 'Optional school filter for search',
-          },
+          required: ['query'],
         },
-        required: ['query'],
       },
     },
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'get_user_info',
-      description: 'Get current user information',
-      parameters: {
-        type: 'object',
-        properties: {},
-      },
-    },
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'create_calendar_event',
-      description: 'Create a calendar event',
-      parameters: {
-        type: 'object',
-        properties: {
-          title: {
-            type: 'string',
-            description: 'Event title',
-          },
-          date: {
-            type: 'string',
-            description: 'Event date in YYYY-MM-DD format',
-          },
-          description: {
-            type: 'string',
-            description: 'Optional event description',
-          },
+    {
+      type: 'function',
+      function: {
+        name: 'get_user_info',
+        description: 'Get current user information',
+        parameters: {
+          type: 'object',
+          properties: {},
         },
-        required: ['title', 'date'],
       },
     },
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'get_weather',
-      description: 'Get current weather information for a location',
-      parameters: {
-        type: 'object',
-        properties: {
-          location: {
-            type: 'string',
-            description: 'City name or location',
+    {
+      type: 'function',
+      function: {
+        name: 'create_calendar_event',
+        description: 'Create a calendar event',
+        parameters: {
+          type: 'object',
+          properties: {
+            title: {
+              type: 'string',
+              description: 'Event title',
+            },
+            date: {
+              type: 'string',
+              description: 'Event date in YYYY-MM-DD format',
+            },
+            description: {
+              type: 'string',
+              description: 'Optional event description',
+            },
           },
-          unit: {
-            type: 'string',
-            enum: ['celsius', 'fahrenheit'],
-            description: 'Temperature unit',
-          },
+          required: ['title', 'date'],
         },
-        required: ['location'],
       },
     },
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'calculate',
-      description: 'Perform mathematical calculations',
-      parameters: {
-        type: 'object',
-        properties: {
-          expression: {
-            type: 'string',
-            description:
-              'Mathematical expression to calculate (e.g., "2 + 3 * 4")',
+    {
+      type: 'function',
+      function: {
+        name: 'get_weather',
+        description: 'Get current weather information for a location',
+        parameters: {
+          type: 'object',
+          properties: {
+            location: {
+              type: 'string',
+              description: 'City name or location',
+            },
+            unit: {
+              type: 'string',
+              enum: ['celsius', 'fahrenheit'],
+              description: 'Temperature unit',
+            },
           },
+          required: ['location'],
         },
-        required: ['expression'],
       },
     },
-  },
-];
+    {
+      type: 'function',
+      function: {
+        name: 'calculate',
+        description: 'Perform mathematical calculations',
+        parameters: {
+          type: 'object',
+          properties: {
+            expression: {
+              type: 'string',
+              description:
+                'Mathematical expression to calculate (e.g., "2 + 3 * 4")',
+            },
+          },
+          required: ['expression'],
+        },
+      },
+    },
+  ];
 
-export function useAIAgent(): UseAIAgentReturn {
+  const navigationTools: OpenAI.Chat.Completions.ChatCompletionTool[] =
+    hasNavigation
+      ? [
+          {
+            type: 'function',
+            function: {
+              name: 'navigate_to_page',
+              description: 'Navigate to a specific page in the application',
+              parameters: {
+                type: 'object',
+                properties: {
+                  page: {
+                    type: 'string',
+                    description:
+                      'Page key or path to navigate to (e.g., "home", "wiki", "dorm", "admin")',
+                  },
+                  wikiId: {
+                    type: 'string',
+                    description:
+                      'Wiki article ID (required for wiki article pages)',
+                  },
+                },
+                required: ['page'],
+              },
+            },
+          },
+          {
+            type: 'function',
+            function: {
+              name: 'get_available_pages',
+              description:
+                'Get list of all available pages that can be navigated to',
+              parameters: {
+                type: 'object',
+                properties: {},
+              },
+            },
+          },
+          {
+            type: 'function',
+            function: {
+              name: 'search_pages',
+              description: 'Search for pages by keyword',
+              parameters: {
+                type: 'object',
+                properties: {
+                  keyword: {
+                    type: 'string',
+                    description:
+                      'Keyword to search for in page names and descriptions',
+                  },
+                },
+                required: ['keyword'],
+              },
+            },
+          },
+          {
+            type: 'function',
+            function: {
+              name: 'go_home',
+              description: 'Navigate to the main home page',
+              parameters: {
+                type: 'object',
+                properties: {},
+              },
+            },
+          },
+          {
+            type: 'function',
+            function: {
+              name: 'go_to_wiki',
+              description: 'Navigate to the wiki main page',
+              parameters: {
+                type: 'object',
+                properties: {},
+              },
+            },
+          },
+          {
+            type: 'function',
+            function: {
+              name: 'go_to_wiki_article',
+              description: 'Navigate to a specific wiki article',
+              parameters: {
+                type: 'object',
+                properties: {
+                  wikiId: {
+                    type: 'string',
+                    description: 'ID of the wiki article to navigate to',
+                  },
+                },
+                required: ['wikiId'],
+              },
+            },
+          },
+          {
+            type: 'function',
+            function: {
+              name: 'go_to_dorm',
+              description: 'Navigate to dormitory services page',
+              parameters: {
+                type: 'object',
+                properties: {},
+              },
+            },
+          },
+          {
+            type: 'function',
+            function: {
+              name: 'go_to_admin',
+              description: 'Navigate to admin dashboard',
+              parameters: {
+                type: 'object',
+                properties: {},
+              },
+            },
+          },
+          {
+            type: 'function',
+            function: {
+              name: 'go_to_document_parsing',
+              description: 'Navigate to document parsing page',
+              parameters: {
+                type: 'object',
+                properties: {},
+              },
+            },
+          },
+        ]
+      : [];
+
+  return [...baseTools, ...navigationTools];
+};
+
+// Helper function to get tool descriptions
+const getToolDescription = (toolName: string): string => {
+  const descriptions: Record<string, string> = {
+    search_wiki: 'Search for information in wiki documents',
+    get_user_info: 'Get current user information',
+    create_calendar_event: 'Create a calendar event',
+    get_weather: 'Get weather information for a location',
+    calculate: 'Perform mathematical calculations',
+    navigate_to_page: 'Navigate to a specific page',
+    get_available_pages: 'Get list of available pages',
+    search_pages: 'Search for pages by keyword',
+    go_home: 'Navigate to home page',
+    go_to_wiki: 'Navigate to wiki main page',
+    go_to_wiki_article: 'Navigate to specific wiki article',
+    go_to_dorm: 'Navigate to dormitory services',
+    go_to_admin: 'Navigate to admin dashboard',
+    go_to_document_parsing: 'Navigate to document parsing page',
+  };
+
+  return descriptions[toolName] || `Execute ${toolName}`;
+};
+
+export function useAIAgent(
+  navigate?: (options: ToOptions & NavigateOptions) => void,
+): UseAIAgentReturn {
   const { user } = useCurrentUser();
   const {
     isInitialized,
@@ -229,6 +508,17 @@ export function useAIAgent(): UseAIAgentReturn {
     initializeRAG,
   } = useRAG();
 
+  // Create navigation functions if navigate is provided
+  const navigationFunctions = navigate
+    ? createNavigationFunctions(navigate)
+    : undefined;
+
+  // Create available functions with navigation support
+  const availableFunctions = createAvailableFunctions(navigationFunctions);
+
+  // Create tools with navigation support
+  const tools = createTools(!!navigationFunctions);
+
   // Initialize OpenAI client
   const openai = new OpenAI({
     apiKey: import.meta.env.VITE_UPSTAGE_API_KEY,
@@ -239,8 +529,16 @@ export function useAIAgent(): UseAIAgentReturn {
   const defaultMessage: AgentMessage = {
     id: 'welcome',
     role: 'assistant',
-    content:
-      "Hello! I'm Campass AI Agent 🤖\n\nI'm an advanced AI assistant that can:\n- Search wiki documents\n- Get weather information\n- Perform calculations\n- Create calendar events\n- And much more!\n\nHow can I help you today?",
+    content: `Hello! I'm Campass AI Agent 🤖
+
+I'm an advanced AI assistant that can:
+- 🔍 Search wiki documents
+- 🌤️ Get weather information
+- 🧮 Perform calculations
+- 📅 Create calendar events${navigationFunctions ? '\n- 🧭 Navigate to different pages' : ''}
+- And much more!
+
+How can I help you today?`,
     timestamp: new Date(),
   };
 
@@ -299,6 +597,12 @@ export function useAIAgent(): UseAIAgentReturn {
               return await (func as any)(args.location, args.unit);
             } else if (functionName === 'calculate') {
               return await (func as any)(args.expression);
+            } else if (functionName === 'navigate_to_page') {
+              return await (func as any)(args.page, args.wikiId);
+            } else if (functionName === 'search_pages') {
+              return await (func as any)(args.keyword);
+            } else if (functionName === 'go_to_wiki_article') {
+              return await (func as any)(args.wikiId);
             }
             return await (func as any)();
           }
@@ -331,7 +635,11 @@ export function useAIAgent(): UseAIAgentReturn {
         [
           {
             role: 'system',
-            content: `You are Campass AI Agent, a helpful assistant for university students. You have access to various tools including wiki search, weather information, calculations, and calendar management. Use the appropriate tools to provide accurate and helpful responses.${user?.school ? ` The user is from ${user.school}.` : ''}`,
+            content: `You are Campass AI Agent, a helpful assistant for university students. You have access to various tools including wiki search, weather information, calculations, calendar management${navigationFunctions ? ', and page navigation' : ''}. 
+
+IMPORTANT: When a user asks to navigate to a page AND search for content (e.g., "go to wiki about library"), handle both actions in sequence but provide a single comprehensive response that combines the navigation result with the search results. Do not create separate messages for each tool call.
+
+Use the appropriate tools to provide accurate and helpful responses.${user?.school ? ` The user is from ${user.school}.` : ''}${navigationFunctions ? ' You can help users navigate to different pages in the application by using navigation functions.' : ''}`,
           },
           ...messages
             .filter((msg) => msg.role !== 'tool')
@@ -359,28 +667,19 @@ export function useAIAgent(): UseAIAgentReturn {
 
       // Step 2: Check if the model wants to call functions
       if (responseMessage.tool_calls) {
-        // Add assistant message with tool calls
-        const assistantMessage: AgentMessage = {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: responseMessage.content || 'Let me help you with that...',
-          timestamp: new Date(),
-          toolCalls: responseMessage.tool_calls?.map((tc) => {
-            const toolCall = tc as any;
-            return {
-              id: toolCall.id,
-              type: 'function' as const,
-              function: {
-                name: toolCall.function?.name || '',
-                arguments: toolCall.function?.arguments || '{}',
-              },
-            };
-          }),
-        };
-        setMessages((prev) => [...prev, assistantMessage]);
+        // Don't show intermediate assistant message with tool calls to user
+        // Just execute functions silently
 
         // Execute each function call
         const functionResults: AgentMessage[] = [];
+        const usedTools: Array<{
+          name: string;
+          description: string;
+          success: boolean;
+          args?: any;
+          result?: any;
+        }> = [];
+
         for (const toolCall of responseMessage.tool_calls) {
           const tc = toolCall as any;
           if (!tc.function) continue;
@@ -392,27 +691,48 @@ export function useAIAgent(): UseAIAgentReturn {
             functionArgs,
           );
 
-          const functionResponse = await executeFunction(
-            functionName,
-            functionArgs,
-          );
+          try {
+            const functionResponse = await executeFunction(
+              functionName,
+              functionArgs,
+            );
 
-          const toolMessage: AgentMessage = {
-            id: `tool-${toolCall.id}`,
-            role: 'tool',
-            content: functionResponse,
-            timestamp: new Date(),
-            functionCall: {
+            const toolMessage: AgentMessage = {
+              id: `tool-${toolCall.id}`,
+              role: 'tool',
+              content: functionResponse,
+              timestamp: new Date(),
+              functionCall: {
+                name: functionName,
+                arguments: functionArgs,
+                result: functionResponse,
+              },
+            };
+
+            functionResults.push(toolMessage);
+
+            // Track successful tool usage
+            usedTools.push({
               name: functionName,
-              arguments: functionArgs,
+              description: getToolDescription(functionName),
+              success: true,
+              args: functionArgs,
               result: functionResponse,
-            },
-          };
-
-          functionResults.push(toolMessage);
+            });
+          } catch (error) {
+            // Track failed tool usage
+            usedTools.push({
+              name: functionName,
+              description: getToolDescription(functionName),
+              success: false,
+              args: functionArgs,
+              result: error instanceof Error ? error.message : 'Unknown error',
+            });
+          }
         }
 
-        setMessages((prev) => [...prev, ...functionResults]);
+        // Don't add intermediate function results to messages
+        // setMessages((prev) => [...prev, ...functionResults]);
 
         // Step 3: Get final response from the model
         const finalMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] =
@@ -444,6 +764,7 @@ export function useAIAgent(): UseAIAgentReturn {
             finalResponse.choices[0].message.content ||
             "I've completed the requested actions.",
           timestamp: new Date(),
+          usedTools: usedTools.length > 0 ? usedTools : undefined,
         };
 
         setMessages((prev) => [...prev, finalMessage]);
@@ -492,5 +813,6 @@ export function useAIAgent(): UseAIAgentReturn {
       indexingProgress,
     },
     initializeRAG,
+    navigationFunctions,
   };
 }

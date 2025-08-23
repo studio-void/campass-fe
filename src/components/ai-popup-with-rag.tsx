@@ -13,7 +13,7 @@ import {
 import { useNavigate } from '@tanstack/react-router';
 import ReactMarkdown from 'react-markdown';
 
-import { useUpstageApiWithRAG } from '../hooks';
+import { useAIAgent, useUpstageApiWithRAG } from '../hooks';
 import { CampassLogo } from './index';
 
 interface AIPopupWithRAGProps {
@@ -22,6 +22,18 @@ interface AIPopupWithRAGProps {
 
 function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
   const navigate = useNavigate();
+
+  // Use the AI agent with navigation support
+  const {
+    messages: agentMessages,
+    isLoading: isAgentLoading,
+    sendMessage: sendAgentMessage,
+    clearMessages: clearAgentMessages,
+    ragStatus: agentRagStatus,
+    initializeRAG: initializeAgentRAG,
+  } = useAIAgent(navigate);
+
+  // Keep the original RAG functionality as fallback
   const {
     messages,
     isLoading,
@@ -30,6 +42,14 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
     ragStatus,
     initializeRAG,
   } = useUpstageApiWithRAG();
+
+  // Use agent by default, fallback to original if needed
+  const activeMessages = agentMessages || messages;
+  const activeIsLoading = isAgentLoading ?? isLoading;
+  const activeSendMessage = sendAgentMessage || sendMessage;
+  const activeClearMessages = clearAgentMessages || clearMessages;
+  const activeRagStatus = agentRagStatus || ragStatus;
+  const activeInitializeRAG = initializeAgentRAG || initializeRAG;
 
   const [input, setInput] = useState('');
   const [showSources, setShowSources] = useState<string | null>(null);
@@ -88,7 +108,7 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [activeMessages]);
 
   useEffect(() => {
     const el = resizeRef.current;
@@ -170,11 +190,11 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
   };
 
   const handleSendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || activeIsLoading) return;
 
     const userInput = input;
     setInput('');
-    await sendMessage(userInput);
+    await activeSendMessage(userInput);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -185,11 +205,11 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
   };
 
   const handleClearMessages = () => {
-    clearMessages();
+    activeClearMessages();
   };
 
   const handleInitializeRAG = async () => {
-    await initializeRAG();
+    await activeInitializeRAG();
   };
 
   const toggleSources = (messageId: string) => {
@@ -268,19 +288,19 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
           <div className="flex gap-1">
             <button
               onClick={handleInitializeRAG}
-              disabled={isLoading || ragStatus.isIndexing}
+              disabled={activeIsLoading || activeRagStatus.isIndexing}
               title="Initialize RAG System"
               type="button"
               aria-label="Initialize RAG system"
               className="p-1 hover:bg-white/20 rounded transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <IconRefresh
-                className={`h-4 w-4 ${ragStatus.isIndexing ? 'animate-spin' : ''}`}
+                className={`h-4 w-4 ${activeRagStatus.isIndexing ? 'animate-spin' : ''}`}
               />
             </button>
             <button
               onClick={handleClearMessages}
-              disabled={isLoading}
+              disabled={activeIsLoading}
               title="Clear Conversation"
               type="button"
               aria-label="Clear conversation"
@@ -295,23 +315,23 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
         <div className="mt-2 text-xs opacity-90 flex items-center gap-2">
           <IconDatabase className="h-3 w-3" />
           <span>
-            {ragStatus.isInitialized
-              ? `RAG Active (${ragStatus.documentCount} articles, ${ragStatus.chunkCount} chunks)`
-              : ragStatus.isIndexing
-                ? ragStatus.indexingProgress
-                  ? `Indexing: ${ragStatus.indexingProgress.current}/${ragStatus.indexingProgress.total} - ${ragStatus.indexingProgress.status}`
+            {activeRagStatus.isInitialized
+              ? `RAG Active (${activeRagStatus.documentCount} articles, ${activeRagStatus.chunkCount} chunks)`
+              : activeRagStatus.isIndexing
+                ? activeRagStatus.indexingProgress
+                  ? `Indexing: ${activeRagStatus.indexingProgress.current}/${activeRagStatus.indexingProgress.total} - ${activeRagStatus.indexingProgress.status}`
                   : 'Initializing RAG...'
                 : 'RAG Inactive'}
           </span>
-          {ragStatus.isIndexing && ragStatus.indexingProgress && (
+          {activeRagStatus.isIndexing && activeRagStatus.indexingProgress && (
             <div className="flex-1 bg-white/20 rounded-full h-1 ml-2">
               <div
                 className="bg-white h-1 rounded-full transition-all duration-200"
                 style={{
                   width: `${
-                    ragStatus.indexingProgress.total > 0
-                      ? (ragStatus.indexingProgress.current /
-                          ragStatus.indexingProgress.total) *
+                    activeRagStatus.indexingProgress.total > 0
+                      ? (activeRagStatus.indexingProgress.current /
+                          activeRagStatus.indexingProgress.total) *
                         100
                       : 0
                   }%`,
@@ -324,7 +344,7 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
-        {messages.map((message) => (
+        {activeMessages.map((message) => (
           <div key={message.id}>
             <div
               className={`flex gap-3 ${
@@ -335,8 +355,9 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
                 <div className="flex-shrink-0">
                   <div
                     className={`w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center ${
-                      isLoading &&
-                      messages[messages.length - 1]?.id === message.id
+                      activeIsLoading &&
+                      activeMessages[activeMessages.length - 1]?.id ===
+                        message.id
                         ? 'animate-pulse'
                         : ''
                     }`}
@@ -409,8 +430,9 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
                       {message.content || ''}
                     </ReactMarkdown>
 
-                    {isLoading &&
-                      messages[messages.length - 1]?.id === message.id && (
+                    {activeIsLoading &&
+                      activeMessages[activeMessages.length - 1]?.id ===
+                        message.id && (
                         <div className="flex justify-start mb-2">
                           <div className="flex gap-1">
                             <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
@@ -616,7 +638,7 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
           />
           <button
             onClick={handleSendMessage}
-            disabled={!input.trim() || isLoading}
+            disabled={!input.trim() || activeIsLoading}
             title="Send Message"
             type="button"
             aria-label="Send message"
