@@ -45,7 +45,7 @@ export default function Hero() {
                 >
                   with Upstage
                   <img
-                    src="../../../../public/images/upstage.png"
+                    src="/images/upstage.png"
                     width={40}
                     style={{
                       display: 'inline-block',
