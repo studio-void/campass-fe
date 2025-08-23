@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { Layout } from '@/components';
 import {
@@ -28,6 +29,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { deleteAuthLogout } from '@/data/delete-auth-logout';
 import { useGoogleCalendar } from '@/hooks/use-google-calendar';
 
 const mock = {
@@ -62,6 +64,16 @@ export default function DashboardPage() {
 
   const { isReady, isAuthed, error, signIn, signOut, listUpcomingEvents } =
     useGoogleCalendar();
+
+  // Logout handler
+  const handleLogout = async () => {
+    const res = await deleteAuthLogout();
+    if (res?.success) {
+      toast.success('로그아웃 되었습니다.');
+      // Optionally, reload or redirect
+      window.location.reload();
+    }
+  };
   const [eventsOpen, setEventsOpen] = useState(false);
   const [events, setEvents] = useState<any[]>([]);
 
@@ -113,79 +125,92 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="flex flex-col items-end gap-1">
-            {!isAuthed ? (
-              <>
-                <Button
-                  disabled={!isReady}
-                  onClick={signIn}
-                  className="h-10 px-5 rounded-full bg-sky-200/90 hover:bg-sky-200 text-slate-700 font-medium gap-2 ring-1 ring-sky-300 shadow-sm"
-                >
-                  <GoogleIcon className="h-5 w-5" />
-                  Google Log in
-                </Button>
-                <div className="text-xs text-neutral-500 text-right">
-                  Log in to Google account to use ‘Team project’
-                </div>
-                {error && (
-                  <div className="text-xs text-red-600 text-right">
-                    {String(error)}
-                  </div>
-                )}
-              </>
-            ) : (
-              <>
-                <div className="flex items-center gap-2">
-                  <Dialog open={eventsOpen} onOpenChange={setEventsOpen}>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" className="rounded-full">
-                        Upcoming events
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[520px]">
-                      <DialogHeader>
-                        <DialogTitle>Google Calendar</DialogTitle>
-                        <DialogDescription>Next 5 events</DialogDescription>
-                      </DialogHeader>
-                      <div className="max-h-[320px] overflow-auto">
-                        <ul className="text-sm text-slate-800 space-y-2">
-                          {events.length === 0 ? (
-                            <li className="text-slate-500">No events</li>
-                          ) : (
-                            events.map((e) => (
-                              <li key={e.id} className="rounded-lg border p-2">
-                                <div className="font-medium">
-                                  {e.summary || '(no title)'}
-                                </div>
-                                <div className="text-xs text-slate-500">
-                                  {e.start?.dateTime || e.start?.date} —{' '}
-                                  {e.end?.dateTime || e.end?.date}
-                                </div>
-                              </li>
-                            ))
-                          )}
-                        </ul>
-                      </div>
-                      <DialogFooter className="gap-2 sm:gap-0">
-                        <DialogClose asChild>
-                          <Button variant="outline">Close</Button>
-                        </DialogClose>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
+          <div className="flex items-center gap-2 justify-end">
+            <div className="flex flex-col items-end gap-1">
+              {!isAuthed ? (
+                <>
                   <Button
-                    variant="destructive"
-                    onClick={signOut}
-                    className="rounded-full"
+                    disabled={!isReady}
+                    onClick={signIn}
+                    className="px-5 rounded-full bg-sky-200/90 hover:bg-sky-200 text-slate-700 font-medium gap-2 inset-ring-1 inset-ring-sky-300 shadow-sm"
                   >
-                    Disconnect
+                    <GoogleIcon className="h-5 w-5" />
+                    Google Log in
                   </Button>
-                </div>
-                <div className="text-xs text-neutral-500">
-                  Connected to Google Calendar
-                </div>
-              </>
-            )}
+                  {/* <div className="text-xs text-neutral-500 text-right">
+                    Log in to Google account to use ‘Team project’
+                  </div>
+                  {error && (
+                    <div className="text-xs text-red-600 text-right">
+                      {String(error)}
+                    </div>
+                  )} */}
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2">
+                    <Dialog open={eventsOpen} onOpenChange={setEventsOpen}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" className="rounded-full">
+                          Upcoming events
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[520px]">
+                        <DialogHeader>
+                          <DialogTitle>Google Calendar</DialogTitle>
+                          <DialogDescription>Next 5 events</DialogDescription>
+                        </DialogHeader>
+                        <div className="max-h-[320px] overflow-auto">
+                          <ul className="text-sm text-slate-800 space-y-2">
+                            {events.length === 0 ? (
+                              <li className="text-slate-500">No events</li>
+                            ) : (
+                              events.map((e) => (
+                                <li
+                                  key={e.id}
+                                  className="rounded-lg border p-2"
+                                >
+                                  <div className="font-medium">
+                                    {e.summary || '(no title)'}
+                                  </div>
+                                  <div className="text-xs text-slate-500">
+                                    {e.start?.dateTime || e.start?.date} —{' '}
+                                    {e.end?.dateTime || e.end?.date}
+                                  </div>
+                                </li>
+                              ))
+                            )}
+                          </ul>
+                        </div>
+                        <DialogFooter className="gap-2 sm:gap-0">
+                          <DialogClose asChild>
+                            <Button variant="outline">Close</Button>
+                          </DialogClose>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                    <Button
+                      variant="destructive"
+                      onClick={signOut}
+                      className="rounded-full"
+                    >
+                      Disconnect
+                    </Button>
+                  </div>
+                  <div className="text-xs text-neutral-500">
+                    Connected to Google Calendar
+                  </div>
+                </>
+              )}
+            </div>
+
+            <Button
+              variant="destructive"
+              onClick={handleLogout}
+              className="rounded-full"
+            >
+              로그아웃
+            </Button>
           </div>
         </div>
 
