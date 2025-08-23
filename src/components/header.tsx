@@ -2,7 +2,6 @@ import { forwardRef } from 'react';
 
 import { Link, useLocation } from '@tanstack/react-router';
 
-import { deleteAuthLogout } from '@/data/delete-auth-logout';
 import { useAuth } from '@/hooks';
 import { cn } from '@/utils/cn';
 
