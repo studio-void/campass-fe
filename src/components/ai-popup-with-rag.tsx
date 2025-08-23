@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
+import { useNavigate } from '@tanstack/react-router';
 import {
   IconDatabase,
   IconExternalLink,
