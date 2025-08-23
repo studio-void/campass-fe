@@ -23,7 +23,10 @@ export function DocumentParser() {
     if (!parsedDocument) return '';
 
     // First try to use direct markdown content from API
-    if (parsedDocument.content.markdown && parsedDocument.content.markdown.trim()) {
+    if (
+      parsedDocument.content.markdown &&
+      parsedDocument.content.markdown.trim()
+    ) {
       // Filter out image/table references from markdown
       return parsedDocument.content.markdown
         .replace(/!\[.*?\]\(.*?\)/g, '') // Remove image markdown
@@ -83,62 +86,70 @@ export function DocumentParser() {
 
   // HTML to Markdown conversion function
   const convertHtmlToMarkdown = (html: string): string => {
-    return html
-      // Remove image and table elements first
-      .replace(/<(figure|img|table)[^>]*>.*?<\/\1>|<(figure|img|table)[^>]*\/>/gi, '')
-      
-      // Convert heading tags to markdown
-      .replace(/<h1[^>]*>(.*?)<\/h1>/gi, '# $1\n\n')
-      .replace(/<h2[^>]*>(.*?)<\/h2>/gi, '## $1\n\n')
-      .replace(/<h3[^>]*>(.*?)<\/h3>/gi, '### $1\n\n')
-      .replace(/<h4[^>]*>(.*?)<\/h4>/gi, '#### $1\n\n')
-      .replace(/<h5[^>]*>(.*?)<\/h5>/gi, '##### $1\n\n')
-      .replace(/<h6[^>]*>(.*?)<\/h6>/gi, '###### $1\n\n')
-      
-      // Convert paragraph tags
-      .replace(/<p[^>]*>(.*?)<\/p>/gi, '$1\n\n')
-      
-      // Convert line breaks
-      .replace(/<br\s*\/?>/gi, '\n')
-      
-      // Convert emphasis tags
-      .replace(/<strong[^>]*>(.*?)<\/strong>/gi, '**$1**')
-      .replace(/<b[^>]*>(.*?)<\/b>/gi, '**$1**')
-      .replace(/<em[^>]*>(.*?)<\/em>/gi, '*$1*')
-      .replace(/<i[^>]*>(.*?)<\/i>/gi, '*$1*')
-      
-      // Convert list items
-      .replace(/<li[^>]*>(.*?)<\/li>/gi, '- $1\n')
-      .replace(/<ul[^>]*>/gi, '')
-      .replace(/<\/ul>/gi, '\n')
-      .replace(/<ol[^>]*>/gi, '')
-      .replace(/<\/ol>/gi, '\n')
-      
-      // Remove remaining HTML tags
-      .replace(/<[^>]*>/g, '')
-      
-      // Decode HTML entities
-      .replace(/&nbsp;/g, ' ')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&amp;/g, '&')
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'")
-      
-      // Clean up multiple line breaks
-      .replace(/\n{3,}/g, '\n\n')
-      .trim();
+    return (
+      html
+        // Remove image and table elements first
+        .replace(
+          /<(figure|img|table)[^>]*>.*?<\/\1>|<(figure|img|table)[^>]*\/>/gi,
+          '',
+        )
+
+        // Convert heading tags to markdown
+        .replace(/<h1[^>]*>(.*?)<\/h1>/gi, '# $1\n\n')
+        .replace(/<h2[^>]*>(.*?)<\/h2>/gi, '## $1\n\n')
+        .replace(/<h3[^>]*>(.*?)<\/h3>/gi, '### $1\n\n')
+        .replace(/<h4[^>]*>(.*?)<\/h4>/gi, '#### $1\n\n')
+        .replace(/<h5[^>]*>(.*?)<\/h5>/gi, '##### $1\n\n')
+        .replace(/<h6[^>]*>(.*?)<\/h6>/gi, '###### $1\n\n')
+
+        // Convert paragraph tags
+        .replace(/<p[^>]*>(.*?)<\/p>/gi, '$1\n\n')
+
+        // Convert line breaks
+        .replace(/<br\s*\/?>/gi, '\n')
+
+        // Convert emphasis tags
+        .replace(/<strong[^>]*>(.*?)<\/strong>/gi, '**$1**')
+        .replace(/<b[^>]*>(.*?)<\/b>/gi, '**$1**')
+        .replace(/<em[^>]*>(.*?)<\/em>/gi, '*$1*')
+        .replace(/<i[^>]*>(.*?)<\/i>/gi, '*$1*')
+
+        // Convert list items
+        .replace(/<li[^>]*>(.*?)<\/li>/gi, '- $1\n')
+        .replace(/<ul[^>]*>/gi, '')
+        .replace(/<\/ul>/gi, '\n')
+        .replace(/<ol[^>]*>/gi, '')
+        .replace(/<\/ol>/gi, '\n')
+
+        // Remove remaining HTML tags
+        .replace(/<[^>]*>/g, '')
+
+        // Decode HTML entities
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+
+        // Clean up multiple line breaks
+        .replace(/\n{3,}/g, '\n\n')
+        .trim()
+    );
   };
 
-  const copyToClipboard = useCallback(async (content: string, section: string) => {
-    try {
-      await navigator.clipboard.writeText(content);
-      setCopiedSection(section);
-      setTimeout(() => setCopiedSection(null), 2000);
-    } catch (err) {
-      console.error('Failed to copy to clipboard:', err);
-    }
-  }, []);
+  const copyToClipboard = useCallback(
+    async (content: string, section: string) => {
+      try {
+        await navigator.clipboard.writeText(content);
+        setCopiedSection(section);
+        setTimeout(() => setCopiedSection(null), 2000);
+      } catch (err) {
+        console.error('Failed to copy to clipboard:', err);
+      }
+    },
+    [],
+  );
 
   const onDrop = useCallback(
     (files: File[]) => {
@@ -195,7 +206,9 @@ export function DocumentParser() {
             <CardTitle>Parsed Markdown</CardTitle>
             <div className="space-x-2">
               <Button
-                onClick={() => copyToClipboard(getFormattedTextContent(), 'markdown')}
+                onClick={() =>
+                  copyToClipboard(getFormattedTextContent(), 'markdown')
+                }
                 variant="outline"
                 size="sm"
               >

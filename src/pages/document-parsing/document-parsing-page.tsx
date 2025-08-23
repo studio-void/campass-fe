@@ -10,7 +10,7 @@ export function DocumentParsingPage() {
             Document Parsing Tool
           </h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Upload a PDF file and Upstage AI will analyze the document content 
+            Upload a PDF file and Upstage AI will analyze the document content
             and convert it to structured data and markdown format.
           </p>
         </div>
