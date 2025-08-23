@@ -187,7 +187,7 @@ function WikiIndexPage() {
           >
             <DialogTrigger asChild>
               <Button>
-                <Plus className="w-4 h-4 mr-2" />
+                <Plus className="w-4 h-4 mr-1" />
                 Create New Wiki
               </Button>
             </DialogTrigger>
@@ -199,7 +199,7 @@ function WikiIndexPage() {
           >
             <DialogTrigger asChild>
               <Button variant="outline">
-                <Upload className="w-4 h-4 mr-2" />
+                <Upload className="w-4 h-4 mr-1" />
                 Upload Document
               </Button>
             </DialogTrigger>

@@ -56,6 +56,7 @@ export function useCreateWiki() {
             author: data.author,
             createdAt: data.createdAt,
           });
+          console.log(`Successfully added wiki "${data.title}" to RAG system`);
         } catch (error) {
           console.error('Failed to add wiki to RAG:', error);
           // RAG 추가 실패는 사용자에게 별도 알림 (위키 생성은 성공)
@@ -91,6 +92,7 @@ export function useUpdateWiki() {
             author: updatedWiki.author,
             createdAt: updatedWiki.createdAt,
           });
+          console.log(`Successfully updated wiki "${updatedWiki.title}" in RAG system`);
         } catch (error) {
           console.error('Failed to update wiki in RAG:', error);
         }
@@ -139,12 +141,14 @@ export function useSyncWikisToRAG() {
 
     // 배치로 모든 위키 추가
     try {
+      console.log(`Starting to sync ${wikiData.length} wikis to RAG system...`);
       for (const wiki of wikiData) {
         await addWikiToRAG(wiki);
+        console.log(`Synced wiki "${wiki.title}" to RAG system`);
         // API 호출 제한을 피하기 위한 짧은 대기
         await new Promise((resolve) => setTimeout(resolve, 100));
       }
-      console.log(`Synced ${wikiData.length} wikis to RAG system`);
+      console.log(`Successfully synced ${wikiData.length} wikis to RAG system`);
     } catch (error) {
       console.error('Failed to sync wikis to RAG:', error);
     }

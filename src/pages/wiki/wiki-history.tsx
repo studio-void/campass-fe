@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { ArrowLeft, Calendar, MessageCircle, User } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
 
+import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -141,8 +141,11 @@ function WikiHistoryPage() {
               </CardHeader>
               <CardContent>
                 <div className="bg-gray-50 rounded-md p-4">
-                  <div className="prose prose-sm max-w-none max-h-40 overflow-y-auto">
-                    <ReactMarkdown>{entry.content}</ReactMarkdown>
+                  <div className="max-h-40 overflow-y-auto">
+                    <MarkdownRenderer
+                      content={entry.content}
+                      className="prose-sm"
+                    />
                   </div>
                 </div>
               </CardContent>
