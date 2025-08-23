@@ -1,14 +1,380 @@
-import { Card } from '@/components/ui/card';
+import { useEffect, useState } from 'react';
+
+import { useNavigate } from '@tanstack/react-router';
+import {
+  Calendar,
+  Edit,
+  FileText,
+  History,
+  Plus,
+  Trash2,
+  Upload,
+  User,
+} from 'lucide-react';
+
+import { DocumentParser } from '@/components/document-parser';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { type Wiki, createWiki, deleteWiki, getWikis } from '@/data/wiki';
+import { useCurrentUser } from '@/hooks/use-current-user';
+
+// Simple confirmation dialog implementation
+function ConfirmDialog({
+  open,
+  onOpenChange,
+  onConfirm,
+  title,
+  description,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
+  title: string;
+  description: string;
+}) {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+      <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+        <h3 className="text-lg font-semibold mb-2">{title}</h3>
+        <p className="text-sm text-gray-600 mb-4">{description}</p>
+        <div className="flex justify-end space-x-2">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              onConfirm();
+              onOpenChange(false);
+            }}
+            className="bg-red-600 hover:bg-red-700"
+          >
+            Delete
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function WikiIndexPage() {
+  const navigate = useNavigate();
+  const [wikis, setWikis] = useState<Wiki[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user: currentUser } = useCurrentUser();
+
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [newWikiTitle, setNewWikiTitle] = useState('');
+  const [newWikiContent, setNewWikiContent] = useState('');
+  const [creatingWiki, setCreatingWiki] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [wikiToDelete, setWikiToDelete] = useState<number | null>(null);
+  const [isDocumentUploadOpen, setIsDocumentUploadOpen] = useState(false);
+
+  useEffect(() => {
+    const loadWikis = async () => {
+      try {
+        const wikiData = await getWikis();
+        setWikis(wikiData);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadWikis();
+  }, []);
+
+  const handleCreateWiki = async () => {
+    if (!newWikiTitle.trim() || !newWikiContent.trim()) {
+      return;
+    }
+
+    setCreatingWiki(true);
+    const result = await createWiki({
+      title: newWikiTitle,
+      content: newWikiContent,
+    });
+
+    if (result) {
+      setWikis([result, ...wikis]);
+      setNewWikiTitle('');
+      setNewWikiContent('');
+      setIsCreateDialogOpen(false);
+    }
+    setCreatingWiki(false);
+  };
+
+  const handleDeleteWiki = async (wikiId: number) => {
+    const success = await deleteWiki(wikiId);
+    if (success) {
+      setWikis(wikis.filter((wiki) => wiki.id !== wikiId));
+    }
+  };
+
+  const openDeleteDialog = (wikiId: number) => {
+    setWikiToDelete(wikiId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleWikiCreatedFromDocument = (newWiki: Wiki) => {
+    setWikis([newWiki, ...wikis]);
+    setIsDocumentUploadOpen(false);
+  };
+
+  const navigateToWiki = (wikiId: number) => {
+    navigate({
+      to: '/wiki/$wikiId',
+      params: { wikiId: wikiId.toString() },
+    });
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="grid grid-cols-2 gap-4">
-      <Card className="h-40 flex items-center justify-center cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-transform">
-        Left Side Content
-      </Card>
-      <Card className="h-40 flex items-center justify-center cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-transform">
-        Right Side Content
-      </Card>
+    <div className="space-y-6 mb-24">
+      {/* Header and Create Button */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold">Wiki Pages</h1>
+          <p className="text-muted-foreground">
+            Share and collaborate on campus information
+          </p>
+        </div>
+
+        <div className="flex space-x-2">
+          <Dialog
+            open={isCreateDialogOpen}
+            onOpenChange={setIsCreateDialogOpen}
+          >
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="w-4 h-4 mr-1" />
+                Create New Wiki
+              </Button>
+            </DialogTrigger>
+          </Dialog>
+
+          <Dialog
+            open={isDocumentUploadOpen}
+            onOpenChange={setIsDocumentUploadOpen}
+          >
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Upload className="w-4 h-4 mr-1" />
+                Upload Document
+              </Button>
+            </DialogTrigger>
+          </Dialog>
+        </div>
+
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Create New Wiki</DialogTitle>
+              <DialogDescription>
+                Create a new wiki page to share useful information with other
+                students.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="title">Title</Label>
+                <Input
+                  id="title"
+                  value={newWikiTitle}
+                  onChange={(e) => setNewWikiTitle(e.target.value)}
+                  placeholder="Enter wiki title"
+                />
+              </div>
+              <div>
+                <Label htmlFor="content">Content</Label>
+                <textarea
+                  id="content"
+                  className="w-full min-h-[200px] p-3 border border-input rounded-md resize-vertical"
+                  value={newWikiContent}
+                  onChange={(e) => setNewWikiContent(e.target.value)}
+                  placeholder="Enter wiki content"
+                />
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsCreateDialogOpen(false);
+                    setNewWikiTitle('');
+                    setNewWikiContent('');
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleCreateWiki}
+                  disabled={
+                    creatingWiki ||
+                    !newWikiTitle.trim() ||
+                    !newWikiContent.trim()
+                  }
+                >
+                  {creatingWiki ? 'Creating...' : 'Create Wiki'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Document Upload Dialog */}
+        <Dialog
+          open={isDocumentUploadOpen}
+          onOpenChange={setIsDocumentUploadOpen}
+        >
+          <DialogContent className="sm:max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Upload Document to Wiki</DialogTitle>
+              <DialogDescription>
+                Upload a PDF document to parse and create a wiki page
+                automatically.
+              </DialogDescription>
+            </DialogHeader>
+            <DocumentParser
+              mode="wiki-upload"
+              onWikiCreated={handleWikiCreatedFromDocument}
+            />
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Wiki List */}
+      {wikis.length === 0 ? (
+        <Card className="text-center py-12">
+          <CardContent>
+            <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No wiki pages yet</h3>
+            <p className="text-muted-foreground mb-4">
+              Create the first wiki page to share useful information!
+            </p>
+            <Button onClick={() => setIsCreateDialogOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Create First Wiki
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {wikis.map((wiki) => (
+            <Card key={wiki.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <CardTitle className="text-lg line-clamp-2">
+                    <button
+                      className="hover:text-primary transition-colors text-left"
+                      onClick={() => navigateToWiki(wiki.id)}
+                    >
+                      {wiki.title}
+                    </button>
+                  </CardTitle>
+                  <div className="flex space-x-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        navigate({
+                          to: '/wiki/$wikiId/history',
+                          params: { wikiId: wiki.id.toString() },
+                        });
+                      }}
+                    >
+                      <History className="w-4 h-4" />
+                    </Button>
+                    {/* 편집은 모든 사용자가 가능 */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        navigate({
+                          to: '/wiki/$wikiId/edit',
+                          params: { wikiId: wiki.id.toString() },
+                        });
+                      }}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    {/* 삭제는 작성자만 가능 */}
+                    {currentUser?.id === wiki.authorId && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openDeleteDialog(wiki.id)}
+                      >
+                        <Trash2 className="w-4 h-4 text-destructive" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                <CardDescription className="line-clamp-3">
+                  {wiki.content}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                  <div className="flex items-center">
+                    <User className="w-4 h-4 mr-1" />
+                    <span>{wiki.author?.name || 'Author'}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Calendar className="w-4 h-4 mr-1" />
+                    <span>{formatDate(wiki.createdAt)}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={() => {
+          if (wikiToDelete) {
+            handleDeleteWiki(wikiToDelete);
+            setWikiToDelete(null);
+          }
+        }}
+        title="Delete Wiki?"
+        description="This action cannot be undone. The wiki and all its edit history will be permanently deleted."
+      />
     </div>
   );
 }

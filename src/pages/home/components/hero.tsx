@@ -1,3 +1,5 @@
+import { Link } from '@tanstack/react-router';
+
 import { Button } from '@/components/ui/button';
 
 export default function Hero() {
@@ -35,14 +37,10 @@ export default function Hero() {
             </p>
 
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
-              <Button size="lg" className="px-6 md:px-8 text-xl">
-                Get started
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="px-6 md:px-8 text-xl border-blue-600 text-blue-600 hover:bg-blue-50"
-              >
+              <Link to="/auth/sign-in">
+                <Button size="lg">Get started</Button>
+              </Link>
+              <Button size="lg" variant="outline">
                 Learn more
               </Button>
             </div>
