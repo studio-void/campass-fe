@@ -1,6 +1,8 @@
-import { forwardRef } from 'react';
+import { forwardRef, useEffect, useState } from 'react';
 
 import { Link } from '@tanstack/react-router';
+
+import { deleteAuthLogout } from '@/data/delete-auth-logout';
 
 import { Button } from './ui/button';
 
@@ -8,6 +10,64 @@ export const Header = forwardRef<
   HTMLElementTagNameMap['header'],
   React.HTMLAttributes<HTMLElementTagNameMap['header']>
 >((_, ref) => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    // Function to update state from localStorage
+    const updateAuthState = () => {
+      const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
+      const admin = localStorage.getItem('isAdmin') === 'true';
+
+      setIsLoggedIn(loggedIn);
+      setIsAdmin(admin);
+    };
+
+    // Initial check
+    updateAuthState();
+
+    // Listen for storage changes (when other tabs/windows update localStorage)
+    window.addEventListener('storage', updateAuthState);
+
+    // Listen for custom events (when same tab updates localStorage)
+    window.addEventListener('authStateChanged', updateAuthState);
+
+    return () => {
+      window.removeEventListener('storage', updateAuthState);
+      window.removeEventListener('authStateChanged', updateAuthState);
+    };
+  }, []);
+  const handleLogout = async () => {
+    await deleteAuthLogout();
+  };
+
+  const getAuthButton = () => {
+    if (!isLoggedIn) {
+      return (
+        <Link to="/auth/sign-in">
+          <Button variant="default" className="font-semibold">
+            Get Started
+          </Button>
+        </Link>
+      );
+    }
+
+    // If logged in, show the main button only
+    return isAdmin ? (
+      <Link to="/admin/school-certificate">
+        <Button variant="default" className="font-semibold">
+          Dashboard
+        </Button>
+      </Link>
+    ) : (
+      <Link to="/">
+        <Button variant="default" className="font-semibold">
+          My Page
+        </Button>
+      </Link>
+    );
+  };
+
   return (
     <header
       ref={ref}
