@@ -116,14 +116,14 @@ export default function DashboardPage() {
           <div className="flex flex-col items-end gap-1">
             {!isAuthed ? (
               <>
-                <Button
-                  disabled={!isReady}
+                <div
+                  role="button"
                   onClick={signIn}
-                  className="h-10 px-5 rounded-full bg-sky-200/90 hover:bg-sky-200 text-slate-700 font-medium gap-2 ring-1 ring-sky-300 shadow-sm"
+                  className="flex items-center justify-center gap-3 h-10 px-6 rounded-md border border-neutral-300 shadow-sm bg-white hover:bg-neutral-50 text-sm font-medium text-neutral-700 cursor-pointer"
                 >
-                  <GoogleIcon className="h-5 w-5" />
-                  Google Log in
-                </Button>
+                  <GoogleIcon className="h-5 w-5 shrink-0" />
+                  <span>Sign in with Google</span>
+                </div>
                 <div className="text-xs text-neutral-500 text-right">
                   Log in to Google account to use ‘Team project’
                 </div>
@@ -446,22 +446,22 @@ function TeamRow({
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" {...props}>
+    <svg viewBox="0 0 18 18" aria-hidden="true" {...props}>
       <path
-        fill="#EA4335"
-        d="M12 10.2v3.6h5.1c-.2 1.3-.9 2.4-1.9 3.1l3.1 2.4c1.8-1.7 2.9-4.2 2.9-7.2 0-.7-.1-1.4-.2-2H12z"
-      />
-      <path
-        fill="#34A853"
-        d="M5.3 14.3a7.2 7.2 0 0 0 6.7 4.7c2 0 3.7-.7 4.9-1.9l-3.1-2.4c-.8.6-1.7.9-2.8.9-2.1 0-3.9-1.4-4.6-3.3l-3.1 2z"
-      />
-      <path
+        d="M17.64 9.2045c0-.6376-.0573-1.251-.1636-1.8405H9v3.481h4.8364a4.138 4.138 0 0 1-1.7945 2.7145v2.256h2.9086c1.7032-1.569 2.6895-3.8776 2.6895-6.611z"
         fill="#4285F4"
-        d="M19.6 8.6c-.3-1-.9-1.9-1.7-2.7-1.2-1.1-2.9-1.9-4.9-1.9-3 0-5.6 1.7-6.8 4.2l3.2 2.5c.6-1.8 2.3-3.1 4.2-3.1 1.1 0 2 .4 2.7 1.1.7.7 1.2 1.6 1.3 2.6h2z"
       />
       <path
+        d="M9 18c2.43 0 4.469-0.8067 5.958-2.1845l-2.9086-2.256c-.8067.54-1.8392.861-3.0494.861-2.3456 0-4.3318-1.5825-5.0426-3.7112H.9573v2.331C2.4382 15.9833 5.4818 18 9 18z"
+        fill="#34A853"
+      />
+      <path
+        d="M3.9574 10.7098A5.9992 5.9992 0 0 1 3.6429 9c0-.5922.1029-1.168.3145-1.7098V4.959H.9573A8.9968 8.9968 0 0 0 0 9c0 1.4627.3491 2.844 0.9573 4.041l3.0001-2.3312z"
         fill="#FBBC05"
-        d="M5.3 8.2l-3.2-2.5A7.8 7.8 0 0 0 4 14.4l3.1-2a4.6 4.6 0 0 1-.1-4.2z"
+      />
+      <path
+        d="M9 3.571c1.3202 0 2.5093.453 3.442 1.342l2.5815-2.5816C13.466 0.896 11.43 0 9 0 5.4818 0 2.4382 2.0167.9573 4.959l3.0001 2.3312C4.6682 5.1619 6.6544 3.571 9 3.571z"
+        fill="#EA4335"
       />
     </svg>
   );
