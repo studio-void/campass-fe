@@ -14,9 +14,12 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as WikiRouteRouteImport } from './routes/wiki/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WikiIndexRouteImport } from './routes/wiki/index'
+import { Route as TeamIndexRouteImport } from './routes/team/index'
 import { Route as HomeIndexRouteImport } from './routes/home/index'
 import { Route as DormIndexRouteImport } from './routes/dorm/index'
 import { Route as WikiWikiIdRouteImport } from './routes/wiki/$wikiId'
+import { Route as TeamDoneRouteImport } from './routes/team/done'
+import { Route as TeamCalendarRouteImport } from './routes/team/calendar'
 import { Route as DormRetirementMaintenanceRouteImport } from './routes/dorm/retirement-maintenance'
 import { Route as DormRetirementFormRouteImport } from './routes/dorm/retirement-form'
 import { Route as AuthVerificationRouteImport } from './routes/auth/verification'
@@ -56,6 +59,11 @@ const WikiIndexRoute = WikiIndexRouteImport.update({
   path: '/',
   getParentRoute: () => WikiRouteRoute,
 } as any)
+const TeamIndexRoute = TeamIndexRouteImport.update({
+  id: '/team/',
+  path: '/team/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HomeIndexRoute = HomeIndexRouteImport.update({
   id: '/home/',
   path: '/home/',
@@ -70,6 +78,16 @@ const WikiWikiIdRoute = WikiWikiIdRouteImport.update({
   id: '/$wikiId',
   path: '/$wikiId',
   getParentRoute: () => WikiRouteRoute,
+} as any)
+const TeamDoneRoute = TeamDoneRouteImport.update({
+  id: '/team/done',
+  path: '/team/done',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TeamCalendarRoute = TeamCalendarRouteImport.update({
+  id: '/team/calendar',
+  path: '/team/calendar',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const DormRetirementMaintenanceRoute =
   DormRetirementMaintenanceRouteImport.update({
@@ -151,9 +169,12 @@ export interface FileRoutesByFullPath {
   '/auth/verification': typeof AuthVerificationRoute
   '/dorm/retirement-form': typeof DormRetirementFormRoute
   '/dorm/retirement-maintenance': typeof DormRetirementMaintenanceRoute
+  '/team/calendar': typeof TeamCalendarRoute
+  '/team/done': typeof TeamDoneRoute
   '/wiki/$wikiId': typeof WikiWikiIdRouteWithChildren
   '/dorm': typeof DormIndexRoute
   '/home': typeof HomeIndexRoute
+  '/team': typeof TeamIndexRoute
   '/wiki/': typeof WikiIndexRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/dorm/warehouse/form': typeof DormWarehouseFormRoute
@@ -173,9 +194,12 @@ export interface FileRoutesByTo {
   '/auth/verification': typeof AuthVerificationRoute
   '/dorm/retirement-form': typeof DormRetirementFormRoute
   '/dorm/retirement-maintenance': typeof DormRetirementMaintenanceRoute
+  '/team/calendar': typeof TeamCalendarRoute
+  '/team/done': typeof TeamDoneRoute
   '/wiki/$wikiId': typeof WikiWikiIdRouteWithChildren
   '/dorm': typeof DormIndexRoute
   '/home': typeof HomeIndexRoute
+  '/team': typeof TeamIndexRoute
   '/wiki': typeof WikiIndexRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/dorm/warehouse/form': typeof DormWarehouseFormRoute
@@ -197,9 +221,12 @@ export interface FileRoutesById {
   '/auth/verification': typeof AuthVerificationRoute
   '/dorm/retirement-form': typeof DormRetirementFormRoute
   '/dorm/retirement-maintenance': typeof DormRetirementMaintenanceRoute
+  '/team/calendar': typeof TeamCalendarRoute
+  '/team/done': typeof TeamDoneRoute
   '/wiki/$wikiId': typeof WikiWikiIdRouteWithChildren
   '/dorm/': typeof DormIndexRoute
   '/home/': typeof HomeIndexRoute
+  '/team/': typeof TeamIndexRoute
   '/wiki/': typeof WikiIndexRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/dorm/warehouse/form': typeof DormWarehouseFormRoute
@@ -222,9 +249,12 @@ export interface FileRouteTypes {
     | '/auth/verification'
     | '/dorm/retirement-form'
     | '/dorm/retirement-maintenance'
+    | '/team/calendar'
+    | '/team/done'
     | '/wiki/$wikiId'
     | '/dorm'
     | '/home'
+    | '/team'
     | '/wiki/'
     | '/auth/google/callback'
     | '/dorm/warehouse/form'
@@ -244,9 +274,12 @@ export interface FileRouteTypes {
     | '/auth/verification'
     | '/dorm/retirement-form'
     | '/dorm/retirement-maintenance'
+    | '/team/calendar'
+    | '/team/done'
     | '/wiki/$wikiId'
     | '/dorm'
     | '/home'
+    | '/team'
     | '/wiki'
     | '/auth/google/callback'
     | '/dorm/warehouse/form'
@@ -267,9 +300,12 @@ export interface FileRouteTypes {
     | '/auth/verification'
     | '/dorm/retirement-form'
     | '/dorm/retirement-maintenance'
+    | '/team/calendar'
+    | '/team/done'
     | '/wiki/$wikiId'
     | '/dorm/'
     | '/home/'
+    | '/team/'
     | '/wiki/'
     | '/auth/google/callback'
     | '/dorm/warehouse/form'
@@ -288,8 +324,11 @@ export interface RootRouteChildren {
   AuthVerificationRoute: typeof AuthVerificationRoute
   DormRetirementFormRoute: typeof DormRetirementFormRoute
   DormRetirementMaintenanceRoute: typeof DormRetirementMaintenanceRoute
+  TeamCalendarRoute: typeof TeamCalendarRoute
+  TeamDoneRoute: typeof TeamDoneRoute
   DormIndexRoute: typeof DormIndexRoute
   HomeIndexRoute: typeof HomeIndexRoute
+  TeamIndexRoute: typeof TeamIndexRoute
   AuthGoogleCallbackRoute: typeof AuthGoogleCallbackRoute
   DormWarehouseFormRoute: typeof DormWarehouseFormRoute
   DormWarehouseIndexRoute: typeof DormWarehouseIndexRoute
@@ -332,6 +371,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WikiIndexRouteImport
       parentRoute: typeof WikiRouteRoute
     }
+    '/team/': {
+      id: '/team/'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof TeamIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/home/': {
       id: '/home/'
       path: '/home'
@@ -352,6 +398,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/wiki/$wikiId'
       preLoaderRoute: typeof WikiWikiIdRouteImport
       parentRoute: typeof WikiRouteRoute
+    }
+    '/team/done': {
+      id: '/team/done'
+      path: '/team/done'
+      fullPath: '/team/done'
+      preLoaderRoute: typeof TeamDoneRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/team/calendar': {
+      id: '/team/calendar'
+      path: '/team/calendar'
+      fullPath: '/team/calendar'
+      preLoaderRoute: typeof TeamCalendarRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/dorm/retirement-maintenance': {
       id: '/dorm/retirement-maintenance'
@@ -499,8 +559,11 @@ const rootRouteChildren: RootRouteChildren = {
   AuthVerificationRoute: AuthVerificationRoute,
   DormRetirementFormRoute: DormRetirementFormRoute,
   DormRetirementMaintenanceRoute: DormRetirementMaintenanceRoute,
+  TeamCalendarRoute: TeamCalendarRoute,
+  TeamDoneRoute: TeamDoneRoute,
   DormIndexRoute: DormIndexRoute,
   HomeIndexRoute: HomeIndexRoute,
+  TeamIndexRoute: TeamIndexRoute,
   AuthGoogleCallbackRoute: AuthGoogleCallbackRoute,
   DormWarehouseFormRoute: DormWarehouseFormRoute,
   DormWarehouseIndexRoute: DormWarehouseIndexRoute,
