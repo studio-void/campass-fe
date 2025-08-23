@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as DocumentParsingRouteImport } from './routes/document-parsing'
 import { Route as WikiRouteRouteImport } from './routes/wiki/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as WikiIndexRouteImport } from './routes/wiki/index'
 import { Route as AuthVerificationPendingRouteImport } from './routes/auth/verification-pending'
 import { Route as AuthVerificationRouteImport } from './routes/auth/verification'
 import { Route as AuthSignUpRouteImport } from './routes/auth/sign-up'
@@ -32,6 +33,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const WikiIndexRoute = WikiIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => WikiRouteRoute,
 } as any)
 const AuthVerificationPendingRoute = AuthVerificationPendingRouteImport.update({
   id: '/auth/verification-pending',
@@ -61,7 +67,7 @@ const AuthGoogleCallbackRoute = AuthGoogleCallbackRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/wiki': typeof WikiRouteRoute
+  '/wiki': typeof WikiRouteRouteWithChildren
   '/document-parsing': typeof DocumentParsingRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
@@ -82,7 +88,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/wiki': typeof WikiRouteRoute
+  '/wiki': typeof WikiRouteRouteWithChildren
   '/document-parsing': typeof DocumentParsingRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
@@ -125,7 +131,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  WikiRouteRoute: typeof WikiRouteRoute
+  WikiRouteRoute: typeof WikiRouteRouteWithChildren
   DocumentParsingRoute: typeof DocumentParsingRoute
   AuthSignInRoute: typeof AuthSignInRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
@@ -156,6 +162,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/wiki/': {
+      id: '/wiki/'
+      path: '/'
+      fullPath: '/wiki/'
+      preLoaderRoute: typeof WikiIndexRouteImport
+      parentRoute: typeof WikiRouteRoute
     }
     '/auth/verification-pending': {
       id: '/auth/verification-pending'
@@ -195,9 +208,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface WikiRouteRouteChildren {
+  WikiIndexRoute: typeof WikiIndexRoute
+}
+
+const WikiRouteRouteChildren: WikiRouteRouteChildren = {
+  WikiIndexRoute: WikiIndexRoute,
+}
+
+const WikiRouteRouteWithChildren = WikiRouteRoute._addFileChildren(
+  WikiRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  WikiRouteRoute: WikiRouteRoute,
+  WikiRouteRoute: WikiRouteRouteWithChildren,
   DocumentParsingRoute: DocumentParsingRoute,
   AuthSignInRoute: AuthSignInRoute,
   AuthSignUpRoute: AuthSignUpRoute,
