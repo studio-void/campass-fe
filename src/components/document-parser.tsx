@@ -1,11 +1,23 @@
 import { useCallback, useState } from 'react';
 
 import { Dropzone } from '@/components/dropzone';
+import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { type Wiki, createWiki } from '@/data/wiki';
 import { useUpstageDocumentParsing } from '@/hooks';
 
-export function DocumentParser() {
+interface DocumentParserProps {
+  mode?: 'default' | 'wiki-upload';
+  onWikiCreated?: (wiki: Wiki) => void;
+}
+
+export function DocumentParser({
+  mode = 'default',
+  onWikiCreated,
+}: DocumentParserProps) {
   const {
     isLoading,
     error,
@@ -17,6 +29,10 @@ export function DocumentParser() {
 
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
+
+  // Wiki upload specific state
+  const [wikiTitle, setWikiTitle] = useState('');
+  const [isCreatingWiki, setIsCreatingWiki] = useState(false);
 
   // Generate formatted markdown content
   const getFormattedTextContent = useCallback(() => {
@@ -156,14 +172,45 @@ export function DocumentParser() {
       if (files.length > 0) {
         setUploadedFiles(files);
         parseDocument(files[0]);
+
+        // For wiki upload mode, auto-generate title from filename
+        if (mode === 'wiki-upload') {
+          const filename = files[0].name;
+          const titleFromFilename = filename
+            .replace(/\.[^/.]+$/, '') // Remove file extension
+            .replace(/[-_]/g, ' ') // Replace dashes and underscores with spaces
+            .replace(/\b\w/g, (l) => l.toUpperCase()); // Capitalize first letter of each word
+          setWikiTitle(titleFromFilename);
+        }
       }
     },
-    [parseDocument],
+    [parseDocument, mode],
   );
 
   const onRemoveFile = useCallback((fileToRemove: File) => {
     setUploadedFiles((prev) => prev.filter((file) => file !== fileToRemove));
   }, []);
+
+  const handleCreateWiki = async () => {
+    if (!wikiTitle.trim() || !parsedDocument) {
+      return;
+    }
+
+    setIsCreatingWiki(true);
+    try {
+      const wikiContent = getFormattedTextContent();
+      const result = await createWiki({
+        title: wikiTitle.trim(),
+        content: wikiContent,
+      });
+
+      if (result && onWikiCreated) {
+        onWikiCreated(result);
+      }
+    } finally {
+      setIsCreatingWiki(false);
+    }
+  };
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
@@ -201,39 +248,86 @@ export function DocumentParser() {
 
       {/* Parsing Results */}
       {parsedDocument && (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Parsed Markdown</CardTitle>
-            <div className="space-x-2">
-              <Button
-                onClick={() =>
-                  copyToClipboard(getFormattedTextContent(), 'markdown')
-                }
-                variant="outline"
-                size="sm"
-              >
-                {copiedSection === 'markdown' ? 'Copied!' : 'Copy'}
-              </Button>
-              <Button
-                onClick={() => downloadAsMarkdown()}
-                variant="outline"
-                size="sm"
-              >
-                Download
-              </Button>
-              <Button onClick={clearResults} variant="outline" size="sm">
-                Clear
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="border rounded-lg p-4 bg-gray-50 max-h-96 overflow-y-auto">
-              <pre className="whitespace-pre-wrap text-sm font-mono">
-                {getFormattedTextContent()}
-              </pre>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="space-y-6">
+          {/* Wiki Upload Mode: Title Input */}
+          {mode === 'wiki-upload' && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Create Wiki from Document</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="wiki-title">Wiki Title</Label>
+                  <Input
+                    id="wiki-title"
+                    value={wikiTitle}
+                    onChange={(e) => setWikiTitle(e.target.value)}
+                    placeholder="Enter wiki title"
+                  />
+                </div>
+                <div className="flex justify-end space-x-2">
+                  <Button
+                    onClick={handleCreateWiki}
+                    disabled={isCreatingWiki || !wikiTitle.trim()}
+                  >
+                    {isCreatingWiki ? 'Creating Wiki...' : 'Create Wiki'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Rendered Preview */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Document Preview</CardTitle>
+              {mode === 'default' && (
+                <div className="space-x-2">
+                  <Button
+                    onClick={() =>
+                      copyToClipboard(getFormattedTextContent(), 'markdown')
+                    }
+                    variant="outline"
+                    size="sm"
+                  >
+                    {copiedSection === 'markdown' ? 'Copied!' : 'Copy Markdown'}
+                  </Button>
+                  <Button
+                    onClick={() => downloadAsMarkdown()}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Download
+                  </Button>
+                  <Button onClick={clearResults} variant="outline" size="sm">
+                    Clear
+                  </Button>
+                </div>
+              )}
+            </CardHeader>
+            <CardContent>
+              <div className="border rounded-lg p-4 max-h-96 overflow-y-auto">
+                <MarkdownRenderer content={getFormattedTextContent()} />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Raw Markdown */}
+          {mode === 'default' && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Raw Markdown</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="border rounded-lg p-4 bg-muted max-h-96 overflow-y-auto">
+                  <pre className="whitespace-pre-wrap text-sm font-mono">
+                    {getFormattedTextContent()}
+                  </pre>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       )}
     </div>
   );

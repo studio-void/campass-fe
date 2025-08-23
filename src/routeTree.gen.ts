@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as DocumentParsingRouteImport } from './routes/document-parsing'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as WikiRouteRouteImport } from './routes/wiki/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WikiIndexRouteImport } from './routes/wiki/index'
@@ -21,11 +22,26 @@ import { Route as AuthSignUpRouteImport } from './routes/auth/sign-up'
 import { Route as AuthSignInRouteImport } from './routes/auth/sign-in'
 import { Route as DormWarehouseIndexRouteImport } from './routes/dorm/warehouse/index'
 import { Route as DormWarehouseFormRouteImport } from './routes/dorm/warehouse/form'
+import { Route as WikiWikiIdRouteImport } from './routes/wiki/$wikiId'
+import { Route as AuthVerificationPendingRouteImport } from './routes/auth/verification-pending'
+import { Route as AuthVerificationRouteImport } from './routes/auth/verification'
+import { Route as AuthSignUpRouteImport } from './routes/auth/sign-up'
+import { Route as AuthSignInRouteImport } from './routes/auth/sign-in'
+import { Route as AdminSchoolCertificateRouteImport } from './routes/admin/school-certificate'
+import { Route as AdminDormStorageRouteImport } from './routes/admin/dorm-storage'
+import { Route as AdminDormCheckRouteImport } from './routes/admin/dorm-check'
+import { Route as WikiWikiIdHistoryRouteImport } from './routes/wiki/$wikiId.history'
+import { Route as WikiWikiIdEditRouteImport } from './routes/wiki/$wikiId.edit'
 import { Route as AuthGoogleCallbackRouteImport } from './routes/auth/google/callback'
 
 const DocumentParsingRoute = DocumentParsingRouteImport.update({
   id: '/document-parsing',
   path: '/document-parsing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WikiRouteRoute = WikiRouteRouteImport.update({
@@ -57,6 +73,14 @@ const DormRetirementMaintenanceRoute =
 const DormRetirementFormRoute = DormRetirementFormRouteImport.update({
   id: '/dorm/retirement-form',
   path: '/dorm/retirement-form',
+const WikiWikiIdRoute = WikiWikiIdRouteImport.update({
+  id: '/$wikiId',
+  path: '/$wikiId',
+  getParentRoute: () => WikiRouteRoute,
+} as any)
+const AuthVerificationPendingRoute = AuthVerificationPendingRouteImport.update({
+  id: '/auth/verification-pending',
+  path: '/auth/verification-pending',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthVerificationRoute = AuthVerificationRouteImport.update({
@@ -83,6 +107,30 @@ const DormWarehouseFormRoute = DormWarehouseFormRouteImport.update({
   id: '/dorm/warehouse/form',
   path: '/dorm/warehouse/form',
   getParentRoute: () => rootRouteImport,
+const AdminSchoolCertificateRoute = AdminSchoolCertificateRouteImport.update({
+  id: '/school-certificate',
+  path: '/school-certificate',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminDormStorageRoute = AdminDormStorageRouteImport.update({
+  id: '/dorm-storage',
+  path: '/dorm-storage',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminDormCheckRoute = AdminDormCheckRouteImport.update({
+  id: '/dorm-check',
+  path: '/dorm-check',
+  getParentRoute: () => AdminRoute,
+} as any)
+const WikiWikiIdHistoryRoute = WikiWikiIdHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => WikiWikiIdRoute,
+} as any)
+const WikiWikiIdEditRoute = WikiWikiIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => WikiWikiIdRoute,
 } as any)
 const AuthGoogleCallbackRoute = AuthGoogleCallbackRouteImport.update({
   id: '/auth/google/callback',
@@ -93,7 +141,11 @@ const AuthGoogleCallbackRoute = AuthGoogleCallbackRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/wiki': typeof WikiRouteRouteWithChildren
+  '/admin': typeof AdminRouteWithChildren
   '/document-parsing': typeof DocumentParsingRoute
+  '/admin/dorm-check': typeof AdminDormCheckRoute
+  '/admin/dorm-storage': typeof AdminDormStorageRoute
+  '/admin/school-certificate': typeof AdminSchoolCertificateRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verification': typeof AuthVerificationRoute
@@ -104,10 +156,20 @@ export interface FileRoutesByFullPath {
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/dorm/warehouse/form': typeof DormWarehouseFormRoute
   '/dorm/warehouse': typeof DormWarehouseIndexRoute
+  '/auth/verification-pending': typeof AuthVerificationPendingRoute
+  '/wiki/$wikiId': typeof WikiWikiIdRouteWithChildren
+  '/wiki/': typeof WikiIndexRoute
+  '/auth/google/callback': typeof AuthGoogleCallbackRoute
+  '/wiki/$wikiId/edit': typeof WikiWikiIdEditRoute
+  '/wiki/$wikiId/history': typeof WikiWikiIdHistoryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/document-parsing': typeof DocumentParsingRoute
+  '/admin/dorm-check': typeof AdminDormCheckRoute
+  '/admin/dorm-storage': typeof AdminDormStorageRoute
+  '/admin/school-certificate': typeof AdminSchoolCertificateRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verification': typeof AuthVerificationRoute
@@ -118,12 +180,22 @@ export interface FileRoutesByTo {
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/dorm/warehouse/form': typeof DormWarehouseFormRoute
   '/dorm/warehouse': typeof DormWarehouseIndexRoute
+  '/auth/verification-pending': typeof AuthVerificationPendingRoute
+  '/wiki/$wikiId': typeof WikiWikiIdRouteWithChildren
+  '/wiki': typeof WikiIndexRoute
+  '/auth/google/callback': typeof AuthGoogleCallbackRoute
+  '/wiki/$wikiId/edit': typeof WikiWikiIdEditRoute
+  '/wiki/$wikiId/history': typeof WikiWikiIdHistoryRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/wiki': typeof WikiRouteRouteWithChildren
+  '/admin': typeof AdminRouteWithChildren
   '/document-parsing': typeof DocumentParsingRoute
+  '/admin/dorm-check': typeof AdminDormCheckRoute
+  '/admin/dorm-storage': typeof AdminDormStorageRoute
+  '/admin/school-certificate': typeof AdminSchoolCertificateRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verification': typeof AuthVerificationRoute
@@ -134,13 +206,23 @@ export interface FileRoutesById {
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/dorm/warehouse/form': typeof DormWarehouseFormRoute
   '/dorm/warehouse/': typeof DormWarehouseIndexRoute
+  '/auth/verification-pending': typeof AuthVerificationPendingRoute
+  '/wiki/$wikiId': typeof WikiWikiIdRouteWithChildren
+  '/wiki/': typeof WikiIndexRoute
+  '/auth/google/callback': typeof AuthGoogleCallbackRoute
+  '/wiki/$wikiId/edit': typeof WikiWikiIdEditRoute
+  '/wiki/$wikiId/history': typeof WikiWikiIdHistoryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/wiki'
+    | '/admin'
     | '/document-parsing'
+    | '/admin/dorm-check'
+    | '/admin/dorm-storage'
+    | '/admin/school-certificate'
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/auth/verification'
@@ -151,10 +233,20 @@ export interface FileRouteTypes {
     | '/auth/google/callback'
     | '/dorm/warehouse/form'
     | '/dorm/warehouse'
+    | '/auth/verification-pending'
+    | '/wiki/$wikiId'
+    | '/wiki/'
+    | '/auth/google/callback'
+    | '/wiki/$wikiId/edit'
+    | '/wiki/$wikiId/history'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
     | '/document-parsing'
+    | '/admin/dorm-check'
+    | '/admin/dorm-storage'
+    | '/admin/school-certificate'
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/auth/verification'
@@ -165,11 +257,21 @@ export interface FileRouteTypes {
     | '/auth/google/callback'
     | '/dorm/warehouse/form'
     | '/dorm/warehouse'
+    | '/auth/verification-pending'
+    | '/wiki/$wikiId'
+    | '/wiki'
+    | '/auth/google/callback'
+    | '/wiki/$wikiId/edit'
+    | '/wiki/$wikiId/history'
   id:
     | '__root__'
     | '/'
     | '/wiki'
+    | '/admin'
     | '/document-parsing'
+    | '/admin/dorm-check'
+    | '/admin/dorm-storage'
+    | '/admin/school-certificate'
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/auth/verification'
@@ -180,11 +282,18 @@ export interface FileRouteTypes {
     | '/auth/google/callback'
     | '/dorm/warehouse/form'
     | '/dorm/warehouse/'
+    | '/auth/verification-pending'
+    | '/wiki/$wikiId'
+    | '/wiki/'
+    | '/auth/google/callback'
+    | '/wiki/$wikiId/edit'
+    | '/wiki/$wikiId/history'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   WikiRouteRoute: typeof WikiRouteRouteWithChildren
+  AdminRoute: typeof AdminRouteWithChildren
   DocumentParsingRoute: typeof DocumentParsingRoute
   AuthSignInRoute: typeof AuthSignInRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
@@ -204,6 +313,13 @@ declare module '@tanstack/react-router' {
       path: '/document-parsing'
       fullPath: '/document-parsing'
       preLoaderRoute: typeof DocumentParsingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/wiki': {
@@ -246,6 +362,18 @@ declare module '@tanstack/react-router' {
       path: '/dorm/retirement-form'
       fullPath: '/dorm/retirement-form'
       preLoaderRoute: typeof DormRetirementFormRouteImport
+    '/wiki/$wikiId': {
+      id: '/wiki/$wikiId'
+      path: '/$wikiId'
+      fullPath: '/wiki/$wikiId'
+      preLoaderRoute: typeof WikiWikiIdRouteImport
+      parentRoute: typeof WikiRouteRoute
+    }
+    '/auth/verification-pending': {
+      id: '/auth/verification-pending'
+      path: '/auth/verification-pending'
+      fullPath: '/auth/verification-pending'
+      preLoaderRoute: typeof AuthVerificationPendingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/verification': {
@@ -282,6 +410,40 @@ declare module '@tanstack/react-router' {
       fullPath: '/dorm/warehouse/form'
       preLoaderRoute: typeof DormWarehouseFormRouteImport
       parentRoute: typeof rootRouteImport
+    '/admin/school-certificate': {
+      id: '/admin/school-certificate'
+      path: '/school-certificate'
+      fullPath: '/admin/school-certificate'
+      preLoaderRoute: typeof AdminSchoolCertificateRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/dorm-storage': {
+      id: '/admin/dorm-storage'
+      path: '/dorm-storage'
+      fullPath: '/admin/dorm-storage'
+      preLoaderRoute: typeof AdminDormStorageRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/dorm-check': {
+      id: '/admin/dorm-check'
+      path: '/dorm-check'
+      fullPath: '/admin/dorm-check'
+      preLoaderRoute: typeof AdminDormCheckRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/wiki/$wikiId/history': {
+      id: '/wiki/$wikiId/history'
+      path: '/history'
+      fullPath: '/wiki/$wikiId/history'
+      preLoaderRoute: typeof WikiWikiIdHistoryRouteImport
+      parentRoute: typeof WikiWikiIdRoute
+    }
+    '/wiki/$wikiId/edit': {
+      id: '/wiki/$wikiId/edit'
+      path: '/edit'
+      fullPath: '/wiki/$wikiId/edit'
+      preLoaderRoute: typeof WikiWikiIdEditRouteImport
+      parentRoute: typeof WikiWikiIdRoute
     }
     '/auth/google/callback': {
       id: '/auth/google/callback'
@@ -293,11 +455,27 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface WikiWikiIdRouteChildren {
+  WikiWikiIdEditRoute: typeof WikiWikiIdEditRoute
+  WikiWikiIdHistoryRoute: typeof WikiWikiIdHistoryRoute
+}
+
+const WikiWikiIdRouteChildren: WikiWikiIdRouteChildren = {
+  WikiWikiIdEditRoute: WikiWikiIdEditRoute,
+  WikiWikiIdHistoryRoute: WikiWikiIdHistoryRoute,
+}
+
+const WikiWikiIdRouteWithChildren = WikiWikiIdRoute._addFileChildren(
+  WikiWikiIdRouteChildren,
+)
+
 interface WikiRouteRouteChildren {
+  WikiWikiIdRoute: typeof WikiWikiIdRouteWithChildren
   WikiIndexRoute: typeof WikiIndexRoute
 }
 
 const WikiRouteRouteChildren: WikiRouteRouteChildren = {
+  WikiWikiIdRoute: WikiWikiIdRouteWithChildren,
   WikiIndexRoute: WikiIndexRoute,
 }
 
@@ -305,9 +483,24 @@ const WikiRouteRouteWithChildren = WikiRouteRoute._addFileChildren(
   WikiRouteRouteChildren,
 )
 
+interface AdminRouteChildren {
+  AdminDormCheckRoute: typeof AdminDormCheckRoute
+  AdminDormStorageRoute: typeof AdminDormStorageRoute
+  AdminSchoolCertificateRoute: typeof AdminSchoolCertificateRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminDormCheckRoute: AdminDormCheckRoute,
+  AdminDormStorageRoute: AdminDormStorageRoute,
+  AdminSchoolCertificateRoute: AdminSchoolCertificateRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   WikiRouteRoute: WikiRouteRouteWithChildren,
+  AdminRoute: AdminRouteWithChildren,
   DocumentParsingRoute: DocumentParsingRoute,
   AuthSignInRoute: AuthSignInRoute,
   AuthSignUpRoute: AuthSignUpRoute,

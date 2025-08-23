@@ -14,24 +14,27 @@ export const deleteAuthLogout = async (): Promise<
   DeleteLogoutResponse | undefined
 > => {
   try {
-    const response = await api.post<DeleteLogoutResponse>('/auth/logout');
+    const response = await api.delete<DeleteLogoutResponse>('/auth/logout');
     useToken.getState().saveToken(null);
+
+    // Clear localStorage for login state
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('isAdmin');
+
+    // Dispatch event to notify other components
+    window.dispatchEvent(new CustomEvent('authStateChanged'));
 
     return response.data;
   } catch (error) {
-    console.error('Failed to get user:', error);
+    console.error('Failed to logout:', error);
 
-    if (error instanceof Response) {
-      toast.error('로그아웃하는 데 실패했습니다.', {
-        description: `Status: ${error.statusText || error.status}`,
-      });
-    } else if (isAxiosError(error)) {
-      toast.error('로그아웃하는 데 실패했습니다.', {
+    if (isAxiosError(error)) {
+      toast.error('Failed to logout.', {
         description: error.message,
       });
     } else {
-      toast.error('로그아웃하는 데 실패했습니다.', {
-        description: '알 수 없는 오류가 발생했습니다.',
+      toast.error('Failed to logout.', {
+        description: 'An unknown error occurred.',
       });
     }
   }
