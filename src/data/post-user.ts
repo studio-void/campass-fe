@@ -19,17 +19,11 @@ enum UserVerifyStatus {
   VERIFIED = 'VERIFIED',
 }
 
-enum UserSchool {
-  GIST = 'GIST',
-  POSTECH = 'POSTECH',
-  KAIST = 'KAIST',
-}
-
 export interface PostUserResponse {
   id: number;
   email: string;
   name: string;
-  school: UserSchool;
+  school: string;
   isVerified: boolean;
   verifyStatus: UserVerifyStatus;
   isAdmin: boolean;

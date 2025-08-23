@@ -17,6 +17,7 @@ import { Route as AuthVerificationPendingRouteImport } from './routes/auth/verif
 import { Route as AuthVerificationRouteImport } from './routes/auth/verification'
 import { Route as AuthSignUpRouteImport } from './routes/auth/sign-up'
 import { Route as AuthSignInRouteImport } from './routes/auth/sign-in'
+import { Route as AdminSchoolCertificateRouteImport } from './routes/admin/school-certificate'
 import { Route as AuthGoogleCallbackRouteImport } from './routes/auth/google/callback'
 
 const DocumentParsingRoute = DocumentParsingRouteImport.update({
@@ -59,6 +60,11 @@ const AuthSignInRoute = AuthSignInRouteImport.update({
   path: '/auth/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminSchoolCertificateRoute = AdminSchoolCertificateRouteImport.update({
+  id: '/admin/school-certificate',
+  path: '/admin/school-certificate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthGoogleCallbackRoute = AuthGoogleCallbackRouteImport.update({
   id: '/auth/google/callback',
   path: '/auth/google/callback',
@@ -69,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/wiki': typeof WikiRouteRouteWithChildren
   '/document-parsing': typeof DocumentParsingRoute
+  '/admin/school-certificate': typeof AdminSchoolCertificateRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verification': typeof AuthVerificationRoute
@@ -79,6 +86,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/document-parsing': typeof DocumentParsingRoute
+  '/admin/school-certificate': typeof AdminSchoolCertificateRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verification': typeof AuthVerificationRoute
@@ -91,6 +99,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/wiki': typeof WikiRouteRouteWithChildren
   '/document-parsing': typeof DocumentParsingRoute
+  '/admin/school-certificate': typeof AdminSchoolCertificateRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verification': typeof AuthVerificationRoute
@@ -104,6 +113,7 @@ export interface FileRouteTypes {
     | '/'
     | '/wiki'
     | '/document-parsing'
+    | '/admin/school-certificate'
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/auth/verification'
@@ -114,6 +124,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/document-parsing'
+    | '/admin/school-certificate'
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/auth/verification'
@@ -125,6 +136,7 @@ export interface FileRouteTypes {
     | '/'
     | '/wiki'
     | '/document-parsing'
+    | '/admin/school-certificate'
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/auth/verification'
@@ -137,6 +149,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   WikiRouteRoute: typeof WikiRouteRouteWithChildren
   DocumentParsingRoute: typeof DocumentParsingRoute
+  AdminSchoolCertificateRoute: typeof AdminSchoolCertificateRoute
   AuthSignInRoute: typeof AuthSignInRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
   AuthVerificationRoute: typeof AuthVerificationRoute
@@ -202,6 +215,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSignInRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/school-certificate': {
+      id: '/admin/school-certificate'
+      path: '/admin/school-certificate'
+      fullPath: '/admin/school-certificate'
+      preLoaderRoute: typeof AdminSchoolCertificateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/google/callback': {
       id: '/auth/google/callback'
       path: '/auth/google/callback'
@@ -228,6 +248,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   WikiRouteRoute: WikiRouteRouteWithChildren,
   DocumentParsingRoute: DocumentParsingRoute,
+  AdminSchoolCertificateRoute: AdminSchoolCertificateRoute,
   AuthSignInRoute: AuthSignInRoute,
   AuthSignUpRoute: AuthSignUpRoute,
   AuthVerificationRoute: AuthVerificationRoute,
