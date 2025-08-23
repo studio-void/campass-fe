@@ -2,6 +2,7 @@ export * from './footer';
 export * from './header';
 export * from './layout';
 export * from './dropzone';
+export * from './document-parser';
 
 export * from './ui/button';
 

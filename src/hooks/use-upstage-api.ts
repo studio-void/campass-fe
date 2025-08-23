@@ -58,35 +58,38 @@ export function useUpstageApi(): UseUpstageApiReturn {
     setMessages((prev) => [...prev, assistantMessage]);
 
     try {
-      const response = await fetch(import.meta.env.VITE_UPSTAGE_API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_UPSTAGE_API_KEY}`,
+      const response = await fetch(
+        'https://api.upstage.ai/v1/solar/chat/completions',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${import.meta.env.VITE_UPSTAGE_API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: 'solar-pro2',
+            messages: [
+              {
+                role: 'system',
+                content:
+                  import.meta.env.VITE_UPSTAGE_SYSTEM_PROMPT ||
+                  'You are a helpful assistant.',
+              },
+              ...messages.map((msg) => ({
+                role: msg.role,
+                content: msg.content,
+              })),
+              {
+                role: 'user',
+                content: userInput,
+              },
+            ],
+            max_tokens: 1000,
+            temperature: 0.7,
+            stream: true,
+          }),
         },
-        body: JSON.stringify({
-          model: 'solar-pro2',
-          messages: [
-            {
-              role: 'system',
-              content:
-                import.meta.env.VITE_UPSTAGE_SYSTEM_PROMPT ||
-                'You are a helpful assistant.',
-            },
-            ...messages.map((msg) => ({
-              role: msg.role,
-              content: msg.content,
-            })),
-            {
-              role: 'user',
-              content: userInput,
-            },
-          ],
-          max_tokens: 1000,
-          temperature: 0.7,
-          stream: true,
-        }),
-      });
+      );
 
       if (!response.ok) {
         throw new Error(`API request failed: ${response.status}`);
