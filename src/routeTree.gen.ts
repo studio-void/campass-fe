@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as DocumentParsingRouteImport } from './routes/document-parsing'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthVerificationPendingRouteImport } from './routes/auth/verification-pending'
 import { Route as AuthVerificationRouteImport } from './routes/auth/verification'
 import { Route as AuthSignUpRouteImport } from './routes/auth/sign-up'
 import { Route as AuthSignInRouteImport } from './routes/auth/sign-in'
@@ -24,11 +23,6 @@ const DocumentParsingRoute = DocumentParsingRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthVerificationPendingRoute = AuthVerificationPendingRouteImport.update({
-  id: '/auth/verification-pending',
-  path: '/auth/verification-pending',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthVerificationRoute = AuthVerificationRouteImport.update({
@@ -53,7 +47,6 @@ export interface FileRoutesByFullPath {
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verification': typeof AuthVerificationRoute
-  '/auth/verification-pending': typeof AuthVerificationPendingRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -61,7 +54,6 @@ export interface FileRoutesByTo {
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verification': typeof AuthVerificationRoute
-  '/auth/verification-pending': typeof AuthVerificationPendingRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -70,7 +62,6 @@ export interface FileRoutesById {
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verification': typeof AuthVerificationRoute
-  '/auth/verification-pending': typeof AuthVerificationPendingRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -80,7 +71,6 @@ export interface FileRouteTypes {
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/auth/verification'
-    | '/auth/verification-pending'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -88,7 +78,6 @@ export interface FileRouteTypes {
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/auth/verification'
-    | '/auth/verification-pending'
   id:
     | '__root__'
     | '/'
@@ -96,7 +85,6 @@ export interface FileRouteTypes {
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/auth/verification'
-    | '/auth/verification-pending'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -105,7 +93,6 @@ export interface RootRouteChildren {
   AuthSignInRoute: typeof AuthSignInRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
   AuthVerificationRoute: typeof AuthVerificationRoute
-  AuthVerificationPendingRoute: typeof AuthVerificationPendingRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -122,13 +109,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth/verification-pending': {
-      id: '/auth/verification-pending'
-      path: '/auth/verification-pending'
-      fullPath: '/auth/verification-pending'
-      preLoaderRoute: typeof AuthVerificationPendingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/verification': {
@@ -161,7 +141,6 @@ const rootRouteChildren: RootRouteChildren = {
   AuthSignInRoute: AuthSignInRoute,
   AuthSignUpRoute: AuthSignUpRoute,
   AuthVerificationRoute: AuthVerificationRoute,
-  AuthVerificationPendingRoute: AuthVerificationPendingRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
