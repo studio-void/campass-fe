@@ -18,6 +18,7 @@ import { Route as AuthVerificationRouteImport } from './routes/auth/verification
 import { Route as AuthSignUpRouteImport } from './routes/auth/sign-up'
 import { Route as AuthSignInRouteImport } from './routes/auth/sign-in'
 import { Route as AdminSchoolCertificateRouteImport } from './routes/admin/school-certificate'
+import { Route as AdminDormStorageRouteImport } from './routes/admin/dorm-storage'
 import { Route as AdminDormCheckRouteImport } from './routes/admin/dorm-check'
 import { Route as AuthGoogleCallbackRouteImport } from './routes/auth/google/callback'
 
@@ -66,6 +67,11 @@ const AdminSchoolCertificateRoute = AdminSchoolCertificateRouteImport.update({
   path: '/admin/school-certificate',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminDormStorageRoute = AdminDormStorageRouteImport.update({
+  id: '/admin/dorm-storage',
+  path: '/admin/dorm-storage',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminDormCheckRoute = AdminDormCheckRouteImport.update({
   id: '/admin/dorm-check',
   path: '/admin/dorm-check',
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/wiki': typeof WikiRouteRouteWithChildren
   '/document-parsing': typeof DocumentParsingRoute
   '/admin/dorm-check': typeof AdminDormCheckRoute
+  '/admin/dorm-storage': typeof AdminDormStorageRoute
   '/admin/school-certificate': typeof AdminSchoolCertificateRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/document-parsing': typeof DocumentParsingRoute
   '/admin/dorm-check': typeof AdminDormCheckRoute
+  '/admin/dorm-storage': typeof AdminDormStorageRoute
   '/admin/school-certificate': typeof AdminSchoolCertificateRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
@@ -108,6 +116,7 @@ export interface FileRoutesById {
   '/wiki': typeof WikiRouteRouteWithChildren
   '/document-parsing': typeof DocumentParsingRoute
   '/admin/dorm-check': typeof AdminDormCheckRoute
+  '/admin/dorm-storage': typeof AdminDormStorageRoute
   '/admin/school-certificate': typeof AdminSchoolCertificateRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/wiki'
     | '/document-parsing'
     | '/admin/dorm-check'
+    | '/admin/dorm-storage'
     | '/admin/school-certificate'
     | '/auth/sign-in'
     | '/auth/sign-up'
@@ -135,6 +145,7 @@ export interface FileRouteTypes {
     | '/'
     | '/document-parsing'
     | '/admin/dorm-check'
+    | '/admin/dorm-storage'
     | '/admin/school-certificate'
     | '/auth/sign-in'
     | '/auth/sign-up'
@@ -148,6 +159,7 @@ export interface FileRouteTypes {
     | '/wiki'
     | '/document-parsing'
     | '/admin/dorm-check'
+    | '/admin/dorm-storage'
     | '/admin/school-certificate'
     | '/auth/sign-in'
     | '/auth/sign-up'
@@ -162,6 +174,7 @@ export interface RootRouteChildren {
   WikiRouteRoute: typeof WikiRouteRouteWithChildren
   DocumentParsingRoute: typeof DocumentParsingRoute
   AdminDormCheckRoute: typeof AdminDormCheckRoute
+  AdminDormStorageRoute: typeof AdminDormStorageRoute
   AdminSchoolCertificateRoute: typeof AdminSchoolCertificateRoute
   AuthSignInRoute: typeof AuthSignInRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
@@ -235,6 +248,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSchoolCertificateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/dorm-storage': {
+      id: '/admin/dorm-storage'
+      path: '/admin/dorm-storage'
+      fullPath: '/admin/dorm-storage'
+      preLoaderRoute: typeof AdminDormStorageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/dorm-check': {
       id: '/admin/dorm-check'
       path: '/admin/dorm-check'
@@ -269,6 +289,7 @@ const rootRouteChildren: RootRouteChildren = {
   WikiRouteRoute: WikiRouteRouteWithChildren,
   DocumentParsingRoute: DocumentParsingRoute,
   AdminDormCheckRoute: AdminDormCheckRoute,
+  AdminDormStorageRoute: AdminDormStorageRoute,
   AdminSchoolCertificateRoute: AdminSchoolCertificateRoute,
   AuthSignInRoute: AuthSignInRoute,
   AuthSignUpRoute: AuthSignUpRoute,
