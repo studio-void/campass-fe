@@ -7,9 +7,11 @@ import {
   History,
   Plus,
   Trash2,
+  Upload,
   User,
 } from 'lucide-react';
 
+import { DocumentParser } from '@/components/document-parser';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -86,6 +88,7 @@ function WikiIndexPage() {
   const [creatingWiki, setCreatingWiki] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [wikiToDelete, setWikiToDelete] = useState<number | null>(null);
+  const [isDocumentUploadOpen, setIsDocumentUploadOpen] = useState(false);
 
   useEffect(() => {
     const loadWikis = async () => {
@@ -132,6 +135,11 @@ function WikiIndexPage() {
     setDeleteDialogOpen(true);
   };
 
+  const handleWikiCreatedFromDocument = (newWiki: Wiki) => {
+    setWikis([newWiki, ...wikis]);
+    setIsDocumentUploadOpen(false);
+  };
+
   const navigateToWiki = (wikiId: number) => {
     // Create a simple navigation using the current wiki system
     // We'll implement a modal-based system for now
@@ -171,13 +179,33 @@ function WikiIndexPage() {
           </p>
         </div>
 
+        <div className="flex space-x-2">
+          <Dialog
+            open={isCreateDialogOpen}
+            onOpenChange={setIsCreateDialogOpen}
+          >
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                Create New Wiki
+              </Button>
+            </DialogTrigger>
+          </Dialog>
+
+          <Dialog
+            open={isDocumentUploadOpen}
+            onOpenChange={setIsDocumentUploadOpen}
+          >
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Upload className="w-4 h-4 mr-2" />
+                Upload Document
+              </Button>
+            </DialogTrigger>
+          </Dialog>
+        </div>
+
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Create New Wiki
-            </Button>
-          </DialogTrigger>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
               <DialogTitle>Create New Wiki</DialogTitle>
@@ -231,6 +259,26 @@ function WikiIndexPage() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Document Upload Dialog */}
+        <Dialog
+          open={isDocumentUploadOpen}
+          onOpenChange={setIsDocumentUploadOpen}
+        >
+          <DialogContent className="sm:max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Upload Document to Wiki</DialogTitle>
+              <DialogDescription>
+                Upload a PDF document to parse and create a wiki page
+                automatically.
+              </DialogDescription>
+            </DialogHeader>
+            <DocumentParser
+              mode="wiki-upload"
+              onWikiCreated={handleWikiCreatedFromDocument}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Wiki List */}
@@ -273,26 +321,26 @@ function WikiIndexPage() {
                     >
                       <History className="w-4 h-4" />
                     </Button>
+                    {/* 편집은 모든 사용자가 가능 */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedWiki(wiki.id);
+                        setShowWikiEdit(true);
+                      }}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    {/* 삭제는 작성자만 가능 */}
                     {currentUser?.id === wiki.authorId && (
-                      <>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedWiki(wiki.id);
-                            setShowWikiEdit(true);
-                          }}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openDeleteDialog(wiki.id)}
-                        >
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
-                      </>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openDeleteDialog(wiki.id)}
+                      >
+                        <Trash2 className="w-4 h-4 text-destructive" />
+                      </Button>
                     )}
                   </div>
                 </div>

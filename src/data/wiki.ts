@@ -122,16 +122,9 @@ export const updateWiki = async (
     console.error('Failed to update wiki:', error);
 
     if (isAxiosError(error)) {
-      const status = error.response?.status;
-      if (status === 403) {
-        toast.error('No permission to edit wiki', {
-          description: 'Only the author can edit this wiki.',
-        });
-      } else {
-        toast.error('Failed to update wiki', {
-          description: error.response?.data?.message || error.message,
-        });
-      }
+      toast.error('Failed to update wiki', {
+        description: error.response?.data?.message || error.message,
+      });
     } else {
       toast.error('Failed to update wiki', {
         description: 'An unknown error occurred.',

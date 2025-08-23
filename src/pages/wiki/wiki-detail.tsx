@@ -141,28 +141,30 @@ function WikiDetailPage() {
             히스토리
           </Button>
 
-          {isAuthor && (
-            <>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  // 편집 페이지로 이동하는 로직을 나중에 구현
-                  console.log('Navigate to wiki edit:', wiki.id);
-                }}
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                편집하기
-              </Button>
+          {/* 편집은 누구나 가능 */}
+          <Button
+            variant="outline"
+            onClick={() =>
+              navigate({
+                to: '/wiki/$wikiId/edit',
+                params: { wikiId: wiki.id.toString() },
+              })
+            }
+          >
+            <Edit className="w-4 h-4 mr-2" />
+            편집하기
+          </Button>
 
-              <Button
-                variant="outline"
-                onClick={() => setDeleteDialogOpen(true)}
-                className="text-destructive hover:text-destructive"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                삭제하기
-              </Button>
-            </>
+          {/* 삭제는 작성자만 가능 */}
+          {isAuthor && (
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(true)}
+              className="text-destructive hover:text-destructive"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              삭제하기
+            </Button>
           )}
         </div>
       </div>
