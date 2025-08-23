@@ -1,10 +1,499 @@
 import { useState } from 'react';
 
+import OpenAI from 'openai';
 import { toast } from 'sonner';
 
+import { deleteDormCheck } from '../data/delete-dorm-check';
+// Import all API functions
+import { getDormCheck } from '../data/get-dorm-check';
+import { getDormStorage } from '../data/get-dorm-storage';
+import { getUser, getUserSchool } from '../data/get-user';
+import { getUserVerify } from '../data/get-user-verify';
+import { patchDormCheck } from '../data/patch-dorm-check';
+import { patchDormStorage } from '../data/patch-dorm-storage';
+import { postDormCheck } from '../data/post-dorm-check';
+import { postDormStorage } from '../data/post-dorm-storage';
+import { postUserVerifyApprove } from '../data/post-user-verify-approve';
+import { postUserVerifyReject } from '../data/post-user-verify-reject';
+import {
+  createWiki,
+  deleteWiki,
+  getWikiById,
+  getWikiHistory,
+  getWikis,
+  updateWiki,
+} from '../data/wiki';
 import { useCurrentUser } from './use-current-user';
 import { useRAG } from './use-rag';
 import { type Message as BaseMessage } from './use-upstage-api';
+
+// Tool definition for function calling
+interface FunctionTool {
+  type: 'function';
+  function: {
+    name: string;
+    description: string;
+    parameters: {
+      type: 'object';
+      properties: Record<string, any>;
+      required?: string[];
+    };
+  };
+}
+
+// Available functions for the AI agent
+const availableFunctions = {
+  // Dorm Check functions
+  getDormCheck: async () => {
+    const result = await getDormCheck();
+    return JSON.stringify(result || []);
+  },
+
+  postDormCheck: async (args: {
+    dorm: string;
+    type: 'MAINTENANCE' | 'SINGLE_EXIT' | 'DOUBLE_EXIT';
+    checkAt: string;
+    notes?: string;
+  }) => {
+    await postDormCheck(args);
+    return JSON.stringify({
+      success: true,
+      message: 'Dorm check created successfully',
+    });
+  },
+
+  patchDormCheck: async (args: {
+    id: number;
+    status?: 'FIRST_CHECK' | 'PASS' | 'SECOND_CHECK' | 'THIRD_CHECK' | 'FAIL';
+    dorm?: string;
+    type?: 'MAINTENANCE' | 'SINGLE_EXIT' | 'DOUBLE_EXIT';
+    checkAt?: string;
+    notes?: string;
+  }) => {
+    const { id, ...data } = args;
+    const patchData = {
+      status: data.status || 'FIRST_CHECK',
+      dorm: data.dorm,
+      type: data.type,
+      checkAt: data.checkAt,
+      notes: data.notes,
+    };
+    await patchDormCheck(patchData, id);
+    return JSON.stringify({
+      success: true,
+      message: 'Dorm check updated successfully',
+    });
+  },
+
+  deleteDormCheck: async (args: { id: number }) => {
+    await deleteDormCheck(args.id);
+    return JSON.stringify({
+      success: true,
+      message: 'Dorm check deleted successfully',
+    });
+  },
+
+  // Dorm Storage functions
+  getDormStorage: async () => {
+    const result = await getDormStorage();
+    return JSON.stringify(result || []);
+  },
+
+  postDormStorage: async (args: {
+    storage: string;
+    items: string;
+    storeAt: string;
+  }) => {
+    await postDormStorage(args);
+    return JSON.stringify({
+      success: true,
+      message: 'Dorm storage created successfully',
+    });
+  },
+
+  patchDormStorage: async (args: {
+    id: number;
+    storage?: string;
+    items?: string;
+    storeAt?: string;
+  }) => {
+    const { id, ...data } = args;
+    await patchDormStorage(data, id);
+    return JSON.stringify({
+      success: true,
+      message: 'Dorm storage updated successfully',
+    });
+  },
+
+  // User functions
+  getUser: async () => {
+    const result = await getUser();
+    return JSON.stringify(result || {});
+  },
+
+  getUserSchool: async () => {
+    const result = await getUserSchool();
+    return JSON.stringify({ school: result || 'Unknown' });
+  },
+
+  getUserVerify: async () => {
+    const result = await getUserVerify();
+    return JSON.stringify(result || []);
+  },
+
+  postUserVerifyApprove: async (args: { userId: number }) => {
+    await postUserVerifyApprove(args.userId);
+    return JSON.stringify({
+      success: true,
+      message: 'User verification approved',
+    });
+  },
+
+  postUserVerifyReject: async (args: { userId: number }) => {
+    await postUserVerifyReject(args.userId);
+    return JSON.stringify({
+      success: true,
+      message: 'User verification rejected',
+    });
+  },
+
+  // Wiki functions
+  getWikis: async () => {
+    const result = await getWikis();
+    return JSON.stringify(result || []);
+  },
+
+  getWikiById: async (args: { id: number }) => {
+    const result = await getWikiById(args.id);
+    return JSON.stringify(result || {});
+  },
+
+  createWiki: async (args: { title: string; content: string }) => {
+    const result = await createWiki(args);
+    return JSON.stringify(result || { success: false });
+  },
+
+  updateWiki: async (args: {
+    id: number;
+    title?: string;
+    content?: string;
+    comment?: string;
+  }) => {
+    const result = await updateWiki(args.id, args);
+    return JSON.stringify(result || { success: false });
+  },
+
+  deleteWiki: async (args: { id: number }) => {
+    const success = await deleteWiki(args.id);
+    return JSON.stringify({
+      success,
+      message: success ? 'Wiki deleted successfully' : 'Failed to delete wiki',
+    });
+  },
+
+  getWikiHistory: async (args: { id: number }) => {
+    const result = await getWikiHistory(args.id);
+    return JSON.stringify(result || []);
+  },
+};
+
+// Tool definitions for function calling
+const tools: FunctionTool[] = [
+  {
+    type: 'function',
+    function: {
+      name: 'getDormCheck',
+      description: 'Get all dorm check records for the current user',
+      parameters: {
+        type: 'object',
+        properties: {},
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'postDormCheck',
+      description: 'Create a new dorm check record',
+      parameters: {
+        type: 'object',
+        properties: {
+          dorm: { type: 'string', description: 'Dormitory name or location' },
+          type: {
+            type: 'string',
+            enum: ['MAINTENANCE', 'SINGLE_EXIT', 'DOUBLE_EXIT'],
+            description: 'Type of dorm check',
+          },
+          checkAt: {
+            type: 'string',
+            description: 'Date and time of check (ISO string)',
+          },
+          notes: {
+            type: 'string',
+            description: 'Optional notes for the check',
+          },
+        },
+        required: ['dorm', 'type', 'checkAt'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'patchDormCheck',
+      description: 'Update an existing dorm check record',
+      parameters: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', description: 'ID of the dorm check to update' },
+          dorm: { type: 'string', description: 'Dormitory name or location' },
+          type: {
+            type: 'string',
+            enum: ['MAINTENANCE', 'SINGLE_EXIT', 'DOUBLE_EXIT'],
+            description: 'Type of dorm check',
+          },
+          checkAt: {
+            type: 'string',
+            description: 'Date and time of check (ISO string)',
+          },
+          notes: {
+            type: 'string',
+            description: 'Optional notes for the check',
+          },
+        },
+        required: ['id'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'deleteDormCheck',
+      description: 'Delete a dorm check record',
+      parameters: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', description: 'ID of the dorm check to delete' },
+        },
+        required: ['id'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'getDormStorage',
+      description: 'Get all dorm storage records for the current user',
+      parameters: {
+        type: 'object',
+        properties: {},
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'postDormStorage',
+      description: 'Create a new dorm storage record',
+      parameters: {
+        type: 'object',
+        properties: {
+          storage: { type: 'string', description: 'Storage location or name' },
+          items: { type: 'string', description: 'Items stored' },
+          storeAt: {
+            type: 'string',
+            description: 'Date and time of storage (ISO string)',
+          },
+        },
+        required: ['storage', 'items', 'storeAt'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'patchDormStorage',
+      description: 'Update an existing dorm storage record',
+      parameters: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'number',
+            description: 'ID of the dorm storage to update',
+          },
+          storage: { type: 'string', description: 'Storage location or name' },
+          items: { type: 'string', description: 'Items stored' },
+          storeAt: {
+            type: 'string',
+            description: 'Date and time of storage (ISO string)',
+          },
+        },
+        required: ['id'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'getUser',
+      description: 'Get current user information',
+      parameters: {
+        type: 'object',
+        properties: {},
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'getUserSchool',
+      description: 'Get current user school information',
+      parameters: {
+        type: 'object',
+        properties: {},
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'getUserVerify',
+      description: 'Get user verification requests (admin only)',
+      parameters: {
+        type: 'object',
+        properties: {},
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'postUserVerifyApprove',
+      description: 'Approve a user verification request (admin only)',
+      parameters: {
+        type: 'object',
+        properties: {
+          userId: { type: 'number', description: 'ID of the user to approve' },
+        },
+        required: ['userId'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'postUserVerifyReject',
+      description: 'Reject a user verification request (admin only)',
+      parameters: {
+        type: 'object',
+        properties: {
+          userId: { type: 'number', description: 'ID of the user to reject' },
+        },
+        required: ['userId'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'getWikis',
+      description: 'Get all wiki articles for the current user school',
+      parameters: {
+        type: 'object',
+        properties: {},
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'getWikiById',
+      description: 'Get a specific wiki article by ID',
+      parameters: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', description: 'ID of the wiki article' },
+        },
+        required: ['id'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'createWiki',
+      description: 'Create a new wiki article',
+      parameters: {
+        type: 'object',
+        properties: {
+          title: { type: 'string', description: 'Title of the wiki article' },
+          content: {
+            type: 'string',
+            description: 'Content of the wiki article',
+          },
+        },
+        required: ['title', 'content'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'updateWiki',
+      description: 'Update an existing wiki article',
+      parameters: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'number',
+            description: 'ID of the wiki article to update',
+          },
+          title: {
+            type: 'string',
+            description: 'New title of the wiki article',
+          },
+          content: {
+            type: 'string',
+            description: 'New content of the wiki article',
+          },
+          comment: { type: 'string', description: 'Comment about the changes' },
+        },
+        required: ['id'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'deleteWiki',
+      description: 'Delete a wiki article',
+      parameters: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'number',
+            description: 'ID of the wiki article to delete',
+          },
+        },
+        required: ['id'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'getWikiHistory',
+      description: 'Get edit history for a wiki article',
+      parameters: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', description: 'ID of the wiki article' },
+        },
+        required: ['id'],
+      },
+    },
+  },
+];
 
 export interface RAGMessage extends BaseMessage {
   sources?: Array<{
@@ -15,6 +504,17 @@ export interface RAGMessage extends BaseMessage {
     author?: string;
     score: number;
   }>;
+  usedTools?: Array<{
+    name: string;
+    description: string;
+    args?: any;
+    result?: any;
+    success: boolean;
+  }>;
+  ragUsed?: {
+    documentsFound: number;
+    searchQuery: string;
+  };
 }
 
 interface UseUpstageApiWithRAGReturn {
@@ -122,16 +622,27 @@ export function useUpstageApiWithRAG(): UseUpstageApiWithRAGReturn {
 
     setMessages((prev) => [...prev, assistantMessage]);
 
-    try {
-      let sources: Array<{
-        title: string;
-        content: string;
-        wikiId: number;
-        school: string;
-        author?: string;
-        score: number;
-      }> = [];
+    // Initialize tracking variables at function scope
+    let sources: Array<{
+      title: string;
+      content: string;
+      wikiId: number;
+      school: string;
+      author?: string;
+      score: number;
+    }> = [];
 
+    let usedTools: Array<{
+      name: string;
+      description: string;
+      args?: any;
+      result?: any;
+      success: boolean;
+    }> = [];
+
+    let ragUsed: { documentsFound: number; searchQuery: string } | undefined;
+
+    try {
       // Perform RAG search (only when RAG is initialized)
       if (isInitialized) {
         try {
@@ -148,6 +659,12 @@ export function useUpstageApiWithRAG(): UseUpstageApiWithRAGReturn {
             score: result.score,
           }));
 
+          // Set RAG usage info
+          ragUsed = {
+            documentsFound: sources.length,
+            searchQuery: userInput,
+          };
+
           console.log(
             `Found ${sources.length} relevant documents for query: "${userInput}"`,
           );
@@ -162,16 +679,16 @@ export function useUpstageApiWithRAG(): UseUpstageApiWithRAGReturn {
       // Configure system prompt
       let systemPrompt =
         import.meta.env.VITE_UPSTAGE_SYSTEM_PROMPT ||
-        'You are a friendly and helpful AI assistant for university students. Please provide accurate and useful information related to school life.';
+        'You are Campass AI, a friendly and helpful AI assistant for university students. You have access to various functions to help with dorm management, user information, and wiki operations. ALWAYS use the appropriate functions when users ask for specific actions or data. For example:\n- Use getDormCheck() when users ask about dorm checks\n- Use getUser() when users ask about their profile\n- Use getWikis() when users ask about wiki articles\n- Use createWiki() when users want to create new wiki content\n- Use postDormCheck() when users want to record a dorm check\n\nAlways try to call relevant functions to provide accurate and up-to-date information.';
 
       if (sources.length > 0) {
         systemPrompt += '\n\n' + buildContextFromSources(sources);
       } else if (isInitialized) {
         systemPrompt +=
-          '\n\nNo wiki documents related to the current question were found. Please answer based on general knowledge.';
+          '\n\nNo wiki documents related to the current question were found. You can still use available functions to help the user.';
       } else {
         systemPrompt +=
-          '\n\nRAG system is not initialized. Please answer based on general knowledge.';
+          '\n\nRAG system is not initialized yet. You can still use available functions to help the user.';
       }
 
       // Configure conversation history
@@ -182,102 +699,395 @@ export function useUpstageApiWithRAG(): UseUpstageApiWithRAGReturn {
           content: msg.content,
         }));
 
-      const response = await fetch(
-        'https://api.upstage.ai/v1/solar/chat/completions',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${import.meta.env.VITE_UPSTAGE_API_KEY}`,
+      // Initialize OpenAI client for Upstage Solar
+      const apiKey = import.meta.env.VITE_UPSTAGE_API_KEY;
+      if (!apiKey) {
+        throw new Error('VITE_UPSTAGE_API_KEY is not configured');
+      }
+
+      const openai = new OpenAI({
+        apiKey: apiKey,
+        baseURL: 'https://api.upstage.ai/v1',
+        dangerouslyAllowBrowser: true,
+      });
+
+      console.log('Initializing OpenAI client with function calling...', {
+        toolsCount: tools.length,
+      });
+
+      // First API call with function calling
+      console.log('Making API call with tools:', {
+        userInput,
+        toolsCount: tools.length,
+      });
+
+      const initialResponse = await openai.chat.completions.create({
+        model: 'solar-pro2',
+        messages: [
+          {
+            role: 'system',
+            content: systemPrompt,
           },
-          body: JSON.stringify({
+          ...conversationMessages,
+          {
+            role: 'user',
+            content: userInput,
+          },
+        ] as any,
+        tools: tools as any,
+        tool_choice: 'auto',
+        max_tokens: 1500,
+        temperature: 0.7,
+      });
+
+      console.log('API Response:', initialResponse);
+
+      const responseMessage = initialResponse.choices[0].message;
+
+      // Check if the model wants to call functions
+      if (responseMessage.tool_calls && responseMessage.tool_calls.length > 0) {
+        // Add the assistant's response with tool calls to the conversation
+        const messages_with_response = [
+          ...conversationMessages,
+          {
+            role: 'user',
+            content: userInput,
+          },
+          responseMessage,
+        ];
+
+        // Execute function calls
+        console.log(
+          'Executing function calls:',
+          responseMessage.tool_calls?.length,
+        );
+
+        for (const toolCall of responseMessage.tool_calls) {
+          const functionName = (toolCall as any).function.name;
+          const functionToCall =
+            availableFunctions[functionName as keyof typeof availableFunctions];
+
+          console.log(
+            `Executing function: ${functionName}`,
+            (toolCall as any).function.arguments,
+          );
+
+          // Find tool description
+          const toolInfo = tools.find((t) => t.function.name === functionName);
+          const toolDescription =
+            toolInfo?.function.description || 'No description available';
+
+          if (functionToCall) {
+            try {
+              const functionArgs = JSON.parse(
+                (toolCall as any).function.arguments,
+              );
+              const functionResponse = await functionToCall(functionArgs);
+
+              console.log(
+                `Function ${functionName} response:`,
+                functionResponse,
+              );
+
+              // Parse response to get actual result
+              let parsedResult;
+              try {
+                parsedResult = JSON.parse(functionResponse);
+              } catch {
+                parsedResult = functionResponse;
+              }
+
+              // Add to used tools tracking
+              usedTools.push({
+                name: functionName,
+                description: toolDescription,
+                args: functionArgs,
+                result: parsedResult,
+                success: true,
+              });
+
+              // Add function response to conversation
+              messages_with_response.push({
+                tool_call_id: (toolCall as any).id,
+                role: 'tool',
+                name: functionName,
+                content: functionResponse,
+              } as any);
+            } catch (error) {
+              console.error(`Error executing function ${functionName}:`, error);
+              const errorMessage =
+                error instanceof Error ? error.message : 'Unknown error';
+
+              // Add failed tool to tracking
+              usedTools.push({
+                name: functionName,
+                description: toolDescription,
+                args: JSON.parse((toolCall as any).function.arguments || '{}'),
+                result: {
+                  error: 'Function execution failed',
+                  details: errorMessage,
+                },
+                success: false,
+              });
+
+              messages_with_response.push({
+                tool_call_id: (toolCall as any).id,
+                role: 'tool',
+                name: functionName,
+                content: JSON.stringify({
+                  error: 'Function execution failed',
+                  details: errorMessage,
+                }),
+              } as any);
+            }
+          } else {
+            console.error(
+              `Function ${functionName} not found in availableFunctions`,
+            );
+
+            // Add missing function to tracking
+            usedTools.push({
+              name: functionName,
+              description: 'Function not found',
+              args: JSON.parse((toolCall as any).function.arguments || '{}'),
+              result: { error: 'Function not found' },
+              success: false,
+            });
+
+            messages_with_response.push({
+              tool_call_id: (toolCall as any).id,
+              role: 'tool',
+              name: functionName,
+              content: JSON.stringify({ error: 'Function not found' }),
+            } as any);
+          }
+        }
+
+        // Get final response from the model with function results
+        console.log('Getting final response with function results...', {
+          messagesCount: messages_with_response.length,
+        });
+
+        // Try non-streaming first for function calling response
+        try {
+          const finalResponse = await openai.chat.completions.create({
             model: 'solar-pro2',
-            messages: [
-              {
-                role: 'system',
-                content: systemPrompt,
-              },
-              ...conversationMessages,
-              {
-                role: 'user',
-                content: userInput,
-              },
-            ],
+            messages: messages_with_response as any,
             max_tokens: 1500,
             temperature: 0.7,
-            stream: true,
-          }),
-        },
-      );
+            stream: false, // Use non-streaming for function calling responses
+          });
 
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
-      }
+          const finalContent = finalResponse.choices[0]?.message?.content || '';
+          console.log('Function calling response content:', finalContent);
 
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let fullContent = '';
+          if (finalContent) {
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === assistantMessageId
+                  ? {
+                      ...msg,
+                      content: finalContent,
+                      sources: sources.length > 0 ? sources : undefined,
+                      usedTools: usedTools.length > 0 ? usedTools : undefined,
+                      ragUsed: ragUsed,
+                    }
+                  : msg,
+              ),
+            );
+          } else {
+            // Fallback: create a response based on function results
+            const functionResults = messages_with_response
+              .filter((msg) => msg.role === 'tool')
+              .map((msg) => {
+                try {
+                  const content = (msg as any).content;
+                  const name = (msg as any).name;
+                  const result = content ? JSON.parse(content) : {};
+                  return { function: name, result };
+                } catch {
+                  return {
+                    function: (msg as any).name,
+                    result: (msg as any).content,
+                  };
+                }
+              });
 
-      if (!reader) {
-        throw new Error('Unable to read stream.');
-      }
+            let fallbackContent =
+              'I was able to retrieve the information successfully:\n\n';
 
-      while (true) {
-        const { done, value } = await reader.read();
-
-        if (done) break;
-
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n');
-
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6);
-
-            if (data === '[DONE]') {
-              continue;
-            }
-
-            try {
-              const parsed = JSON.parse(data);
-              const content = parsed.choices?.[0]?.delta?.content;
-
-              if (content) {
-                fullContent += content;
-
-                setMessages((prev) =>
-                  prev.map((msg) =>
-                    msg.id === assistantMessageId
-                      ? {
-                          ...msg,
-                          content: fullContent,
-                          sources: sources.length > 0 ? sources : undefined,
-                        }
-                      : msg,
-                  ),
-                );
+            functionResults.forEach(({ function: funcName, result }) => {
+              if (
+                funcName === 'getUser' &&
+                typeof result === 'object' &&
+                result.name
+              ) {
+                fallbackContent += `**Your Profile Information:**\n`;
+                fallbackContent += `- Name: ${result.name}\n`;
+                fallbackContent += `- Email: ${result.email}\n`;
+                fallbackContent += `- School: ${result.school}\n`;
+                fallbackContent += `- Student ID: ${result.number}\n`;
+                fallbackContent += `- Verification Status: ${result.verifyStatus}\n`;
+              } else if (funcName === 'getDormCheck' && Array.isArray(result)) {
+                fallbackContent += `**Dorm Check Records:** ${result.length} records found\n`;
+              } else if (
+                funcName === 'getDormStorage' &&
+                Array.isArray(result)
+              ) {
+                fallbackContent += `**Dorm Storage Records:** ${result.length} records found\n`;
+              } else if (funcName === 'getWikis' && Array.isArray(result)) {
+                fallbackContent += `**Wiki Articles:** ${result.length} articles found\n`;
+              } else {
+                fallbackContent += `**${funcName}:** Retrieved successfully\n`;
               }
-            } catch (parseError) {
-              console.error('JSON parsing error:', parseError);
-              continue;
+            });
+
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === assistantMessageId
+                  ? {
+                      ...msg,
+                      content: fallbackContent,
+                      sources: sources.length > 0 ? sources : undefined,
+                      usedTools: usedTools.length > 0 ? usedTools : undefined,
+                      ragUsed: ragUsed,
+                    }
+                  : msg,
+              ),
+            );
+          }
+        } catch (streamError) {
+          console.error('Error with function calling response:', streamError);
+
+          // Final fallback
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === assistantMessageId
+                ? {
+                    ...msg,
+                    content:
+                      'I was able to retrieve the information, but encountered an issue generating the response. Please try asking your question in a different way.',
+                    sources: sources.length > 0 ? sources : undefined,
+                    usedTools: usedTools.length > 0 ? usedTools : undefined,
+                    ragUsed: ragUsed,
+                  }
+                : msg,
+            ),
+          );
+        }
+      } else {
+        // No function calls - handle as regular streaming response
+        const response = await fetch(
+          'https://api.upstage.ai/v1/solar/chat/completions',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${import.meta.env.VITE_UPSTAGE_API_KEY}`,
+            },
+            body: JSON.stringify({
+              model: 'solar-pro2',
+              messages: [
+                {
+                  role: 'system',
+                  content: systemPrompt,
+                },
+                ...conversationMessages,
+                {
+                  role: 'user',
+                  content: userInput,
+                },
+              ],
+              max_tokens: 1500,
+              temperature: 0.7,
+              stream: true,
+            }),
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error(`API request failed: ${response.status}`);
+        }
+
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+        let fullContent = '';
+        let hasContent = false;
+
+        if (!reader) {
+          throw new Error('Unable to read stream.');
+        }
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6);
+              if (data === '[DONE]') continue;
+
+              try {
+                const parsed = JSON.parse(data);
+                const content = parsed.choices?.[0]?.delta?.content;
+
+                if (content) {
+                  fullContent += content;
+                  hasContent = true;
+                  setMessages((prev) =>
+                    prev.map((msg) =>
+                      msg.id === assistantMessageId
+                        ? {
+                            ...msg,
+                            content: fullContent,
+                            sources: sources.length > 0 ? sources : undefined,
+                            ragUsed: ragUsed,
+                          }
+                        : msg,
+                    ),
+                  );
+                }
+              } catch (parseError) {
+                console.error('JSON parsing error:', parseError);
+                continue;
+              }
             }
           }
         }
+
+        console.log('Regular streaming completed:', {
+          hasContent,
+          fullContentLength: fullContent.length,
+        });
       }
 
-      if (!fullContent) {
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.id === assistantMessageId
-              ? {
-                  ...msg,
-                  content: 'Sorry, I was unable to generate a response.',
-                  sources: sources.length > 0 ? sources : undefined,
-                }
-              : msg,
-          ),
+      // Check if we got any content after all processing
+      setMessages((prevMessages) => {
+        const updatedMessages = [...prevMessages];
+        const messageIndex = updatedMessages.findIndex(
+          (msg) => msg.id === assistantMessageId,
         );
-      }
+
+        if (messageIndex !== -1) {
+          const currentMessage = updatedMessages[messageIndex];
+
+          // If no content was generated, provide a helpful fallback
+          if (!currentMessage.content || currentMessage.content.trim() === '') {
+            console.log('No content generated, providing fallback response');
+            updatedMessages[messageIndex] = {
+              ...currentMessage,
+              content:
+                'I was able to retrieve the information, but encountered an issue generating the response. Please try asking your question in a different way.',
+              sources: sources.length > 0 ? sources : undefined,
+            };
+          }
+        }
+
+        return updatedMessages;
+      });
     } catch (error) {
       console.error('Upstage API error:', error);
 
@@ -288,6 +1098,8 @@ export function useUpstageApiWithRAG(): UseUpstageApiWithRAGReturn {
                 ...msg,
                 content:
                   'An unexpected error occurred. Please try again later.',
+                usedTools: usedTools.length > 0 ? usedTools : undefined,
+                ragUsed: ragUsed,
               }
             : msg,
         ),

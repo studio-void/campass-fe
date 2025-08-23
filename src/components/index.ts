@@ -6,6 +6,8 @@ export * from './document-parser';
 export * from './user-school-logo';
 export * from './markdown-renderer';
 export * from './markdown-editor';
+export * from './ai-agent-popup';
+export * from './ai-agent-fab';
 
 export * from './ui/button';
 

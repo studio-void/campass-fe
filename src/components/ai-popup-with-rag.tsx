@@ -4,7 +4,9 @@ import {
   IconDatabase,
   IconExternalLink,
   IconRefresh,
+  IconSearch,
   IconSend,
+  IconTool,
   IconTrash,
   IconUser,
 } from '@tabler/icons-react';
@@ -255,15 +257,21 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
                     })}
                   </div>
 
-                  {message.sources && message.sources.length > 0 && (
-                    <button
-                      onClick={() => toggleSources(message.id)}
-                      className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                    >
-                      <IconExternalLink className="h-3 w-3" />
-                      {message.sources.length} sources
-                    </button>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {message.usedTools && message.usedTools.length > 0 && (
+                      <span className="text-xs text-green-600 flex items-center gap-1">
+                        <IconTool className="h-3 w-3" />
+                        {message.usedTools.length} tools
+                      </span>
+                    )}
+
+                    {message.ragUsed && (
+                      <span className="text-xs text-purple-600 flex items-center gap-1">
+                        <IconSearch className="h-3 w-3" />
+                        RAG search
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
               {message.role === 'user' && (
@@ -275,7 +283,42 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
               )}
             </div>
 
-            {/* Sources */}
+            {/* RAG Usage Info */}
+            {message.ragUsed && (
+              <div className="mt-2 ml-11 bg-purple-50 rounded-lg p-3">
+                <h4 className="text-xs font-semibold text-purple-900 mb-2 flex items-center gap-1">
+                  <IconSearch className="h-3 w-3" />
+                  RAG Search Information
+                </h4>
+                <div className="space-y-1">
+                  <p className="text-xs text-gray-600">
+                    Search Query:{' '}
+                    <span className="font-medium">
+                      {message.ragUsed.searchQuery}
+                    </span>
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-gray-600">
+                      Documents Found:{' '}
+                      <span className="font-medium">
+                        {message.ragUsed.documentsFound}
+                      </span>
+                    </p>
+                    {message.sources && message.sources.length > 0 && (
+                      <button
+                        onClick={() => toggleSources(message.id)}
+                        className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                      >
+                        <IconExternalLink className="h-3 w-3" />
+                        {message.sources.length} sources
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Sources Details */}
             {message.sources &&
               message.sources.length > 0 &&
               showSources === message.id && (
@@ -314,6 +357,70 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
                   </div>
                 </div>
               )}
+
+            {/* Used Tools */}
+            {message.usedTools && message.usedTools.length > 0 && (
+              <div className="mt-2 ml-11 bg-green-50 rounded-lg p-3">
+                <h4 className="text-xs font-semibold text-green-900 mb-2 flex items-center gap-1">
+                  <IconTool className="h-3 w-3" />
+                  AI Agent Tools Used
+                </h4>
+                <div className="space-y-2">
+                  {message.usedTools.map((tool, index) => (
+                    <div
+                      key={`${tool.name}-${index}`}
+                      className={`bg-white rounded p-2 border ${
+                        tool.success ? 'border-green-200' : 'border-red-200'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span
+                          className={`text-xs font-medium ${
+                            tool.success ? 'text-green-900' : 'text-red-900'
+                          }`}
+                        >
+                          {tool.name}
+                        </span>
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded-full ${
+                            tool.success
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-red-100 text-red-700'
+                          }`}
+                        >
+                          {tool.success ? 'Success' : 'Failed'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-600 mb-1">
+                        {tool.description}
+                      </p>
+                      {tool.args && Object.keys(tool.args).length > 0 && (
+                        <details className="text-xs text-gray-700">
+                          <summary className="cursor-pointer font-medium mb-1">
+                            Arguments
+                          </summary>
+                          <pre className="bg-gray-100 p-1 rounded overflow-x-auto">
+                            {JSON.stringify(tool.args, null, 2)}
+                          </pre>
+                        </details>
+                      )}
+                      {tool.result && (
+                        <details className="text-xs text-gray-700 mt-1">
+                          <summary className="cursor-pointer font-medium mb-1">
+                            Result
+                          </summary>
+                          <pre className="bg-gray-100 p-1 rounded overflow-x-auto max-h-20">
+                            {typeof tool.result === 'string'
+                              ? tool.result
+                              : JSON.stringify(tool.result, null, 2)}
+                          </pre>
+                        </details>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ))}
         <div ref={messagesEndRef} />
