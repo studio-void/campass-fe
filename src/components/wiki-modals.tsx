@@ -22,7 +22,6 @@ interface WikiDetailModalProps {
   onClose: () => void;
   onEdit: () => void;
   onHistory: () => void;
-  currentUser: any;
 }
 
 export function WikiDetailModal({
@@ -30,7 +29,6 @@ export function WikiDetailModal({
   onClose,
   onEdit,
   onHistory,
-  currentUser,
 }: WikiDetailModalProps) {
   const [wiki, setWiki] = useState<Wiki | null>(null);
   const [loading, setLoading] = useState(true);
@@ -75,8 +73,6 @@ export function WikiDetailModal({
     );
   }
 
-  const isAuthor = currentUser?.id === wiki.authorId;
-
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
@@ -92,17 +88,15 @@ export function WikiDetailModal({
               <History className="w-4 h-4 mr-2" />
               History
             </Button>
-            {isAuthor && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onEdit}
-                className="text-blue-600 hover:text-blue-800"
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Edit
-              </Button>
-            )}
+                        <Button
+              variant="outline"
+              size="sm"
+              onClick={onEdit}
+              className="text-blue-600 hover:text-blue-800"
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              Edit
+            </Button>
             <Button
               variant="ghost"
               size="sm"

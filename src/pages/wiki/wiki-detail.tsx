@@ -6,6 +6,7 @@ import { ArrowLeft, Calendar, Edit, History, Trash2, User } from 'lucide-react';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { WikiEditModal, WikiHistoryModal } from '@/components/wiki-modals';
 import { getUser } from '@/data/get-user';
 import { type Wiki, deleteWiki, getWikiById } from '@/data/wiki';
 
@@ -56,6 +57,8 @@ function WikiDetailPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [historyModalOpen, setHistoryModalOpen] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -130,29 +133,13 @@ function WikiDetailPage() {
         </Button>
 
         <div className="flex space-x-2">
-          <Button
-            variant="outline"
-            onClick={() => {
-              navigate({
-                to: '/wiki/$wikiId/history',
-                params: { wikiId: wiki.id.toString() },
-              });
-            }}
-          >
+          <Button variant="outline" onClick={() => setHistoryModalOpen(true)}>
             <History className="w-4 h-4 mr-2" />
             History
           </Button>
 
           {/* Anyone can edit */}
-          <Button
-            variant="outline"
-            onClick={() =>
-              navigate({
-                to: '/wiki/$wikiId/edit',
-                params: { wikiId: wiki.id.toString() },
-              })
-            }
-          >
+          <Button variant="outline" onClick={() => setEditModalOpen(true)}>
             <Edit className="w-4 h-4 mr-2" />
             Edit
           </Button>
@@ -198,6 +185,26 @@ function WikiDetailPage() {
           <MarkdownRenderer content={wiki.content} />
         </CardContent>
       </Card>
+
+      {/* Edit Modal */}
+      {editModalOpen && (
+        <WikiEditModal
+          wikiId={wiki.id}
+          onClose={() => setEditModalOpen(false)}
+          onSave={(updatedWiki) => {
+            setWiki(updatedWiki);
+            setEditModalOpen(false);
+          }}
+        />
+      )}
+
+      {/* History Modal */}
+      {historyModalOpen && (
+        <WikiHistoryModal
+          wikiId={wiki.id}
+          onClose={() => setHistoryModalOpen(false)}
+        />
+      )}
 
       {/* Delete confirmation dialog */}
       <ConfirmDialog
