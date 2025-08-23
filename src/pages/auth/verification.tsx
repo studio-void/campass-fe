@@ -162,7 +162,8 @@ function PendingView() {
         <p className="mt-10 text-base text-neutral-600 dark:text-neutral-400">
           It takes <b>1–2 days</b> after uploading the school certification
           material.
-          <br />ㅇ It may be delayed further on holidays and weekends.
+          <br />
+          It may be delayed further on holidays and weekends.
         </p>
       </div>
     </section>
