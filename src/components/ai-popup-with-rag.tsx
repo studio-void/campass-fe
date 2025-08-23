@@ -4,7 +4,6 @@ import {
   IconDatabase,
   IconExternalLink,
   IconRefresh,
-  IconResize,
   IconSearch,
   IconSend,
   IconTool,
