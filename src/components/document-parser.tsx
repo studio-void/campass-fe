@@ -176,7 +176,7 @@ export function DocumentParser() {
             onDrop={onDrop}
             accept="application/pdf"
             multiple={false}
-            maxSize={10 * 1024 * 1024} // 10MB
+            maxSize={50 * 1024 * 1024} // 50MB
             disabled={isLoading}
             files={uploadedFiles}
             onRemove={onRemoveFile}
