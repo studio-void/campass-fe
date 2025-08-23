@@ -12,7 +12,7 @@ export const Layout: React.FC<
   return (
     <div className="min-h-screen w-full">
       <Header ref={headerRef} />
-      
+
       <main
         className={`flex flex-col items-center mx-6 md:mx-12 lg:mx-24 xl:mx-48 ${disableHeaderHeight ? '' : 'pt-20'}`}
       >

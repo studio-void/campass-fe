@@ -8,7 +8,14 @@ import { deleteDormCheck } from '../data/delete-dorm-check';
 import { deleteDormStorage } from '../data/delete-dorm-storage';
 import { deleteUser } from '../data/delete-user';
 import { deleteWiki } from '../data/delete-wiki';
-import { getAllFacilities, getFacilityById, createFacility, updateFacility, deleteFacility, useFacility } from '../data/facility';
+import {
+  createFacility,
+  deleteFacility,
+  getAllFacilities,
+  getFacilityById,
+  updateFacility,
+  useFacility,
+} from '../data/facility';
 import { getAppInfo } from '../data/get-app-info';
 import { getDormCheck } from '../data/get-dorm-check';
 import { getDormCheckById } from '../data/get-dorm-check-by-id';
@@ -27,30 +34,28 @@ import { updateUser } from '../data/patch-user';
 import { updateWiki } from '../data/patch-wiki';
 import { postDormCheck } from '../data/post-dorm-check';
 import { postDormStorage } from '../data/post-dorm-storage';
+import { verifyUser } from '../data/post-user-verify';
 import { postUserVerifyApprove } from '../data/post-user-verify-approve';
 import { postUserVerifyReject } from '../data/post-user-verify-reject';
-import { verifyUser } from '../data/post-user-verify';
 import { createWiki } from '../data/post-wiki';
-import { 
-  getAllEquipment, 
-  getEquipmentById, 
-  createEquipment, 
-  updateEquipment, 
-  deleteEquipment, 
-  getEquipmentHistory, 
-  useEquipment, 
-  stopUsingEquipment 
-} from '../data/research-equipment';
-import { 
-  getAllNotes, 
-  getNoteById, 
-  createNote, 
-  updateNote, 
-  deleteNote 
-} from '../data/research-notes';
 import {
-  getWikis,
-} from '../data/wiki';
+  createEquipment,
+  deleteEquipment,
+  getAllEquipment,
+  getEquipmentById,
+  getEquipmentHistory,
+  stopUsingEquipment,
+  updateEquipment,
+  useEquipment,
+} from '../data/research-equipment';
+import {
+  createNote,
+  deleteNote,
+  getAllNotes,
+  getNoteById,
+  updateNote,
+} from '../data/research-notes';
+import { getWikis } from '../data/wiki';
 import { useCurrentUser } from './use-current-user';
 import { useRAG } from './use-rag';
 import { type Message as BaseMessage } from './use-upstage-api';
@@ -277,7 +282,10 @@ const availableFunctions = {
 
   deleteDormStorage: async (args: { id: number }) => {
     await deleteDormStorage(args.id);
-    return JSON.stringify({ success: true, message: 'Dorm storage deleted successfully' });
+    return JSON.stringify({
+      success: true,
+      message: 'Dorm storage deleted successfully',
+    });
   },
 
   // Research Equipment functions
@@ -731,7 +739,8 @@ const tools: FunctionTool[] = [
     type: 'function',
     function: {
       name: 'getAllUsers',
-      description: 'Get all users list (admin can see all info, normal users see basic info)',
+      description:
+        'Get all users list (admin can see all info, normal users see basic info)',
       parameters: {
         type: 'object',
         properties: {},
@@ -801,7 +810,10 @@ const tools: FunctionTool[] = [
       parameters: {
         type: 'object',
         properties: {
-          verifyImageUrl: { type: 'string', description: 'URL of verification image' },
+          verifyImageUrl: {
+            type: 'string',
+            description: 'URL of verification image',
+          },
         },
         required: ['verifyImageUrl'],
       },
@@ -843,7 +855,10 @@ const tools: FunctionTool[] = [
       parameters: {
         type: 'object',
         properties: {
-          id: { type: 'number', description: 'Storage application ID to delete' },
+          id: {
+            type: 'number',
+            description: 'Storage application ID to delete',
+          },
         },
         required: ['id'],
       },
@@ -886,7 +901,10 @@ const tools: FunctionTool[] = [
           name: { type: 'string', description: 'Equipment name' },
           description: { type: 'string', description: 'Equipment description' },
           imageUrl: { type: 'string', description: 'Equipment image URL' },
-          isAvailable: { type: 'boolean', description: 'Whether equipment is available' },
+          isAvailable: {
+            type: 'boolean',
+            description: 'Whether equipment is available',
+          },
         },
         required: ['name'],
       },
@@ -904,7 +922,10 @@ const tools: FunctionTool[] = [
           name: { type: 'string', description: 'Equipment name' },
           description: { type: 'string', description: 'Equipment description' },
           imageUrl: { type: 'string', description: 'Equipment image URL' },
-          isAvailable: { type: 'boolean', description: 'Whether equipment is available' },
+          isAvailable: {
+            type: 'boolean',
+            description: 'Whether equipment is available',
+          },
         },
         required: ['id'],
       },
@@ -1075,9 +1096,18 @@ const tools: FunctionTool[] = [
           description: { type: 'string', description: 'Facility description' },
           imageUrl: { type: 'string', description: 'Facility image URL' },
           location: { type: 'string', description: 'Facility location' },
-          isAvailable: { type: 'boolean', description: 'Whether facility is available' },
-          openTime: { type: 'string', description: 'Opening time (ISO string)' },
-          closeTime: { type: 'string', description: 'Closing time (ISO string)' },
+          isAvailable: {
+            type: 'boolean',
+            description: 'Whether facility is available',
+          },
+          openTime: {
+            type: 'string',
+            description: 'Opening time (ISO string)',
+          },
+          closeTime: {
+            type: 'string',
+            description: 'Closing time (ISO string)',
+          },
         },
         required: ['name', 'location', 'openTime', 'closeTime'],
       },
@@ -1096,9 +1126,18 @@ const tools: FunctionTool[] = [
           description: { type: 'string', description: 'Facility description' },
           imageUrl: { type: 'string', description: 'Facility image URL' },
           location: { type: 'string', description: 'Facility location' },
-          isAvailable: { type: 'boolean', description: 'Whether facility is available' },
-          openTime: { type: 'string', description: 'Opening time (ISO string)' },
-          closeTime: { type: 'string', description: 'Closing time (ISO string)' },
+          isAvailable: {
+            type: 'boolean',
+            description: 'Whether facility is available',
+          },
+          openTime: {
+            type: 'string',
+            description: 'Opening time (ISO string)',
+          },
+          closeTime: {
+            type: 'string',
+            description: 'Closing time (ISO string)',
+          },
         },
         required: ['id'],
       },
@@ -1127,8 +1166,14 @@ const tools: FunctionTool[] = [
         type: 'object',
         properties: {
           id: { type: 'number', description: 'Facility ID to reserve' },
-          startTime: { type: 'string', description: 'Reservation start time (ISO string)' },
-          endTime: { type: 'string', description: 'Reservation end time (ISO string)' },
+          startTime: {
+            type: 'string',
+            description: 'Reservation start time (ISO string)',
+          },
+          endTime: {
+            type: 'string',
+            description: 'Reservation end time (ISO string)',
+          },
         },
         required: ['id', 'startTime', 'endTime'],
       },
