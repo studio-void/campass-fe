@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as DocumentParsingRouteImport } from './routes/document-parsing'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as WikiRouteRouteImport } from './routes/wiki/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WikiIndexRouteImport } from './routes/wiki/index'
@@ -19,6 +20,8 @@ import { Route as AuthVerificationRouteImport } from './routes/auth/verification
 import { Route as AuthSignUpRouteImport } from './routes/auth/sign-up'
 import { Route as AuthSignInRouteImport } from './routes/auth/sign-in'
 import { Route as AdminSchoolCertificateRouteImport } from './routes/admin/school-certificate'
+import { Route as AdminDormStorageRouteImport } from './routes/admin/dorm-storage'
+import { Route as AdminDormCheckRouteImport } from './routes/admin/dorm-check'
 import { Route as WikiWikiIdHistoryRouteImport } from './routes/wiki/$wikiId.history'
 import { Route as WikiWikiIdEditRouteImport } from './routes/wiki/$wikiId.edit'
 import { Route as AuthGoogleCallbackRouteImport } from './routes/auth/google/callback'
@@ -26,6 +29,11 @@ import { Route as AuthGoogleCallbackRouteImport } from './routes/auth/google/cal
 const DocumentParsingRoute = DocumentParsingRouteImport.update({
   id: '/document-parsing',
   path: '/document-parsing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WikiRouteRoute = WikiRouteRouteImport.update({
@@ -69,9 +77,19 @@ const AuthSignInRoute = AuthSignInRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminSchoolCertificateRoute = AdminSchoolCertificateRouteImport.update({
-  id: '/admin/school-certificate',
-  path: '/admin/school-certificate',
-  getParentRoute: () => rootRouteImport,
+  id: '/school-certificate',
+  path: '/school-certificate',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminDormStorageRoute = AdminDormStorageRouteImport.update({
+  id: '/dorm-storage',
+  path: '/dorm-storage',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminDormCheckRoute = AdminDormCheckRouteImport.update({
+  id: '/dorm-check',
+  path: '/dorm-check',
+  getParentRoute: () => AdminRoute,
 } as any)
 const WikiWikiIdHistoryRoute = WikiWikiIdHistoryRouteImport.update({
   id: '/history',
@@ -92,7 +110,10 @@ const AuthGoogleCallbackRoute = AuthGoogleCallbackRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/wiki': typeof WikiRouteRouteWithChildren
+  '/admin': typeof AdminRouteWithChildren
   '/document-parsing': typeof DocumentParsingRoute
+  '/admin/dorm-check': typeof AdminDormCheckRoute
+  '/admin/dorm-storage': typeof AdminDormStorageRoute
   '/admin/school-certificate': typeof AdminSchoolCertificateRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
@@ -106,7 +127,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/document-parsing': typeof DocumentParsingRoute
+  '/admin/dorm-check': typeof AdminDormCheckRoute
+  '/admin/dorm-storage': typeof AdminDormStorageRoute
   '/admin/school-certificate': typeof AdminSchoolCertificateRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
@@ -122,7 +146,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/wiki': typeof WikiRouteRouteWithChildren
+  '/admin': typeof AdminRouteWithChildren
   '/document-parsing': typeof DocumentParsingRoute
+  '/admin/dorm-check': typeof AdminDormCheckRoute
+  '/admin/dorm-storage': typeof AdminDormStorageRoute
   '/admin/school-certificate': typeof AdminSchoolCertificateRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
@@ -139,7 +166,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/wiki'
+    | '/admin'
     | '/document-parsing'
+    | '/admin/dorm-check'
+    | '/admin/dorm-storage'
     | '/admin/school-certificate'
     | '/auth/sign-in'
     | '/auth/sign-up'
@@ -153,7 +183,10 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
     | '/document-parsing'
+    | '/admin/dorm-check'
+    | '/admin/dorm-storage'
     | '/admin/school-certificate'
     | '/auth/sign-in'
     | '/auth/sign-up'
@@ -168,7 +201,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/wiki'
+    | '/admin'
     | '/document-parsing'
+    | '/admin/dorm-check'
+    | '/admin/dorm-storage'
     | '/admin/school-certificate'
     | '/auth/sign-in'
     | '/auth/sign-up'
@@ -184,8 +220,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   WikiRouteRoute: typeof WikiRouteRouteWithChildren
+  AdminRoute: typeof AdminRouteWithChildren
   DocumentParsingRoute: typeof DocumentParsingRoute
-  AdminSchoolCertificateRoute: typeof AdminSchoolCertificateRoute
   AuthSignInRoute: typeof AuthSignInRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
   AuthVerificationRoute: typeof AuthVerificationRoute
@@ -200,6 +236,13 @@ declare module '@tanstack/react-router' {
       path: '/document-parsing'
       fullPath: '/document-parsing'
       preLoaderRoute: typeof DocumentParsingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/wiki': {
@@ -260,10 +303,24 @@ declare module '@tanstack/react-router' {
     }
     '/admin/school-certificate': {
       id: '/admin/school-certificate'
-      path: '/admin/school-certificate'
+      path: '/school-certificate'
       fullPath: '/admin/school-certificate'
       preLoaderRoute: typeof AdminSchoolCertificateRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/dorm-storage': {
+      id: '/admin/dorm-storage'
+      path: '/dorm-storage'
+      fullPath: '/admin/dorm-storage'
+      preLoaderRoute: typeof AdminDormStorageRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/dorm-check': {
+      id: '/admin/dorm-check'
+      path: '/dorm-check'
+      fullPath: '/admin/dorm-check'
+      preLoaderRoute: typeof AdminDormCheckRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/wiki/$wikiId/history': {
       id: '/wiki/$wikiId/history'
@@ -317,11 +374,25 @@ const WikiRouteRouteWithChildren = WikiRouteRoute._addFileChildren(
   WikiRouteRouteChildren,
 )
 
+interface AdminRouteChildren {
+  AdminDormCheckRoute: typeof AdminDormCheckRoute
+  AdminDormStorageRoute: typeof AdminDormStorageRoute
+  AdminSchoolCertificateRoute: typeof AdminSchoolCertificateRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminDormCheckRoute: AdminDormCheckRoute,
+  AdminDormStorageRoute: AdminDormStorageRoute,
+  AdminSchoolCertificateRoute: AdminSchoolCertificateRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   WikiRouteRoute: WikiRouteRouteWithChildren,
+  AdminRoute: AdminRouteWithChildren,
   DocumentParsingRoute: DocumentParsingRoute,
-  AdminSchoolCertificateRoute: AdminSchoolCertificateRoute,
   AuthSignInRoute: AuthSignInRoute,
   AuthSignUpRoute: AuthSignUpRoute,
   AuthVerificationRoute: AuthVerificationRoute,
