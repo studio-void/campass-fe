@@ -13,9 +13,14 @@ import { Route as DocumentParsingRouteImport } from './routes/document-parsing'
 import { Route as WikiRouteRouteImport } from './routes/wiki/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WikiIndexRouteImport } from './routes/wiki/index'
+import { Route as DormIndexRouteImport } from './routes/dorm/index'
+import { Route as DormRetirementMaintenanceRouteImport } from './routes/dorm/retirement-maintenance'
+import { Route as DormRetirementFormRouteImport } from './routes/dorm/retirement-form'
 import { Route as AuthVerificationRouteImport } from './routes/auth/verification'
 import { Route as AuthSignUpRouteImport } from './routes/auth/sign-up'
 import { Route as AuthSignInRouteImport } from './routes/auth/sign-in'
+import { Route as DormWarehouseIndexRouteImport } from './routes/dorm/warehouse/index'
+import { Route as DormWarehouseFormRouteImport } from './routes/dorm/warehouse/form'
 import { Route as AuthGoogleCallbackRouteImport } from './routes/auth/google/callback'
 
 const DocumentParsingRoute = DocumentParsingRouteImport.update({
@@ -38,6 +43,22 @@ const WikiIndexRoute = WikiIndexRouteImport.update({
   path: '/',
   getParentRoute: () => WikiRouteRoute,
 } as any)
+const DormIndexRoute = DormIndexRouteImport.update({
+  id: '/dorm/',
+  path: '/dorm/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DormRetirementMaintenanceRoute =
+  DormRetirementMaintenanceRouteImport.update({
+    id: '/dorm/retirement-maintenance',
+    path: '/dorm/retirement-maintenance',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const DormRetirementFormRoute = DormRetirementFormRouteImport.update({
+  id: '/dorm/retirement-form',
+  path: '/dorm/retirement-form',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthVerificationRoute = AuthVerificationRouteImport.update({
   id: '/auth/verification',
   path: '/auth/verification',
@@ -53,6 +74,16 @@ const AuthSignInRoute = AuthSignInRouteImport.update({
   path: '/auth/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DormWarehouseIndexRoute = DormWarehouseIndexRouteImport.update({
+  id: '/dorm/warehouse/',
+  path: '/dorm/warehouse/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DormWarehouseFormRoute = DormWarehouseFormRouteImport.update({
+  id: '/dorm/warehouse/form',
+  path: '/dorm/warehouse/form',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthGoogleCallbackRoute = AuthGoogleCallbackRouteImport.update({
   id: '/auth/google/callback',
   path: '/auth/google/callback',
@@ -66,8 +97,13 @@ export interface FileRoutesByFullPath {
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verification': typeof AuthVerificationRoute
+  '/dorm/retirement-form': typeof DormRetirementFormRoute
+  '/dorm/retirement-maintenance': typeof DormRetirementMaintenanceRoute
+  '/dorm': typeof DormIndexRoute
   '/wiki/': typeof WikiIndexRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
+  '/dorm/warehouse/form': typeof DormWarehouseFormRoute
+  '/dorm/warehouse': typeof DormWarehouseIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -75,8 +111,13 @@ export interface FileRoutesByTo {
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verification': typeof AuthVerificationRoute
+  '/dorm/retirement-form': typeof DormRetirementFormRoute
+  '/dorm/retirement-maintenance': typeof DormRetirementMaintenanceRoute
+  '/dorm': typeof DormIndexRoute
   '/wiki': typeof WikiIndexRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
+  '/dorm/warehouse/form': typeof DormWarehouseFormRoute
+  '/dorm/warehouse': typeof DormWarehouseIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -86,8 +127,13 @@ export interface FileRoutesById {
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verification': typeof AuthVerificationRoute
+  '/dorm/retirement-form': typeof DormRetirementFormRoute
+  '/dorm/retirement-maintenance': typeof DormRetirementMaintenanceRoute
+  '/dorm/': typeof DormIndexRoute
   '/wiki/': typeof WikiIndexRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
+  '/dorm/warehouse/form': typeof DormWarehouseFormRoute
+  '/dorm/warehouse/': typeof DormWarehouseIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -98,8 +144,13 @@ export interface FileRouteTypes {
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/auth/verification'
+    | '/dorm/retirement-form'
+    | '/dorm/retirement-maintenance'
+    | '/dorm'
     | '/wiki/'
     | '/auth/google/callback'
+    | '/dorm/warehouse/form'
+    | '/dorm/warehouse'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -107,8 +158,13 @@ export interface FileRouteTypes {
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/auth/verification'
+    | '/dorm/retirement-form'
+    | '/dorm/retirement-maintenance'
+    | '/dorm'
     | '/wiki'
     | '/auth/google/callback'
+    | '/dorm/warehouse/form'
+    | '/dorm/warehouse'
   id:
     | '__root__'
     | '/'
@@ -117,8 +173,13 @@ export interface FileRouteTypes {
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/auth/verification'
+    | '/dorm/retirement-form'
+    | '/dorm/retirement-maintenance'
+    | '/dorm/'
     | '/wiki/'
     | '/auth/google/callback'
+    | '/dorm/warehouse/form'
+    | '/dorm/warehouse/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -128,7 +189,12 @@ export interface RootRouteChildren {
   AuthSignInRoute: typeof AuthSignInRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
   AuthVerificationRoute: typeof AuthVerificationRoute
+  DormRetirementFormRoute: typeof DormRetirementFormRoute
+  DormRetirementMaintenanceRoute: typeof DormRetirementMaintenanceRoute
+  DormIndexRoute: typeof DormIndexRoute
   AuthGoogleCallbackRoute: typeof AuthGoogleCallbackRoute
+  DormWarehouseFormRoute: typeof DormWarehouseFormRoute
+  DormWarehouseIndexRoute: typeof DormWarehouseIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -161,6 +227,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WikiIndexRouteImport
       parentRoute: typeof WikiRouteRoute
     }
+    '/dorm/': {
+      id: '/dorm/'
+      path: '/dorm'
+      fullPath: '/dorm'
+      preLoaderRoute: typeof DormIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dorm/retirement-maintenance': {
+      id: '/dorm/retirement-maintenance'
+      path: '/dorm/retirement-maintenance'
+      fullPath: '/dorm/retirement-maintenance'
+      preLoaderRoute: typeof DormRetirementMaintenanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dorm/retirement-form': {
+      id: '/dorm/retirement-form'
+      path: '/dorm/retirement-form'
+      fullPath: '/dorm/retirement-form'
+      preLoaderRoute: typeof DormRetirementFormRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/verification': {
       id: '/auth/verification'
       path: '/auth/verification'
@@ -180,6 +267,20 @@ declare module '@tanstack/react-router' {
       path: '/auth/sign-in'
       fullPath: '/auth/sign-in'
       preLoaderRoute: typeof AuthSignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dorm/warehouse/': {
+      id: '/dorm/warehouse/'
+      path: '/dorm/warehouse'
+      fullPath: '/dorm/warehouse'
+      preLoaderRoute: typeof DormWarehouseIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dorm/warehouse/form': {
+      id: '/dorm/warehouse/form'
+      path: '/dorm/warehouse/form'
+      fullPath: '/dorm/warehouse/form'
+      preLoaderRoute: typeof DormWarehouseFormRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/google/callback': {
@@ -211,7 +312,12 @@ const rootRouteChildren: RootRouteChildren = {
   AuthSignInRoute: AuthSignInRoute,
   AuthSignUpRoute: AuthSignUpRoute,
   AuthVerificationRoute: AuthVerificationRoute,
+  DormRetirementFormRoute: DormRetirementFormRoute,
+  DormRetirementMaintenanceRoute: DormRetirementMaintenanceRoute,
+  DormIndexRoute: DormIndexRoute,
   AuthGoogleCallbackRoute: AuthGoogleCallbackRoute,
+  DormWarehouseFormRoute: DormWarehouseFormRoute,
+  DormWarehouseIndexRoute: DormWarehouseIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
