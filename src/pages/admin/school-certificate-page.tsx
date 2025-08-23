@@ -1,8 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
+import {
+  DialogClose,
+  DialogDescription,
+  DialogTitle,
+} from '@radix-ui/react-dialog';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Check, X } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { Layout } from '@/components';
+import { Button, Layout } from '@/components';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import {
   Table,
   TableBody,
@@ -12,39 +26,67 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  type GetUserVerifyResponse,
-  getUserVerify,
-} from '@/data/get-user-verify';
+import { getUserVerify } from '@/data/get-user-verify';
+import { postUserVerifyApprove } from '@/data/post-user-verify-approve';
+import { postUserVerifyReject } from '@/data/post-user-verify-reject';
 
 export const SchoolCertificatePage: React.FC = () => {
-  const [users, setUsers] = useState<GetUserVerifyResponse[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const userData = await getUserVerify();
-        if (userData) {
-          setUsers(userData);
-          toast.success(`Successfully loaded ${userData.length} users`);
-        } else {
-          toast.warning('No user data found');
-        }
-      } catch (error) {
-        console.error('Failed to fetch user verify data:', error);
-        toast.error('Failed to load user verification data', {
-          description: 'Please try refreshing the page',
-        });
-      } finally {
-        setLoading(false);
+  const {
+    data: users = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['userVerify'],
+    queryFn: async () => {
+      const userData = await getUserVerify();
+      if (userData) {
+        return userData;
       }
-    };
+      throw new Error('No user data found');
+    },
+  });
 
-    fetchUsers();
-  }, []);
+  // Handle error with toast
+  useEffect(() => {
+    if (error) {
+      console.error('Failed to fetch user verify data:', error);
+      toast.error('Failed to load user verification data', {
+        description: 'Please try refreshing the page',
+      });
+    }
+  }, [error]);
 
-  if (loading) {
+  const handleApprove = async (userId: number) => {
+    try {
+      await postUserVerifyApprove(userId);
+      toast.success('User approved successfully');
+      // Refetch the data
+      queryClient.invalidateQueries({ queryKey: ['userVerify'] });
+    } catch (error) {
+      console.error('Failed to approve user:', error);
+      toast.error('Failed to approve user', {
+        description: 'Please try again',
+      });
+    }
+  };
+
+  const handleReject = async (userId: number) => {
+    try {
+      await postUserVerifyReject(userId);
+      toast.success('User rejected successfully');
+      // Refetch the data
+      queryClient.invalidateQueries({ queryKey: ['userVerify'] });
+    } catch (error) {
+      console.error('Failed to reject user:', error);
+      toast.error('Failed to reject user', {
+        description: 'Please try again',
+      });
+    }
+  };
+
+  if (isLoading) {
     return (
       <Layout>
         <div className="flex justify-center items-center h-32">
@@ -56,6 +98,9 @@ export const SchoolCertificatePage: React.FC = () => {
 
   return (
     <Layout>
+      <div className="text-2xl font-semibold mb-12 mt-4 text-start w-full">
+        School Certification Manager Page
+      </div>
       <Table>
         <TableHeader>
           <TableRow>
@@ -65,7 +110,8 @@ export const SchoolCertificatePage: React.FC = () => {
             <TableHead>Email</TableHead>
             <TableHead>School</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead className="text-right">Documents</TableHead>
+            <TableHead>Documents</TableHead>
+            <TableHead className="text-right">Approval</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -89,7 +135,7 @@ export const SchoolCertificatePage: React.FC = () => {
                   {user.verifyStatus}
                 </span>
               </TableCell>
-              <TableCell className="text-right">
+              <TableCell>
                 {user.verifyImageUrl ? (
                   <a
                     href={user.verifyImageUrl}
@@ -103,12 +149,97 @@ export const SchoolCertificatePage: React.FC = () => {
                   'No Document'
                 )}
               </TableCell>
+              <TableCell className="text-right">
+                <div className="flex gap-1 justify-end">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button size="icon">
+                        <Check />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle className="text-lg font-semibold">
+                          Do you want to approve this student?
+                        </DialogTitle>
+                        <DialogDescription>
+                          {user.school} {user.number} {user.name} <br />
+                          {user.verifyImageUrl ? (
+                            <a
+                              href={user.verifyImageUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 underline"
+                            >
+                              View Document
+                            </a>
+                          ) : (
+                            'No Document'
+                          )}
+                        </DialogDescription>
+                      </DialogHeader>
+                      <DialogFooter>
+                        <DialogClose asChild>
+                          <Button variant="outline">Cancel</Button>
+                        </DialogClose>
+                        <DialogClose>
+                          <Button onClick={() => handleApprove(user.id)}>
+                            Approve
+                          </Button>
+                        </DialogClose>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button size="icon" variant="destructive">
+                        <X />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle className="text-lg font-semibold">
+                          Do you want to reject this student?
+                        </DialogTitle>
+                        <DialogDescription>
+                          {user.school} {user.number} {user.name} <br />
+                          {user.verifyImageUrl ? (
+                            <a
+                              href={user.verifyImageUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 underline"
+                            >
+                              View Document
+                            </a>
+                          ) : (
+                            'No Document'
+                          )}
+                        </DialogDescription>
+                      </DialogHeader>
+                      <DialogFooter>
+                        <DialogClose asChild>
+                          <Button variant="outline">Cancel</Button>
+                        </DialogClose>
+                        <DialogClose>
+                          <Button
+                            variant="destructive"
+                            onClick={() => handleReject(user.id)}
+                          >
+                            Reject
+                          </Button>
+                        </DialogClose>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
         <TableFooter>
           <TableRow>
-            <TableCell colSpan={6}>Total Users</TableCell>
+            <TableCell colSpan={7}>Total Users</TableCell>
             <TableCell className="text-right">{users.length}</TableCell>
           </TableRow>
         </TableFooter>
