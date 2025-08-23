@@ -15,7 +15,7 @@ export const Header = forwardRef<
     >
       <nav className="mx-6 md:mx-12 lg:mx-24 xl:mx-48 py-4 flex flex-row items-center">
         <div className="font-bold">
-          <Link to="/">
+          <Link to="/home">
             <img
               src="/images/campass_wordmark.svg"
               alt="Campass Logo"
@@ -23,55 +23,63 @@ export const Header = forwardRef<
             />
           </Link>
         </div>
+
         <div className="flex-grow" />
+
         <div className="flex items-center gap-12 text-sm">
           <Link
-            to="/"
+            to="/home"
+            preload="intent"
             className="hover:font-semibold transition-all relative after:content-[''] after:block after:h-[2px] after:bg-current after:w-0 hover:after:w-full after:transition-all after:duration-300 after:absolute after:left-0 after:-bottom-1 after:origin-left dark:text-neutral-50"
           >
-            About
+            My page
           </Link>
+
           <Link
-            to="/"
+            to="/dorm"
+            preload="intent"
             className="hover:font-semibold transition-all relative after:content-[''] after:block after:h-[2px] after:bg-current after:w-0 hover:after:w-full after:transition-all after:duration-300 after:absolute after:left-0 after:-bottom-1 after:origin-left dark:text-neutral-50"
           >
             Dormitory
           </Link>
+
+          {/* 아직 경로 없으면 임시로 /home 이나 숨김 처리 */}
           <Link
-            to="/"
+            to="/home"
             className="hover:font-semibold transition-all relative after:content-[''] after:block after:h-[2px] after:bg-current after:w-0 hover:after:w-full after:transition-all after:duration-300 after:absolute after:left-0 after:-bottom-1 after:origin-left dark:text-neutral-50"
           >
             Research
           </Link>
           <Link
-            to="/"
+            to="/home"
             className="hover:font-semibold transition-all relative after:content-[''] after:block after:h-[2px] after:bg-current after:w-0 hover:after:w-full after:transition-all after:duration-300 after:absolute after:left-0 after:-bottom-1 after:origin-left dark:text-neutral-50"
           >
             Team Project
           </Link>
           <Link
-            to="/"
+            to="/home"
             className="hover:font-semibold transition-all relative after:content-[''] after:block after:h-[2px] after:bg-current after:w-0 hover:after:w-full after:transition-all after:duration-300 after:absolute after:left-0 after:-bottom-1 after:origin-left dark:text-neutral-50"
           >
             Facility
           </Link>
           <Link
-            to="/"
+            to="/home"
             className="hover:font-semibold transition-all relative after:content-[''] after:block after:h-[2px] after:bg-current after:w-0 hover:after:w-full after:transition-all after:duration-300 after:absolute after:left-0 after:-bottom-1 after:origin-left dark:text-neutral-50"
           >
             Timetable
           </Link>
+
           <Link
             to="/wiki"
+            preload="intent"
             className="hover:font-semibold transition-all relative after:content-[''] after:block after:h-[2px] after:bg-current after:w-0 hover:after:w-full after:transition-all after:duration-300 after:absolute after:left-0 after:-bottom-1 after:origin-left dark:text-neutral-50"
           >
             Wiki
           </Link>
-          <Link to="/auth/sign-in">
-            <Button variant="default" className="font-semibold">
-              Get Started
-            </Button>
-          </Link>
+
+          <Button variant="default" className="font-semibold" asChild>
+            <Link to="/auth/sign-in">Get Started</Link>
+          </Button>
         </div>
       </nav>
     </header>

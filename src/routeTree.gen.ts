@@ -13,6 +13,7 @@ import { Route as DocumentParsingRouteImport } from './routes/document-parsing'
 import { Route as WikiRouteRouteImport } from './routes/wiki/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WikiIndexRouteImport } from './routes/wiki/index'
+import { Route as HomeIndexRouteImport } from './routes/home/index'
 import { Route as DormIndexRouteImport } from './routes/dorm/index'
 import { Route as DormRetirementMaintenanceRouteImport } from './routes/dorm/retirement-maintenance'
 import { Route as DormRetirementFormRouteImport } from './routes/dorm/retirement-form'
@@ -42,6 +43,11 @@ const WikiIndexRoute = WikiIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => WikiRouteRoute,
+} as any)
+const HomeIndexRoute = HomeIndexRouteImport.update({
+  id: '/home/',
+  path: '/home/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const DormIndexRoute = DormIndexRouteImport.update({
   id: '/dorm/',
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/dorm/retirement-form': typeof DormRetirementFormRoute
   '/dorm/retirement-maintenance': typeof DormRetirementMaintenanceRoute
   '/dorm': typeof DormIndexRoute
+  '/home': typeof HomeIndexRoute
   '/wiki/': typeof WikiIndexRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/dorm/warehouse/form': typeof DormWarehouseFormRoute
@@ -114,6 +121,7 @@ export interface FileRoutesByTo {
   '/dorm/retirement-form': typeof DormRetirementFormRoute
   '/dorm/retirement-maintenance': typeof DormRetirementMaintenanceRoute
   '/dorm': typeof DormIndexRoute
+  '/home': typeof HomeIndexRoute
   '/wiki': typeof WikiIndexRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/dorm/warehouse/form': typeof DormWarehouseFormRoute
@@ -130,6 +138,7 @@ export interface FileRoutesById {
   '/dorm/retirement-form': typeof DormRetirementFormRoute
   '/dorm/retirement-maintenance': typeof DormRetirementMaintenanceRoute
   '/dorm/': typeof DormIndexRoute
+  '/home/': typeof HomeIndexRoute
   '/wiki/': typeof WikiIndexRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/dorm/warehouse/form': typeof DormWarehouseFormRoute
@@ -147,6 +156,7 @@ export interface FileRouteTypes {
     | '/dorm/retirement-form'
     | '/dorm/retirement-maintenance'
     | '/dorm'
+    | '/home'
     | '/wiki/'
     | '/auth/google/callback'
     | '/dorm/warehouse/form'
@@ -161,6 +171,7 @@ export interface FileRouteTypes {
     | '/dorm/retirement-form'
     | '/dorm/retirement-maintenance'
     | '/dorm'
+    | '/home'
     | '/wiki'
     | '/auth/google/callback'
     | '/dorm/warehouse/form'
@@ -176,6 +187,7 @@ export interface FileRouteTypes {
     | '/dorm/retirement-form'
     | '/dorm/retirement-maintenance'
     | '/dorm/'
+    | '/home/'
     | '/wiki/'
     | '/auth/google/callback'
     | '/dorm/warehouse/form'
@@ -192,6 +204,7 @@ export interface RootRouteChildren {
   DormRetirementFormRoute: typeof DormRetirementFormRoute
   DormRetirementMaintenanceRoute: typeof DormRetirementMaintenanceRoute
   DormIndexRoute: typeof DormIndexRoute
+  HomeIndexRoute: typeof HomeIndexRoute
   AuthGoogleCallbackRoute: typeof AuthGoogleCallbackRoute
   DormWarehouseFormRoute: typeof DormWarehouseFormRoute
   DormWarehouseIndexRoute: typeof DormWarehouseIndexRoute
@@ -226,6 +239,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/wiki/'
       preLoaderRoute: typeof WikiIndexRouteImport
       parentRoute: typeof WikiRouteRoute
+    }
+    '/home/': {
+      id: '/home/'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof HomeIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/dorm/': {
       id: '/dorm/'
@@ -315,6 +335,7 @@ const rootRouteChildren: RootRouteChildren = {
   DormRetirementFormRoute: DormRetirementFormRoute,
   DormRetirementMaintenanceRoute: DormRetirementMaintenanceRoute,
   DormIndexRoute: DormIndexRoute,
+  HomeIndexRoute: HomeIndexRoute,
   AuthGoogleCallbackRoute: AuthGoogleCallbackRoute,
   DormWarehouseFormRoute: DormWarehouseFormRoute,
   DormWarehouseIndexRoute: DormWarehouseIndexRoute,
