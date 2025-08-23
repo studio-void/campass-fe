@@ -244,12 +244,12 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
     >
       {/* Resize Handle */}
       {(() => {
-        const stroke = Math.max(2, Math.round(cornerRadius * 0.18)); // visual thickness
-        const size = Math.max(24, Math.round(cornerRadius * 2)); // square sized to the corner radius
+        const stroke = Math.max(2, Math.round(cornerRadius * 0.48)); // visual thickness
+        const size = Math.max(24, Math.round(cornerRadius * 0.48)); // square sized to the corner radius
         const r = Math.max(2, cornerRadius - stroke / 2); // inner radius so the stroke sits inside the curve
         return (
           <div
-            className="group absolute top-0 left-0 z-50 cursor-nw-resize select-none"
+            className="group absolute -top-0.5 -left-0.5 z-50 cursor-nw-resize select-none"
             style={{ width: size, height: size }}
             onMouseDown={handleResizeStart}
             title="Drag to resize"
