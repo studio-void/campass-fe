@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import AIFab from './ai-fab';
-import AIPopup from './ai-popup';
+import AIPopupWithRAG from './ai-popup-with-rag';
 // import { Footer } from './footer';
 import { Header } from './header';
 
@@ -33,7 +33,7 @@ export const Layout: React.FC<
     <div className="min-h-screen w-full">
       <Header ref={headerRef} />
       <AIFab isOpen={isAIPopupOpen} onClick={toggleAIPopup} />
-      <AIPopup isOpen={isAIPopupOpen} />
+      <AIPopupWithRAG isOpen={isAIPopupOpen} />
       <main
         className={`flex flex-col items-center mx-6 md:mx-12 lg:mx-24 xl:mx-48 ${disableHeaderHeight ? '' : 'pt-20'}`}
       >
