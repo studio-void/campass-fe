@@ -65,20 +65,20 @@ export default function RetirementMaintenanceIntroPage() {
 function RowItem({ row }: { row: Row }) {
   return (
     <>
-      <Link
-        to={row.to}
-        className="block focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-2xl"
-      >
-        <Card className="rounded-2xl border-2 border-blue-400/70 shadow-sm hover:shadow-md transition-shadow">
+      <div className="rounded-2xl">
+        <Card className="rounded-2xl border-2 border-blue-400/70 shadow-sm cursor-default select-none">
           <CardContent className="h-24 md:h-28 flex items-center justify-center p-6 md:p-8">
             <div className="text-[18px] md:text-[22px] font-semibold text-center leading-snug">
               {row.title}
             </div>
           </CardContent>
         </Card>
-      </Link>
+      </div>
 
-      <div className="hidden md:flex items-center justify-center">
+      <div
+        className="hidden md:flex items-center justify-center"
+        aria-hidden="true"
+      >
         <ArrowRight className="h-6 w-6 text-blue-500" />
       </div>
 

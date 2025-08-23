@@ -8,3 +8,5 @@ export * from './use-current-user';
 export * from './use-rag';
 export * from './use-wiki-with-rag';
 export * from './use-ai-agent';
+export * from './use-agent-navigation';
+export * from './use-navigation-tool';
