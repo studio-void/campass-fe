@@ -86,7 +86,7 @@ export const Header = forwardRef<
         <div className="flex-grow" />
         <div className="flex items-center gap-12 text-sm">
           <Link
-            to="/"
+            to="/dorm"
             className="hover:font-semibold transition-all relative after:content-[''] after:block after:h-[2px] after:bg-current after:w-0 hover:after:w-full after:transition-all after:duration-300 after:absolute after:left-0 after:-bottom-1 after:origin-left dark:text-neutral-50"
           >
             Dormitory
