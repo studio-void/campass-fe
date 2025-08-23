@@ -1,21 +1,40 @@
+import { useEffect, useState } from 'react';
+
 import { Link } from '@tanstack/react-router';
 
-import { Layout } from '@/components';
+import { Layout, UserSchoolLogo } from '@/components';
 import { Card, CardContent } from '@/components/ui/card';
+import { School, getUserSchool } from '@/data/get-user';
 
 export default function DormIndexPage() {
+  const [school, setSchool] = useState<School | undefined>(undefined);
+
+  useEffect(() => {
+    getUserSchool().then(setSchool);
+  }, []);
+
   return (
     <Layout>
       <section className="py-10 md:py-14">
         <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-24 xl:px-48">
           <div className="mb-8">
             <div className="flex items-center gap-3">
-              <img
-                src="/images/schools/gist.svg"
-                alt="GIST logo"
-                className="h-10 w-auto"
-              />
-              <p className="text-4xl font-semibold">GIST</p>
+              {school ? (
+                <UserSchoolLogo
+                  school={school}
+                  size="4xl"
+                  display="logo-with-name"
+                />
+              ) : (
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                    <span className="text-xs text-gray-500">?</span>
+                  </div>
+                  <p className="text-4xl font-semibold text-gray-500">
+                    Loading...
+                  </p>
+                </div>
+              )}
             </div>
             <p className="mt-1 text-2xl text-blue-600">
               Make campus life more convenient
