@@ -73,16 +73,17 @@ export interface FileRoutesByFullPath {
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verification': typeof AuthVerificationRoute
   '/auth/verification-pending': typeof AuthVerificationPendingRoute
+  '/wiki/': typeof WikiIndexRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/wiki': typeof WikiRouteRoute
   '/document-parsing': typeof DocumentParsingRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verification': typeof AuthVerificationRoute
   '/auth/verification-pending': typeof AuthVerificationPendingRoute
+  '/wiki': typeof WikiIndexRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
 }
 export interface FileRoutesById {
@@ -94,6 +95,7 @@ export interface FileRoutesById {
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verification': typeof AuthVerificationRoute
   '/auth/verification-pending': typeof AuthVerificationPendingRoute
+  '/wiki/': typeof WikiIndexRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
 }
 export interface FileRouteTypes {
@@ -106,16 +108,17 @@ export interface FileRouteTypes {
     | '/auth/sign-up'
     | '/auth/verification'
     | '/auth/verification-pending'
+    | '/wiki/'
     | '/auth/google/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/wiki'
     | '/document-parsing'
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/auth/verification'
     | '/auth/verification-pending'
+    | '/wiki'
     | '/auth/google/callback'
   id:
     | '__root__'
@@ -126,6 +129,7 @@ export interface FileRouteTypes {
     | '/auth/sign-up'
     | '/auth/verification'
     | '/auth/verification-pending'
+    | '/wiki/'
     | '/auth/google/callback'
   fileRoutesById: FileRoutesById
 }
