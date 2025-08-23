@@ -58,12 +58,14 @@ class VectorStore {
     try {
       const savedVersion = localStorage.getItem(this.VERSION_KEY);
       const savedData = localStorage.getItem(this.STORAGE_KEY);
-      
+
       if (savedData && savedVersion === this.CURRENT_VERSION.toString()) {
         const data = JSON.parse(savedData);
         if (data.documents && Array.isArray(data.documents)) {
           this.documents = data.documents;
-          console.log(`Loaded ${this.documents.length} documents from localStorage`);
+          console.log(
+            `Loaded ${this.documents.length} documents from localStorage`,
+          );
         }
       } else {
         console.log('No valid localStorage data found or version mismatch');
@@ -226,14 +228,17 @@ class VectorStore {
   /**
    * Add wiki document to vector store
    */
-  async addWikiDocument(wiki: {
-    id: number;
-    title: string;
-    content: string;
-    school: string;
-    author?: { name: string; nickname: string };
-    createdAt: string;
-  }, onProgress?: (current: number, total: number, status: string) => void): Promise<void> {
+  async addWikiDocument(
+    wiki: {
+      id: number;
+      title: string;
+      content: string;
+      school: string;
+      author?: { name: string; nickname: string };
+      createdAt: string;
+    },
+    onProgress?: (current: number, total: number, status: string) => void,
+  ): Promise<void> {
     try {
       console.log(`Starting to process wiki: "${wiki.title}" (ID: ${wiki.id})`);
       onProgress?.(0, 1, `Processing wiki: ${wiki.title}`);
@@ -251,14 +256,18 @@ class VectorStore {
       // Split content into chunks
       const chunks = this.chunkText(wiki.content);
       console.log(`Wiki "${wiki.title}" divided into ${chunks.length} chunks`);
-      
+
       for (let i = 0; i < chunks.length; i++) {
         const chunk = chunks[i];
         console.log(
           `Processing chunk ${i + 1}/${chunks.length} for wiki "${wiki.title}"`,
         );
-        onProgress?.(i, chunks.length, `Processing chunk ${i + 1}/${chunks.length}`);
-        
+        onProgress?.(
+          i,
+          chunks.length,
+          `Processing chunk ${i + 1}/${chunks.length}`,
+        );
+
         try {
           const embedding = await this.generateEmbedding(
             `${wiki.title}\n\n${chunk}`,
@@ -295,7 +304,7 @@ class VectorStore {
       // Save to localStorage after successful processing
       this.saveToLocalStorage();
       onProgress?.(chunks.length, chunks.length, `Completed: ${wiki.title}`);
-      
+
       console.log(
         `Successfully added wiki "${wiki.title}" with ${chunks.length} chunks to vector store`,
       );
@@ -306,7 +315,7 @@ class VectorStore {
       );
       throw error;
     }
-  }  /**
+  } /**
    * Add multiple wiki documents in batch
    */
   async addWikiDocuments(
@@ -318,11 +327,11 @@ class VectorStore {
       author?: { name: string; nickname: string };
       createdAt: string;
     }>,
-    onProgress?: (current: number, total: number, status: string) => void
+    onProgress?: (current: number, total: number, status: string) => void,
   ): Promise<void> {
     const errors: Array<{ title: string; error: string }> = [];
     let successCount = 0;
-    
+
     console.log(`Starting batch processing of ${wikis.length} wiki documents`);
     onProgress?.(0, wikis.length, 'Starting batch processing...');
 
@@ -337,21 +346,27 @@ class VectorStore {
           onProgress?.(i, wikis.length, `${wiki.title}: ${chunkStatus}`);
         });
         successCount++;
-        console.log(`✓ Successfully processed wiki ${i + 1}/${wikis.length}: "${wiki.title}"`);
-        
+        console.log(
+          `✓ Successfully processed wiki ${i + 1}/${wikis.length}: "${wiki.title}"`,
+        );
+
         // Yield control to prevent UI blocking
-        await new Promise(resolve => setTimeout(resolve, 10));
-        
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
         // Wait to avoid API rate limiting (only if not the last document)
         if (i < wikis.length - 1) {
           console.log('Waiting 200ms before next wiki...');
-          await new Promise(resolve => setTimeout(resolve, 200));
+          await new Promise((resolve) => setTimeout(resolve, 200));
         }
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        console.error(`✗ Failed to process wiki ${i + 1}/${wikis.length}: "${wiki.title}":`, error);
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
+        console.error(
+          `✗ Failed to process wiki ${i + 1}/${wikis.length}: "${wiki.title}":`,
+          error,
+        );
         errors.push({ title: wiki.title, error: errorMessage });
-        
+
         // Stop entire processing for critical errors (e.g., missing API key)
         if (errorMessage.includes('VITE_UPSTAGE_API_KEY')) {
           console.error('Critical error detected, stopping batch processing');
@@ -361,7 +376,9 @@ class VectorStore {
     }
 
     onProgress?.(wikis.length, wikis.length, 'Batch processing completed');
-    console.log(`Batch processing completed: ${successCount}/${wikis.length} successful`);
+    console.log(
+      `Batch processing completed: ${successCount}/${wikis.length} successful`,
+    );
 
     if (errors.length > 0) {
       const errorTitles = errors.map((e) => e.title).join(', ');
@@ -458,7 +475,7 @@ class VectorStore {
     );
     const removedCount = initialCount - this.documents.length;
     console.log(`Removed ${removedCount} chunks for wiki ${wikiId}`);
-    
+
     // Save to localStorage after removal
     this.saveToLocalStorage();
   }

@@ -47,22 +47,24 @@ export function useRAG(): UseRAGReturn {
     if (count > 0) {
       setIsInitialized(true);
       setDocumentCount(count);
-      console.log(`RAG system loaded from localStorage with ${count} documents`);
+      console.log(
+        `RAG system loaded from localStorage with ${count} documents`,
+      );
     }
   }, []);
 
   const initializeRAG = async () => {
     if (isIndexing) return;
-    
+
     setIsIndexing(true);
     setIndexingProgress({ current: 0, total: 0, status: 'Starting...' });
-    
+
     try {
       console.log('Initializing RAG system...');
-      
+
       // Get all wiki documents
       const wikis = await getWikis();
-      
+
       if (wikis.length === 0) {
         toast.info('No wiki documents available');
         setIsInitialized(true);
@@ -71,9 +73,9 @@ export function useRAG(): UseRAGReturn {
 
       // Clear existing vector store
       vectorStore.clearAll();
-      
+
       // Add wiki documents to vector store with progress tracking
-      const wikiData = wikis.map(wiki => ({
+      const wikiData = wikis.map((wiki) => ({
         id: wiki.id,
         title: wiki.title,
         content: wiki.content,
@@ -85,15 +87,20 @@ export function useRAG(): UseRAGReturn {
       // Use setTimeout to make the initialization non-blocking
       setTimeout(async () => {
         try {
-          await vectorStore.addWikiDocuments(wikiData, (current, total, status) => {
-            setIndexingProgress({ current, total, status });
-          });
-          
+          await vectorStore.addWikiDocuments(
+            wikiData,
+            (current, total, status) => {
+              setIndexingProgress({ current, total, status });
+            },
+          );
+
           updateDocumentCount();
           setIsInitialized(true);
           setIndexingProgress(null);
-          
-          console.log(`RAG system initialized with ${wikis.length} wiki documents`);
+
+          console.log(
+            `RAG system initialized with ${wikis.length} wiki documents`,
+          );
         } catch (error) {
           console.error('Failed to initialize RAG:', error);
           toast.error('RAG system initialization failed');
@@ -103,7 +110,6 @@ export function useRAG(): UseRAGReturn {
           setIsIndexing(false);
         }
       }, 100); // Small delay to prevent UI blocking
-      
     } catch (error) {
       console.error('Failed to get wikis for RAG initialization:', error);
       toast.error('Failed to fetch wiki documents');
@@ -111,7 +117,8 @@ export function useRAG(): UseRAGReturn {
       setIndexingProgress(null);
       setIsIndexing(false);
     }
-  };  const searchDocuments = async (
+  };
+  const searchDocuments = async (
     query: string,
     school?: string,
   ): Promise<SearchResult[]> => {

@@ -110,21 +110,23 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
             {ragStatus.isInitialized
               ? `RAG Active (${ragStatus.documentCount} docs)`
               : ragStatus.isIndexing
-                ? (
-                    ragStatus.indexingProgress
-                      ? `Indexing: ${ragStatus.indexingProgress.current}/${ragStatus.indexingProgress.total} - ${ragStatus.indexingProgress.status}`
-                      : 'Initializing RAG...'
-                  )
+                ? ragStatus.indexingProgress
+                  ? `Indexing: ${ragStatus.indexingProgress.current}/${ragStatus.indexingProgress.total} - ${ragStatus.indexingProgress.status}`
+                  : 'Initializing RAG...'
                 : 'RAG Inactive'}
           </span>
           {ragStatus.isIndexing && ragStatus.indexingProgress && (
             <div className="flex-1 bg-white/20 rounded-full h-1 ml-2">
-              <div 
-                className="bg-white h-1 rounded-full transition-all duration-200" 
-                style={{ 
-                  width: `${ragStatus.indexingProgress.total > 0 
-                    ? (ragStatus.indexingProgress.current / ragStatus.indexingProgress.total) * 100 
-                    : 0}%` 
+              <div
+                className="bg-white h-1 rounded-full transition-all duration-200"
+                style={{
+                  width: `${
+                    ragStatus.indexingProgress.total > 0
+                      ? (ragStatus.indexingProgress.current /
+                          ragStatus.indexingProgress.total) *
+                        100
+                      : 0
+                  }%`,
                 }}
               />
             </div>

@@ -14,8 +14,15 @@ export const deleteAuthLogout = async (): Promise<
   DeleteLogoutResponse | undefined
 > => {
   try {
-    const response = await api.post<DeleteLogoutResponse>('/auth/logout');
+    const response = await api.delete<DeleteLogoutResponse>('/auth/logout');
     useToken.getState().saveToken(null);
+
+    // Clear localStorage for login state
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('isAdmin');
+
+    // Dispatch event to notify other components
+    window.dispatchEvent(new CustomEvent('authStateChanged'));
 
     return response.data;
   } catch (error) {
