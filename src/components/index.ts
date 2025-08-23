@@ -4,6 +4,7 @@ export * from './layout';
 export * from './dropzone';
 export * from './document-parser';
 export * from './user-school-logo';
+export * from './wiki-modals';
 
 export * from './ui/button';
 

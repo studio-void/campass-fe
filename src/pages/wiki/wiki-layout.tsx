@@ -22,7 +22,7 @@ function WikiLayout() {
           </span>
         </div>
         <p className="mt-2 text-primary text-lg font-semibold mb-4">
-          Make campus life more convenient
+          Share knowledge and make campus life easier
         </p>
 
         <Outlet />

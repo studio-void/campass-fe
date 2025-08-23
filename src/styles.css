@@ -1,5 +1,5 @@
 @import 'tailwindcss';
-
+@import '@tailwindcss/typography';
 @import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
@@ -145,4 +145,28 @@ code {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Prose customizations for dark mode and styling */
+.prose {
+  color: var(--color-foreground);
+}
+
+.dark .prose {
+  color: var(--color-foreground);
+}
+
+.prose code {
+  background-color: var(--color-muted);
+  padding: 0.375rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.prose pre {
+  background-color: var(--color-muted);
+}
+
+.prose pre code {
+  background-color: transparent;
+  padding: 0;
 }

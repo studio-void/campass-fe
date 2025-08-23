@@ -13,10 +13,13 @@ import { Route as DocumentParsingRouteImport } from './routes/document-parsing'
 import { Route as WikiRouteRouteImport } from './routes/wiki/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WikiIndexRouteImport } from './routes/wiki/index'
+import { Route as WikiWikiIdRouteImport } from './routes/wiki/$wikiId'
 import { Route as AuthVerificationPendingRouteImport } from './routes/auth/verification-pending'
 import { Route as AuthVerificationRouteImport } from './routes/auth/verification'
 import { Route as AuthSignUpRouteImport } from './routes/auth/sign-up'
 import { Route as AuthSignInRouteImport } from './routes/auth/sign-in'
+import { Route as WikiWikiIdHistoryRouteImport } from './routes/wiki/$wikiId.history'
+import { Route as WikiWikiIdEditRouteImport } from './routes/wiki/$wikiId.edit'
 import { Route as AuthGoogleCallbackRouteImport } from './routes/auth/google/callback'
 
 const DocumentParsingRoute = DocumentParsingRouteImport.update({
@@ -39,6 +42,11 @@ const WikiIndexRoute = WikiIndexRouteImport.update({
   path: '/',
   getParentRoute: () => WikiRouteRoute,
 } as any)
+const WikiWikiIdRoute = WikiWikiIdRouteImport.update({
+  id: '/$wikiId',
+  path: '/$wikiId',
+  getParentRoute: () => WikiRouteRoute,
+} as any)
 const AuthVerificationPendingRoute = AuthVerificationPendingRouteImport.update({
   id: '/auth/verification-pending',
   path: '/auth/verification-pending',
@@ -59,6 +67,16 @@ const AuthSignInRoute = AuthSignInRouteImport.update({
   path: '/auth/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WikiWikiIdHistoryRoute = WikiWikiIdHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => WikiWikiIdRoute,
+} as any)
+const WikiWikiIdEditRoute = WikiWikiIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => WikiWikiIdRoute,
+} as any)
 const AuthGoogleCallbackRoute = AuthGoogleCallbackRouteImport.update({
   id: '/auth/google/callback',
   path: '/auth/google/callback',
@@ -73,8 +91,11 @@ export interface FileRoutesByFullPath {
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verification': typeof AuthVerificationRoute
   '/auth/verification-pending': typeof AuthVerificationPendingRoute
+  '/wiki/$wikiId': typeof WikiWikiIdRouteWithChildren
   '/wiki/': typeof WikiIndexRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
+  '/wiki/$wikiId/edit': typeof WikiWikiIdEditRoute
+  '/wiki/$wikiId/history': typeof WikiWikiIdHistoryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -83,8 +104,11 @@ export interface FileRoutesByTo {
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verification': typeof AuthVerificationRoute
   '/auth/verification-pending': typeof AuthVerificationPendingRoute
+  '/wiki/$wikiId': typeof WikiWikiIdRouteWithChildren
   '/wiki': typeof WikiIndexRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
+  '/wiki/$wikiId/edit': typeof WikiWikiIdEditRoute
+  '/wiki/$wikiId/history': typeof WikiWikiIdHistoryRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -95,8 +119,11 @@ export interface FileRoutesById {
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verification': typeof AuthVerificationRoute
   '/auth/verification-pending': typeof AuthVerificationPendingRoute
+  '/wiki/$wikiId': typeof WikiWikiIdRouteWithChildren
   '/wiki/': typeof WikiIndexRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
+  '/wiki/$wikiId/edit': typeof WikiWikiIdEditRoute
+  '/wiki/$wikiId/history': typeof WikiWikiIdHistoryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -108,8 +135,11 @@ export interface FileRouteTypes {
     | '/auth/sign-up'
     | '/auth/verification'
     | '/auth/verification-pending'
+    | '/wiki/$wikiId'
     | '/wiki/'
     | '/auth/google/callback'
+    | '/wiki/$wikiId/edit'
+    | '/wiki/$wikiId/history'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -118,8 +148,11 @@ export interface FileRouteTypes {
     | '/auth/sign-up'
     | '/auth/verification'
     | '/auth/verification-pending'
+    | '/wiki/$wikiId'
     | '/wiki'
     | '/auth/google/callback'
+    | '/wiki/$wikiId/edit'
+    | '/wiki/$wikiId/history'
   id:
     | '__root__'
     | '/'
@@ -129,8 +162,11 @@ export interface FileRouteTypes {
     | '/auth/sign-up'
     | '/auth/verification'
     | '/auth/verification-pending'
+    | '/wiki/$wikiId'
     | '/wiki/'
     | '/auth/google/callback'
+    | '/wiki/$wikiId/edit'
+    | '/wiki/$wikiId/history'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -174,6 +210,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WikiIndexRouteImport
       parentRoute: typeof WikiRouteRoute
     }
+    '/wiki/$wikiId': {
+      id: '/wiki/$wikiId'
+      path: '/$wikiId'
+      fullPath: '/wiki/$wikiId'
+      preLoaderRoute: typeof WikiWikiIdRouteImport
+      parentRoute: typeof WikiRouteRoute
+    }
     '/auth/verification-pending': {
       id: '/auth/verification-pending'
       path: '/auth/verification-pending'
@@ -202,6 +245,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSignInRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/wiki/$wikiId/history': {
+      id: '/wiki/$wikiId/history'
+      path: '/history'
+      fullPath: '/wiki/$wikiId/history'
+      preLoaderRoute: typeof WikiWikiIdHistoryRouteImport
+      parentRoute: typeof WikiWikiIdRoute
+    }
+    '/wiki/$wikiId/edit': {
+      id: '/wiki/$wikiId/edit'
+      path: '/edit'
+      fullPath: '/wiki/$wikiId/edit'
+      preLoaderRoute: typeof WikiWikiIdEditRouteImport
+      parentRoute: typeof WikiWikiIdRoute
+    }
     '/auth/google/callback': {
       id: '/auth/google/callback'
       path: '/auth/google/callback'
@@ -212,11 +269,27 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface WikiWikiIdRouteChildren {
+  WikiWikiIdEditRoute: typeof WikiWikiIdEditRoute
+  WikiWikiIdHistoryRoute: typeof WikiWikiIdHistoryRoute
+}
+
+const WikiWikiIdRouteChildren: WikiWikiIdRouteChildren = {
+  WikiWikiIdEditRoute: WikiWikiIdEditRoute,
+  WikiWikiIdHistoryRoute: WikiWikiIdHistoryRoute,
+}
+
+const WikiWikiIdRouteWithChildren = WikiWikiIdRoute._addFileChildren(
+  WikiWikiIdRouteChildren,
+)
+
 interface WikiRouteRouteChildren {
+  WikiWikiIdRoute: typeof WikiWikiIdRouteWithChildren
   WikiIndexRoute: typeof WikiIndexRoute
 }
 
 const WikiRouteRouteChildren: WikiRouteRouteChildren = {
+  WikiWikiIdRoute: WikiWikiIdRouteWithChildren,
   WikiIndexRoute: WikiIndexRoute,
 }
 
