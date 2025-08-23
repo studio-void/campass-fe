@@ -14,6 +14,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as WikiRouteRouteImport } from './routes/wiki/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WikiIndexRouteImport } from './routes/wiki/index'
+import { Route as HomeIndexRouteImport } from './routes/home/index'
 import { Route as DormIndexRouteImport } from './routes/dorm/index'
 import { Route as WikiWikiIdRouteImport } from './routes/wiki/$wikiId'
 import { Route as DormRetirementMaintenanceRouteImport } from './routes/dorm/retirement-maintenance'
@@ -54,6 +55,11 @@ const WikiIndexRoute = WikiIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => WikiRouteRoute,
+} as any)
+const HomeIndexRoute = HomeIndexRouteImport.update({
+  id: '/home/',
+  path: '/home/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const DormIndexRoute = DormIndexRouteImport.update({
   id: '/dorm/',
@@ -147,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/dorm/retirement-maintenance': typeof DormRetirementMaintenanceRoute
   '/wiki/$wikiId': typeof WikiWikiIdRouteWithChildren
   '/dorm': typeof DormIndexRoute
+  '/home': typeof HomeIndexRoute
   '/wiki/': typeof WikiIndexRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/dorm/warehouse/form': typeof DormWarehouseFormRoute
@@ -168,6 +175,7 @@ export interface FileRoutesByTo {
   '/dorm/retirement-maintenance': typeof DormRetirementMaintenanceRoute
   '/wiki/$wikiId': typeof WikiWikiIdRouteWithChildren
   '/dorm': typeof DormIndexRoute
+  '/home': typeof HomeIndexRoute
   '/wiki': typeof WikiIndexRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/dorm/warehouse/form': typeof DormWarehouseFormRoute
@@ -191,6 +199,7 @@ export interface FileRoutesById {
   '/dorm/retirement-maintenance': typeof DormRetirementMaintenanceRoute
   '/wiki/$wikiId': typeof WikiWikiIdRouteWithChildren
   '/dorm/': typeof DormIndexRoute
+  '/home/': typeof HomeIndexRoute
   '/wiki/': typeof WikiIndexRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
   '/dorm/warehouse/form': typeof DormWarehouseFormRoute
@@ -215,6 +224,7 @@ export interface FileRouteTypes {
     | '/dorm/retirement-maintenance'
     | '/wiki/$wikiId'
     | '/dorm'
+    | '/home'
     | '/wiki/'
     | '/auth/google/callback'
     | '/dorm/warehouse/form'
@@ -236,6 +246,7 @@ export interface FileRouteTypes {
     | '/dorm/retirement-maintenance'
     | '/wiki/$wikiId'
     | '/dorm'
+    | '/home'
     | '/wiki'
     | '/auth/google/callback'
     | '/dorm/warehouse/form'
@@ -258,6 +269,7 @@ export interface FileRouteTypes {
     | '/dorm/retirement-maintenance'
     | '/wiki/$wikiId'
     | '/dorm/'
+    | '/home/'
     | '/wiki/'
     | '/auth/google/callback'
     | '/dorm/warehouse/form'
@@ -277,6 +289,7 @@ export interface RootRouteChildren {
   DormRetirementFormRoute: typeof DormRetirementFormRoute
   DormRetirementMaintenanceRoute: typeof DormRetirementMaintenanceRoute
   DormIndexRoute: typeof DormIndexRoute
+  HomeIndexRoute: typeof HomeIndexRoute
   AuthGoogleCallbackRoute: typeof AuthGoogleCallbackRoute
   DormWarehouseFormRoute: typeof DormWarehouseFormRoute
   DormWarehouseIndexRoute: typeof DormWarehouseIndexRoute
@@ -318,6 +331,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/wiki/'
       preLoaderRoute: typeof WikiIndexRouteImport
       parentRoute: typeof WikiRouteRoute
+    }
+    '/home/': {
+      id: '/home/'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof HomeIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/dorm/': {
       id: '/dorm/'
@@ -480,6 +500,7 @@ const rootRouteChildren: RootRouteChildren = {
   DormRetirementFormRoute: DormRetirementFormRoute,
   DormRetirementMaintenanceRoute: DormRetirementMaintenanceRoute,
   DormIndexRoute: DormIndexRoute,
+  HomeIndexRoute: HomeIndexRoute,
   AuthGoogleCallbackRoute: AuthGoogleCallbackRoute,
   DormWarehouseFormRoute: DormWarehouseFormRoute,
   DormWarehouseIndexRoute: DormWarehouseIndexRoute,
