@@ -99,10 +99,10 @@ class VectorStore {
     // First, split by sentences (dots)
     const sentences = text
       .split(/[.!?]\s+/)
-      .map(s => s.trim())
-      .filter(s => s.length > 0)
-      .map(s => s + '.'); // Add dots back
-    
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0)
+      .map((s) => s + '.'); // Add dots back
+
     if (sentences.length === 0) {
       return [text];
     }
@@ -275,11 +275,13 @@ class VectorStore {
 
       // Split content into chunks by sentences (dots)
       const chunks = this.chunkText(wiki.content);
-      console.log(`Wiki "${wiki.title}" divided into ${chunks.length} chunks by sentence separation`);
+      console.log(
+        `Wiki "${wiki.title}" divided into ${chunks.length} chunks by sentence separation`,
+      );
 
       // Process chunks in batch
       const chunkDocuments: VectorDocument[] = [];
-      
+
       for (let i = 0; i < chunks.length; i++) {
         const chunk = chunks[i];
         console.log(
@@ -315,10 +317,10 @@ class VectorStore {
           console.log(
             `Successfully processed chunk ${i + 1} for wiki "${wiki.title}"`,
           );
-          
+
           // Small delay to prevent API rate limiting
           if (i < chunks.length - 1) {
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
           }
         } catch (chunkError) {
           console.error(
@@ -331,7 +333,7 @@ class VectorStore {
 
       // Add all chunks to documents at once
       this.documents.push(...chunkDocuments);
-      
+
       // Save to localStorage after successful processing
       this.saveToLocalStorage();
       onProgress?.(chunks.length, chunks.length, `Completed: ${wiki.title}`);
@@ -339,7 +341,7 @@ class VectorStore {
       console.log(
         `Successfully added wiki "${wiki.title}" with ${chunks.length} chunks to vector store`,
       );
-      
+
       return { chunks };
     } catch (error) {
       console.error(`Failed to add wiki document "${wiki.title}":`, error);
@@ -390,7 +392,7 @@ class VectorStore {
         articleChunks[wiki.title] = result.chunks;
         totalChunks += result.chunks.length;
         successCount++;
-        
+
         console.log(
           `✓ Successfully processed article ${i + 1}/${wikis.length}: "${wiki.title}" (${result.chunks.length} chunks)`,
         );
@@ -424,7 +426,7 @@ class VectorStore {
     console.log(
       `Batch processing completed: ${successCount}/${wikis.length} articles processed (${totalChunks} total chunks)`,
     );
-    
+
     // Log chunk distribution
     Object.entries(articleChunks).forEach(([title, chunks]) => {
       console.log(`Article "${title}": ${chunks.length} chunks`);
@@ -456,7 +458,7 @@ class VectorStore {
         `All ${successCount} articles successfully processed with ${totalChunks} total chunks`,
       );
     }
-    
+
     return { processedArticles: successCount, totalChunks };
   }
 
@@ -527,25 +529,12 @@ class VectorStore {
     });
     return uniqueWikiIds.size;
   }
-  
+
   /**
    * Return number of chunks in vector store
    */
   getChunkCount(): number {
     return this.documents.length;
-  }
-  
-  /**
-   * Get chunk distribution by article
-   */
-  getChunkDistribution(): { [articleTitle: string]: number } {
-    const distribution: { [articleTitle: string]: number } = {};
-    this.documents.forEach((doc) => {
-      if (doc.metadata.type === 'wiki_chunk') {
-        distribution[doc.metadata.title] = (distribution[doc.metadata.title] || 0) + 1;
-      }
-    });
-    return distribution;
   }
 
   /**

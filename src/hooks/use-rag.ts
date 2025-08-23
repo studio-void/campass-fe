@@ -47,11 +47,11 @@ export function useRAG(): UseRAGReturn {
     const docCount = vectorStore.getDocumentCount();
     const chunkCnt = vectorStore.getChunkCount();
     const distribution = vectorStore.getChunkDistribution();
-    
+
     setDocumentCount(docCount);
     setChunkCount(chunkCnt);
     setChunkDistribution(distribution);
-    
+
     console.log(`Updated counts - Articles: ${docCount}, Chunks: ${chunkCnt}`);
   };
 
@@ -59,7 +59,7 @@ export function useRAG(): UseRAGReturn {
   useEffect(() => {
     const docCount = vectorStore.getDocumentCount();
     const chunkCnt = vectorStore.getChunkCount();
-    
+
     if (docCount > 0) {
       setIsInitialized(true);
       updateDocumentCount();
