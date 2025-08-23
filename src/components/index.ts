@@ -3,6 +3,7 @@ export * from './header';
 export * from './layout';
 export * from './dropzone';
 export * from './document-parser';
+export * from './user-school-logo';
 
 export * from './ui/button';
 

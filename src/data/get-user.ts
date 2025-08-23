@@ -28,6 +28,11 @@ export interface GetUserResponse {
   updatedAt: string;
 }
 
+export const getUserSchool = async (): Promise<School | undefined> => {
+  const user = await getUser();
+  return user?.school;
+};
+
 export const getUser = async (): Promise<GetUserResponse | undefined> => {
   try {
     const response = await api.get<GetUserResponse>('/user');
