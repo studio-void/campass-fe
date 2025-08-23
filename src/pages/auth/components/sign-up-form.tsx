@@ -45,6 +45,13 @@ const schema = z.object({
     .min(8, 'Password must be at least 8 characters long')
     .max(32, 'Password must be at most 32 characters long'),
   name: z.string().min(1, 'Please enter your name'),
+  tel: z
+    .string()
+    .min(1, 'Please enter your phone number')
+    .regex(
+      /^010-?\d{4}-?\d{4}$/,
+      'Phone number must be in the format 010-1234-5678',
+    ),
   nickname: z.string().min(1, 'Please enter your nickname'),
   school: z.string().min(1, 'Please select your school'),
   number: z
@@ -62,6 +69,7 @@ export function SignUpForm() {
       email: '',
       password: '',
       name: '',
+      tel: '',
       nickname: '',
       school: '',
       number: '',
@@ -79,6 +87,7 @@ export function SignUpForm() {
         email: data.email,
         password: data.password,
         name: data.name,
+        tel: data.tel,
         nickname: data.nickname,
         school: data.school,
         number: data.number,
@@ -118,6 +127,19 @@ export function SignUpForm() {
                   placeholder="Enter your password"
                   {...field}
                 />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="tel"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Phone Number</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter your phone number" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

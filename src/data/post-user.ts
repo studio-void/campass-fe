@@ -7,6 +7,7 @@ export interface PostUserRequest {
   email: string;
   password: string;
   name: string;
+  tel: string;
   nickname: string;
   school: string;
   number: string;
