@@ -67,7 +67,7 @@ export const Header = forwardRef<
           >
             Wiki
           </Link>
-          <Link to="/">
+          <Link to="/auth/sign-in">
             <Button variant="default" className="font-semibold">
               Get Started
             </Button>
