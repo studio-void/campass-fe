@@ -35,7 +35,7 @@ export const Layout: React.FC<
       <AIFab isOpen={isAIPopupOpen} onClick={toggleAIPopup} />
       <AIPopup isOpen={isAIPopupOpen} />
       <main
-        className={`mx-6 md:mx-12 lg:mx-24 xl:mx-48 ${disableHeaderHeight ? '' : 'pt-16'}`}
+        className={`flex flex-col items-center mx-6 md:mx-12 lg:mx-24 xl:mx-48 ${disableHeaderHeight ? '' : 'pt-20'}`}
       >
         {children}
       </main>
