@@ -88,7 +88,7 @@ export function WikiDetailModal({
               <History className="w-4 h-4 mr-2" />
               History
             </Button>
-                        <Button
+            <Button
               variant="outline"
               size="sm"
               onClick={onEdit}
