@@ -13,7 +13,7 @@ import {
 import { useNavigate } from '@tanstack/react-router';
 import ReactMarkdown from 'react-markdown';
 
-import { useUpstageApiWithRAG } from '../hooks';
+import { useAIAgent, useUpstageApiWithRAG } from '../hooks';
 import { CampassLogo } from './index';
 
 interface AIPopupWithRAGProps {
@@ -22,6 +22,18 @@ interface AIPopupWithRAGProps {
 
 function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
   const navigate = useNavigate();
+
+  // Use the AI agent with navigation support
+  const {
+    messages: agentMessages,
+    isLoading: isAgentLoading,
+    sendMessage: sendAgentMessage,
+    clearMessages: clearAgentMessages,
+    ragStatus: agentRagStatus,
+    initializeRAG: initializeAgentRAG,
+  } = useAIAgent(navigate);
+
+  // Keep the original RAG functionality as fallback
   const {
     messages,
     isLoading,
@@ -30,6 +42,14 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
     ragStatus,
     initializeRAG,
   } = useUpstageApiWithRAG();
+
+  // Use agent by default, fallback to original if needed
+  const activeMessages = agentMessages || messages;
+  const activeIsLoading = isAgentLoading ?? isLoading;
+  const activeSendMessage = sendAgentMessage || sendMessage;
+  const activeClearMessages = clearAgentMessages || clearMessages;
+  const activeRagStatus = agentRagStatus || ragStatus;
+  const activeInitializeRAG = initializeAgentRAG || initializeRAG;
 
   const [input, setInput] = useState('');
   const [showSources, setShowSources] = useState<string | null>(null);
@@ -88,7 +108,7 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [activeMessages]);
 
   useEffect(() => {
     const el = resizeRef.current;
@@ -170,11 +190,11 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
   };
 
   const handleSendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || activeIsLoading) return;
 
     const userInput = input;
     setInput('');
-    await sendMessage(userInput);
+    await activeSendMessage(userInput);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -185,11 +205,11 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
   };
 
   const handleClearMessages = () => {
-    clearMessages();
+    activeClearMessages();
   };
 
   const handleInitializeRAG = async () => {
-    await initializeRAG();
+    await activeInitializeRAG();
   };
 
   const toggleSources = (messageId: string) => {
@@ -224,12 +244,12 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
     >
       {/* Resize Handle */}
       {(() => {
-        const stroke = Math.max(2, Math.round(cornerRadius * 0.18)); // visual thickness
-        const size = Math.max(24, Math.round(cornerRadius * 2)); // square sized to the corner radius
+        const stroke = Math.max(2, Math.round(cornerRadius * 0.48)); // visual thickness
+        const size = Math.max(24, Math.round(cornerRadius * 0.48)); // square sized to the corner radius
         const r = Math.max(2, cornerRadius - stroke / 2); // inner radius so the stroke sits inside the curve
         return (
           <div
-            className="group absolute top-0 left-0 z-50 cursor-nw-resize select-none"
+            className="group absolute -top-0.5 -left-0.5 z-50 cursor-nw-resize select-none"
             style={{ width: size, height: size }}
             onMouseDown={handleResizeStart}
             title="Drag to resize"
@@ -243,16 +263,95 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
               height={size}
               viewBox={`0 0 ${size} ${size}`}
             >
+              <defs>
+                {/* Outer-only shadow: dilate alpha, blur, subtract original to keep only outside */}
+                <filter
+                  id="outerShadow"
+                  x="-50%"
+                  y="-50%"
+                  width="200%"
+                  height="200%"
+                  filterUnits="objectBoundingBox"
+                >
+                  <feMorphology
+                    in="SourceAlpha"
+                    operator="dilate"
+                    radius="1.2"
+                    result="dilated"
+                  />
+                  <feGaussianBlur
+                    in="dilated"
+                    stdDeviation="1.5"
+                    result="blurred"
+                  />
+                  <feComposite
+                    in="blurred"
+                    in2="SourceAlpha"
+                    operator="out"
+                    result="outerOnly"
+                  />
+                  <feColorMatrix
+                    in="outerOnly"
+                    type="matrix"
+                    values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0   0 0 0 0.28 0"
+                    result="shadow"
+                  />
+                  <feMerge>
+                    <feMergeNode in="shadow" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+                <filter
+                  id="outerShadowStrong"
+                  x="-50%"
+                  y="-50%"
+                  width="200%"
+                  height="200%"
+                  filterUnits="objectBoundingBox"
+                >
+                  <feMorphology
+                    in="SourceAlpha"
+                    operator="dilate"
+                    radius="1.6"
+                    result="dilated"
+                  />
+                  <feGaussianBlur
+                    in="dilated"
+                    stdDeviation="2.2"
+                    result="blurred"
+                  />
+                  <feComposite
+                    in="blurred"
+                    in2="SourceAlpha"
+                    operator="out"
+                    result="outerOnly"
+                  />
+                  <feColorMatrix
+                    in="outerOnly"
+                    type="matrix"
+                    values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0   0 0 0 0.4 0"
+                    result="shadow"
+                  />
+                  <feMerge>
+                    <feMergeNode in="shadow" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+
               <path
                 d={`M ${stroke / 2} ${r + stroke / 2} A ${r} ${r} 0 0 1 ${r + stroke / 2} ${stroke / 2}`}
                 fill="none"
                 stroke={
                   isDragging
                     ? 'rgba(255,255,255,0.95)'
-                    : 'rgba(255,255,255,0.75)'
+                    : 'rgba(255,255,255,0.85)'
                 }
                 strokeWidth={stroke}
                 strokeLinecap="round"
+                filter={
+                  isDragging ? 'url(#outerShadowStrong)' : 'url(#outerShadow)'
+                }
               />
             </svg>
           </div>
@@ -268,19 +367,19 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
           <div className="flex gap-1">
             <button
               onClick={handleInitializeRAG}
-              disabled={isLoading || ragStatus.isIndexing}
+              disabled={activeIsLoading || activeRagStatus.isIndexing}
               title="Initialize RAG System"
               type="button"
               aria-label="Initialize RAG system"
               className="p-1 hover:bg-white/20 rounded transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <IconRefresh
-                className={`h-4 w-4 ${ragStatus.isIndexing ? 'animate-spin' : ''}`}
+                className={`h-4 w-4 ${activeRagStatus.isIndexing ? 'animate-spin' : ''}`}
               />
             </button>
             <button
               onClick={handleClearMessages}
-              disabled={isLoading}
+              disabled={activeIsLoading}
               title="Clear Conversation"
               type="button"
               aria-label="Clear conversation"
@@ -295,23 +394,23 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
         <div className="mt-2 text-xs opacity-90 flex items-center gap-2">
           <IconDatabase className="h-3 w-3" />
           <span>
-            {ragStatus.isInitialized
-              ? `RAG Active (${ragStatus.documentCount} articles, ${ragStatus.chunkCount} chunks)`
-              : ragStatus.isIndexing
-                ? ragStatus.indexingProgress
-                  ? `Indexing: ${ragStatus.indexingProgress.current}/${ragStatus.indexingProgress.total} - ${ragStatus.indexingProgress.status}`
+            {activeRagStatus.isInitialized
+              ? `RAG Active (${activeRagStatus.documentCount} articles, ${activeRagStatus.chunkCount} chunks)`
+              : activeRagStatus.isIndexing
+                ? activeRagStatus.indexingProgress
+                  ? `Indexing: ${activeRagStatus.indexingProgress.current}/${activeRagStatus.indexingProgress.total} - ${activeRagStatus.indexingProgress.status}`
                   : 'Initializing RAG...'
                 : 'RAG Inactive'}
           </span>
-          {ragStatus.isIndexing && ragStatus.indexingProgress && (
+          {activeRagStatus.isIndexing && activeRagStatus.indexingProgress && (
             <div className="flex-1 bg-white/20 rounded-full h-1 ml-2">
               <div
                 className="bg-white h-1 rounded-full transition-all duration-200"
                 style={{
                   width: `${
-                    ragStatus.indexingProgress.total > 0
-                      ? (ragStatus.indexingProgress.current /
-                          ragStatus.indexingProgress.total) *
+                    activeRagStatus.indexingProgress.total > 0
+                      ? (activeRagStatus.indexingProgress.current /
+                          activeRagStatus.indexingProgress.total) *
                         100
                       : 0
                   }%`,
@@ -324,7 +423,7 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
-        {messages.map((message) => (
+        {activeMessages.map((message) => (
           <div key={message.id}>
             <div
               className={`flex gap-3 ${
@@ -335,8 +434,9 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
                 <div className="flex-shrink-0">
                   <div
                     className={`w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center ${
-                      isLoading &&
-                      messages[messages.length - 1]?.id === message.id
+                      activeIsLoading &&
+                      activeMessages[activeMessages.length - 1]?.id ===
+                        message.id
                         ? 'animate-pulse'
                         : ''
                     }`}
@@ -409,8 +509,9 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
                       {message.content || ''}
                     </ReactMarkdown>
 
-                    {isLoading &&
-                      messages[messages.length - 1]?.id === message.id && (
+                    {activeIsLoading &&
+                      activeMessages[activeMessages.length - 1]?.id ===
+                        message.id && (
                         <div className="flex justify-start mb-2">
                           <div className="flex gap-1">
                             <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
@@ -616,7 +717,7 @@ function AIPopupWithRAG({ isOpen }: AIPopupWithRAGProps) {
           />
           <button
             onClick={handleSendMessage}
-            disabled={!input.trim() || isLoading}
+            disabled={!input.trim() || activeIsLoading}
             title="Send Message"
             type="button"
             aria-label="Send message"
