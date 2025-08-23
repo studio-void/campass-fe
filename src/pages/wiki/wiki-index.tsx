@@ -82,6 +82,7 @@ function WikiIndexPage() {
   const [wikis, setWikis] = useState<Wiki[]>([]);
   const [loading, setLoading] = useState(true);
   const { user: currentUser } = useCurrentUser();
+
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newWikiTitle, setNewWikiTitle] = useState('');
   const [newWikiContent, setNewWikiContent] = useState('');

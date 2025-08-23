@@ -11,3 +11,4 @@ export * from './markdown-editor';
 export * from './ui/button';
 
 export { default as CampassLogo } from './campass-logo';
+export { default as AIPopupWithRAG } from './ai-popup-with-rag';
