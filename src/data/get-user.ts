@@ -37,6 +37,13 @@ export const getUser = async (): Promise<GetUserResponse | undefined> => {
   try {
     const response = await api.get<GetUserResponse>('/user');
 
+    // Update localStorage with user admin status
+    if (response.data) {
+      localStorage.setItem('isAdmin', response.data.isAdmin.toString());
+      // Dispatch event to notify other components
+      window.dispatchEvent(new CustomEvent('authStateChanged'));
+    }
+
     return response.data;
   } catch (error) {
     console.error('Failed to get user:', error);
