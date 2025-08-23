@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Check, ChevronsUpDown } from 'lucide-react';
+import { Check, ChevronsUpDown, ClipboardCheck, Calendar, User, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { Layout } from '@/components';
+import { Layout, UserSchoolLogo } from '@/components';
 import {
   Command,
   CommandGroup,
@@ -20,16 +20,17 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Card, CardContent } from '@/components/ui/card';
 import { getDormCheck } from '@/data/get-dorm-check';
 import {
   type PatchDormCheckRequest,
   patchDormCheck,
 } from '@/data/patch-dorm-check';
+import { School } from '@/data/get-user';
 import { cn } from '@/utils';
 
 const StatusDropdown: React.FC<{
@@ -131,7 +132,7 @@ export const DormCheckPage: React.FC = () => {
   };
 
   const {
-    data: checks = [],
+    data: inspectionRequests = [],
     isLoading,
     error,
     isFetching,
@@ -194,49 +195,136 @@ export const DormCheckPage: React.FC = () => {
 
   return (
     <Layout>
-      <div className="text-2xl font-semibold mb-12 mt-4 text-start w-full">
-        Dormitory: Application for Retirement / Maintenance Inspection
+      {/* Header Section with Logo and Title */}
+      <div className="w-full max-w-7xl mx-auto px-4">
+        {/* Logo and Title */}
+        <div className="flex items-center gap-6 mb-8">
+          <UserSchoolLogo school={School.GIST} className="w-20 h-20" />
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Dormitory Inspection Management
+            </h1>
+            <p className="text-lg text-gray-600">
+              Review and manage maintenance inspection applications
+            </p>
+          </div>
+        </div>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card className="border-0 shadow-md">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-blue-100 rounded-full">
+                  <ClipboardCheck className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Applications</p>
+                  <p className="text-2xl font-bold text-gray-900">{inspectionRequests.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="border-0 shadow-md">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-green-100 rounded-full">
+                  <Check className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Approved</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {inspectionRequests.filter((req: any) => req.status === 'PASS').length}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="border-0 shadow-md">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-amber-100 rounded-full">
+                  <Calendar className="w-6 h-6 text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Pending</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {inspectionRequests.filter((req: any) => req.status !== 'PASS' && req.status !== 'FAIL').length}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Applications Table */}
+        <Card className="border-0 shadow-md">
+          <CardContent className="p-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-6">Inspection Applications</h3>
+            <Table className={cn(isFetching && 'opacity-50 transition-opacity')}>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[100px]">No.</TableHead>
+                  <TableHead>Student Details</TableHead>
+                  <TableHead>Building</TableHead>
+                  <TableHead>Inspection Type</TableHead>
+                  <TableHead>Scheduled Date</TableHead>
+                  <TableHead className="text-right">Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {inspectionRequests.map((request, index) => (
+                  <TableRow key={request.id}>
+                    <TableCell className="font-medium">{index + 1}</TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <User className="w-4 h-4 text-gray-400" />
+                          <span className="font-medium">{request.user.name}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <span>ID: {request.user.number}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <Phone className="w-3 h-3" />
+                          <span>{request.user.tel}</span>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-md text-sm font-medium">
+                        {request.dorm}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-sm font-medium">
+                        {request.type}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Calendar className="w-4 h-4 text-gray-400" />
+                        <span>{formatDateTime(request.checkAt.toString())}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <StatusDropdown
+                        statusOptions={statusOptions}
+                        currentStatus={request.status === 'PASS' ? 'DONE' : 'NOT_DONE'}
+                        onStatusChange={(newStatus) =>
+                          handleStatusChange(request.id, newStatus, request)
+                        }
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
-      <Table className={cn(isFetching && 'opacity-50 transition-opacity')}>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[100px]">No.</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>Student ID</TableHead>
-            <TableHead>Tel</TableHead>
-            <TableHead>Dorm</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead className="text-right">Status</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {checks.map((check, index) => (
-            <TableRow key={check.id}>
-              <TableCell className="font-medium">{index + 1}</TableCell>
-              <TableCell>{check.user.name}</TableCell>
-              <TableCell>{check.user.number}</TableCell>
-              <TableCell>{check.user.tel}</TableCell>
-              <TableCell>{check.dorm}</TableCell>
-              <TableCell>{formatDateTime(check.checkAt.toString())}</TableCell>
-              <TableCell className="text-right">
-                <StatusDropdown
-                  statusOptions={statusOptions}
-                  currentStatus={check.status}
-                  onStatusChange={(newStatus) =>
-                    handleStatusChange(check.id, newStatus, check)
-                  }
-                />
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-        <TableFooter>
-          <TableRow>
-            <TableCell colSpan={6}>Total Checks</TableCell>
-            <TableCell className="text-right">{checks.length}</TableCell>
-          </TableRow>
-        </TableFooter>
-      </Table>
     </Layout>
   );
 };

@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Check, ChevronsUpDown } from 'lucide-react';
+import { Check, ChevronsUpDown, Package, Calendar, User, Phone, ClipboardList } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { Layout } from '@/components';
+import { Layout, UserSchoolLogo } from '@/components';
 import {
   Command,
   CommandGroup,
@@ -20,16 +20,17 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Card, CardContent } from '@/components/ui/card';
 import { getDormStorage } from '@/data/get-dorm-storage';
 import {
   type PatchDormStorageRequest,
   patchDormStorage,
 } from '@/data/patch-dorm-storage';
+import { School } from '@/data/get-user';
 import { cn } from '@/utils';
 
 const StatusDropdown: React.FC<{
@@ -185,55 +186,136 @@ export const DormStoragePage: React.FC = () => {
 
   return (
     <Layout>
-      <div className="text-2xl font-semibold mb-12 mt-4 text-start w-full">
-        Dormitory: Application for Retirement / Maintenance Inspection
+      {/* Header Section with Logo and Title */}
+      <div className="w-full max-w-7xl mx-auto px-4">
+        {/* Logo and Title */}
+        <div className="flex items-center gap-6 mb-8">
+          <UserSchoolLogo school={School.GIST} className="w-20 h-20" />
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Warehouse Storage Management
+            </h1>
+            <p className="text-lg text-gray-600">
+              Review and manage student storage applications
+            </p>
+          </div>
+        </div>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card className="border-0 shadow-md">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-blue-100 rounded-full">
+                  <ClipboardList className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Requests</p>
+                  <p className="text-2xl font-bold text-gray-900">{storageRequests.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="border-0 shadow-md">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-green-100 rounded-full">
+                  <Package className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Stored</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {storageRequests.filter((req: any) => req.isStored).length}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="border-0 shadow-md">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-amber-100 rounded-full">
+                  <Calendar className="w-6 h-6 text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Awaiting Storage</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {storageRequests.filter((req: any) => !req.isStored).length}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Storage Requests Table */}
+        <Card className="border-0 shadow-md">
+          <CardContent className="p-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-6">Storage Requests</h3>
+            <Table className={cn(isFetching && 'opacity-50 transition-opacity')}>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[100px]">No.</TableHead>
+                  <TableHead>Student Details</TableHead>
+                  <TableHead>Storage Location</TableHead>
+                  <TableHead>Items</TableHead>
+                  <TableHead>Storage Date</TableHead>
+                  <TableHead className="text-right">Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {storageRequests.map((request, index) => (
+                  <TableRow key={request.id}>
+                    <TableCell className="font-medium">{index + 1}</TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <User className="w-4 h-4 text-gray-400" />
+                          <span className="font-medium">{request.user.name}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <span>ID: {request.user.number}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <Phone className="w-3 h-3" />
+                          <span>{request.user.tel}</span>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-sm font-medium">
+                        {request.storage}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="max-w-xs truncate" title={request.items}>
+                        {request.items}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Calendar className="w-4 h-4 text-gray-400" />
+                        <span>{formatDateTime(request.storeAt.toString())}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <StatusDropdown
+                        statusOptions={statusOptions}
+                        currentStatus={request.isStored ? 'STORED' : 'NOT_STORED'}
+                        onStatusChange={(newStatus) =>
+                          handleStatusChange(request.id, newStatus, request)
+                        }
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
-      <Table className={cn(isFetching && 'opacity-50 transition-opacity')}>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[100px]">No.</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>Student ID</TableHead>
-            <TableHead>Tel</TableHead>
-            <TableHead>Storage</TableHead>
-            <TableHead>Items</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead className="text-right">Status</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {storageRequests.map((request, index) => (
-            <TableRow key={request.id}>
-              <TableCell className="font-medium">{index + 1}</TableCell>
-              <TableCell>{request.user.name}</TableCell>
-              <TableCell>{request.user.number}</TableCell>
-              <TableCell>{request.user.tel}</TableCell>
-              <TableCell>{request.storage}</TableCell>
-              <TableCell>{request.items}</TableCell>
-              <TableCell>
-                {formatDateTime(request.storeAt.toString())}
-              </TableCell>
-              <TableCell className="text-right">
-                <StatusDropdown
-                  statusOptions={statusOptions}
-                  currentStatus={request.isStored ? 'STORED' : 'NOT_STORED'}
-                  onStatusChange={(newStatus) =>
-                    handleStatusChange(request.id, newStatus, request)
-                  }
-                />
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-        <TableFooter>
-          <TableRow>
-            <TableCell colSpan={7}>Total Checks</TableCell>
-            <TableCell className="text-right">
-              {storageRequests.length}
-            </TableCell>
-          </TableRow>
-        </TableFooter>
-      </Table>
     </Layout>
   );
 };
