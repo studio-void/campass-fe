@@ -31,6 +31,11 @@ export interface AgentMessage {
     author?: string;
     score: number;
   }>;
+  topWikiLink?: {
+    title: string;
+    wikiId: string;
+    score: number;
+  };
   functionCall?: {
     name: string;
     arguments: any;
@@ -74,13 +79,83 @@ interface UseAIAgentReturn {
 const createAvailableFunctions = (
   navigationFunctions?: NavigationFunctions,
   googleCalendar?: ReturnType<typeof useGoogleCalendar>,
+  searchDocuments?: (query: string, school?: string) => Promise<any[]>,
+  user?: any,
 ) => ({
   search_wiki: async (query: string, school?: string) => {
-    return JSON.stringify({
-      message: `Searching for "${query}" in wiki documents${school ? ` for ${school}` : ''}`,
-      query,
-      school: school || null,
-    });
+    if (!searchDocuments) {
+      // Return mock data for testing navigation suggestions when RAG is not initialized
+      const mockResults = [
+        {
+          title: `Sample Article about "${query}"`,
+          content: `This is a sample article that contains information about ${query}. This is just test data to demonstrate navigation suggestions.`,
+          wikiId: 123,
+          school: school || 'Test School',
+          score: 0.8,
+        },
+      ];
+
+      const topMockResult = mockResults[0];
+
+      return JSON.stringify({
+        message: `Found mock result for "${query}" (RAG not initialized)${school ? ` in ${school}` : ''}`,
+        query,
+        school: school || null,
+        results: mockResults.map((result) => ({
+          title: result.title,
+          content: result.content.substring(0, 200),
+          wikiId: result.wikiId,
+          school: result.school,
+          score: result.score,
+        })),
+        topWikiLink: {
+          title: topMockResult.title,
+          wikiId: topMockResult.wikiId.toString(),
+          score: topMockResult.score,
+        },
+        hasNavigationSupport: !!navigationFunctions,
+        isMockData: true,
+      });
+    }
+
+    try {
+      const searchResults =
+        user?.school && !school
+          ? await searchDocuments(query, user.school)
+          : await searchDocuments(query, school);
+
+      const results = searchResults.map((result) => ({
+        title: result.document.metadata.title,
+        content: result.document.content.substring(0, 200),
+        wikiId: result.document.metadata.wikiId,
+        school: result.document.metadata.school,
+        score: result.score,
+      }));
+
+      // Get the top result for wiki link
+      const topResult = results.length > 0 ? results[0] : null;
+
+      return JSON.stringify({
+        message: `Found ${results.length} results for "${query}"${school ? ` in ${school}` : ''}`,
+        query,
+        school: school || null,
+        results,
+        topWikiLink: topResult
+          ? {
+              title: topResult.title,
+              wikiId: topResult.wikiId.toString(),
+              score: topResult.score,
+            }
+          : null,
+        hasNavigationSupport: !!navigationFunctions,
+      });
+    } catch (error) {
+      return JSON.stringify({
+        error: 'Failed to search wiki documents',
+        message:
+          error instanceof Error ? error.message : 'Unknown error occurred',
+      });
+    }
   },
 
   get_user_info: async () => {
@@ -256,16 +331,6 @@ const createAvailableFunctions = (
     }
   },
 
-  calculate: async (expression: string) => {
-    try {
-      // Simple calculator (be careful with eval in production)
-      const result = Function('"use strict"; return (' + expression + ')')();
-      return JSON.stringify({ expression, result: result.toString() });
-    } catch (error) {
-      return JSON.stringify({ expression, error: 'Invalid expression' });
-    }
-  },
-
   // Navigation functions
   navigate_to_page: async (page: string, wikiId?: string) => {
     if (!navigationFunctions) {
@@ -433,24 +498,6 @@ const createTools = (
             },
           },
           required: ['location'],
-        },
-      },
-    },
-    {
-      type: 'function',
-      function: {
-        name: 'calculate',
-        description: 'Perform mathematical calculations',
-        parameters: {
-          type: 'object',
-          properties: {
-            expression: {
-              type: 'string',
-              description:
-                'Mathematical expression to calculate (e.g., "2 + 3 * 4")',
-            },
-          },
-          required: ['expression'],
         },
       },
     },
@@ -669,7 +716,6 @@ const getToolDescription = (toolName: string): string => {
     list_calendar_events: 'List upcoming Google Calendar events',
     check_calendar_auth: 'Check Google Calendar authorization status',
     get_weather: 'Get weather information for a location',
-    calculate: 'Perform mathematical calculations',
     navigate_to_page: 'Navigate to a specific page',
     get_available_pages: 'Get list of available pages',
     search_pages: 'Search for pages by keyword',
@@ -705,10 +751,12 @@ export function useAIAgent(
     ? createNavigationFunctions(navigate)
     : undefined;
 
-  // Create available functions with navigation and calendar support
+  // Create available functions with navigation, calendar, and RAG support
   const availableFunctions = createAvailableFunctions(
     navigationFunctions,
     googleCalendar,
+    searchDocuments,
+    user,
   );
 
   // Create tools with navigation and calendar support
@@ -729,8 +777,6 @@ export function useAIAgent(
 I'm an advanced AI assistant that can:
 - 🔍 Search wiki documents
 - 📅 Create and manage Google Calendar events${googleCalendar.isAuthed ? ' (authorized ✅)' : ' (authorization needed)'}${navigationFunctions ? '\n- 🧭 Navigate to different pages' : ''}
-- 🌤️ Get weather information
-- 🧮 Perform calculations
 - And much more!
 
 ${googleCalendar.isReady && !googleCalendar.isAuthed ? 'To use calendar features, please authorize Google Calendar access first.' : ''}
@@ -753,24 +799,10 @@ How can I help you today?`,
     try {
       switch (functionName) {
         case 'search_wiki':
-          if (isInitialized) {
-            const searchResults = user?.school
-              ? await searchDocuments(args.query, user.school)
-              : await searchDocuments(args.query);
-
-            return JSON.stringify({
-              query: args.query,
-              results: searchResults.map((result) => ({
-                title: result.document.metadata.title,
-                content: result.document.content.substring(0, 200),
-                wikiId: result.document.metadata.wikiId,
-                school: result.document.metadata.school,
-                score: result.score,
-              })),
-            });
-          } else {
-            return JSON.stringify({ error: 'RAG system is not initialized' });
-          }
+          return await (availableFunctions.search_wiki as any)(
+            args.query,
+            args.school,
+          );
 
         case 'get_user_info':
           return JSON.stringify({
@@ -822,8 +854,6 @@ How can I help you today?`,
               return await (func as any)(args.format);
             } else if (functionName === 'get_weather') {
               return await (func as any)(args.location, args.unit);
-            } else if (functionName === 'calculate') {
-              return await (func as any)(args.expression);
             } else if (functionName === 'navigate_to_page') {
               return await (func as any)(args.page, args.wikiId);
             } else if (functionName === 'search_pages') {
@@ -871,9 +901,20 @@ Google Calendar Features:
 
 Date/Time Features:
 - get_current_date: Get current date and time in various formats (useful for scheduling)
+
+Wiki Search & Navigation:
+- search_wiki: Search through university wiki documents
+- When search results include relevant articles (score > 0.6), a smart navigation suggestion will appear above the input field
+- Always mention when relevant articles are found and encourage users to click the navigation button for complete information
+- Provide concise summaries from search results, but always direct users to the full articles for comprehensive details
+${navigationFunctions ? '- Use navigation functions to help users move between different sections of the application' : ''}
 ${!googleCalendar.isAuthed ? '\nNote: User needs to authorize Google Calendar for calendar features to work.' : ''}
 
-IMPORTANT: When a user asks to navigate to a page AND search for content (e.g., "go to wiki about library"), handle both actions in sequence but provide a single comprehensive response that combines the navigation result with the search results. Do not create separate messages for each tool call.
+IMPORTANT Guidelines:
+- When search results include relevant wiki articles, mention that users can click the navigation suggestions to read the full articles
+- If a user asks about a topic and you find relevant wiki articles, suggest they navigate to those articles for comprehensive information
+- Always provide helpful context from search results while encouraging deeper exploration through navigation
+- When a user asks to navigate to a page AND search for content (e.g., "go to wiki about library"), handle both actions in sequence but provide a single comprehensive response that combines the navigation result with the search results. Do not create separate messages for each tool call.
 
 Use the appropriate tools to provide accurate and helpful responses.${user?.school ? ` The user is from ${user.school}.` : ''}${navigationFunctions ? ' You can help users navigate to different pages in the application by using navigation functions.' : ''}
 
@@ -999,6 +1040,39 @@ For calendar events:
           temperature: 0.7,
         });
 
+        // Extract top wiki link from search_wiki results
+        let topWikiLink:
+          | { title: string; wikiId: string; score: number }
+          | undefined;
+
+        for (const result of functionResults) {
+          if (
+            result.functionCall?.name === 'search_wiki' &&
+            result.functionCall?.result
+          ) {
+            try {
+              const functionResult = JSON.parse(
+                result.functionCall.result as string,
+              );
+              console.log(
+                'Processing search wiki function result:',
+                functionResult,
+              );
+              if (functionResult.topWikiLink) {
+                topWikiLink = functionResult.topWikiLink;
+                console.log('✅ Found top wiki link for UI:', topWikiLink);
+                break; // Use the first (most recent) search result
+              } else {
+                console.log('❌ No topWikiLink in function result');
+              }
+            } catch (e) {
+              console.error('Error parsing search_wiki result:', e);
+            }
+          }
+        }
+
+        console.log('Final top wiki link to be added to message:', topWikiLink);
+
         const finalMessage: AgentMessage = {
           id: (Date.now() + 2).toString(),
           role: 'assistant',
@@ -1007,6 +1081,7 @@ For calendar events:
             "I've completed the requested actions.",
           timestamp: new Date(),
           usedTools: usedTools.length > 0 ? usedTools : undefined,
+          topWikiLink,
         };
 
         setMessages((prev) => [...prev, finalMessage]);
