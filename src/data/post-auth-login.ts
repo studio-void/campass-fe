@@ -10,7 +10,7 @@ export interface PostLoginRequest {
 }
 
 export interface PostLoginResponse {
-  access_token: string;
+  accessToken: string;
 }
 
 export const postAuthLogin = async (
@@ -21,7 +21,7 @@ export const postAuthLogin = async (
       '/auth/login',
       loginData,
     );
-    useToken.getState().saveToken(response.data.access_token);
+    useToken.getState().saveToken(response.data.accessToken);
 
     return response.data;
   } catch (error) {
