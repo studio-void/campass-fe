@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import type { NavigationFunctions } from './use-agent-navigation';
 import { createNavigationFunctions } from './use-agent-navigation';
 import { useCurrentUser } from './use-current-user';
+import { useGoogleCalendar } from './use-google-calendar';
 import { useRAG } from './use-rag';
 
 export interface AgentMessage {
@@ -30,6 +31,11 @@ export interface AgentMessage {
     author?: string;
     score: number;
   }>;
+  topWikiLink?: {
+    title: string;
+    wikiId: string;
+    score: number;
+  };
   functionCall?: {
     name: string;
     arguments: any;
@@ -72,13 +78,84 @@ interface UseAIAgentReturn {
 // Available functions for the AI agent
 const createAvailableFunctions = (
   navigationFunctions?: NavigationFunctions,
+  googleCalendar?: ReturnType<typeof useGoogleCalendar>,
+  searchDocuments?: (query: string, school?: string) => Promise<any[]>,
+  user?: any,
 ) => ({
   search_wiki: async (query: string, school?: string) => {
-    return JSON.stringify({
-      message: `Searching for "${query}" in wiki documents${school ? ` for ${school}` : ''}`,
-      query,
-      school: school || null,
-    });
+    if (!searchDocuments) {
+      // Return mock data for testing navigation suggestions when RAG is not initialized
+      const mockResults = [
+        {
+          title: `Sample Article about "${query}"`,
+          content: `This is a sample article that contains information about ${query}. This is just test data to demonstrate navigation suggestions.`,
+          wikiId: 123,
+          school: school || 'Test School',
+          score: 0.8,
+        },
+      ];
+
+      const topMockResult = mockResults[0];
+
+      return JSON.stringify({
+        message: `Found mock result for "${query}" (RAG not initialized)${school ? ` in ${school}` : ''}`,
+        query,
+        school: school || null,
+        results: mockResults.map((result) => ({
+          title: result.title,
+          content: result.content.substring(0, 200),
+          wikiId: result.wikiId,
+          school: result.school,
+          score: result.score,
+        })),
+        topWikiLink: {
+          title: topMockResult.title,
+          wikiId: topMockResult.wikiId.toString(),
+          score: topMockResult.score,
+        },
+        hasNavigationSupport: !!navigationFunctions,
+        isMockData: true,
+      });
+    }
+
+    try {
+      const searchResults =
+        user?.school && !school
+          ? await searchDocuments(query, user.school)
+          : await searchDocuments(query, school);
+
+      const results = searchResults.map((result) => ({
+        title: result.document.metadata.title,
+        content: result.document.content.substring(0, 200),
+        wikiId: result.document.metadata.wikiId,
+        school: result.document.metadata.school,
+        score: result.score,
+      }));
+
+      // Get the top result for wiki link
+      const topResult = results.length > 0 ? results[0] : null;
+
+      return JSON.stringify({
+        message: `Found ${results.length} results for "${query}"${school ? ` in ${school}` : ''}`,
+        query,
+        school: school || null,
+        results,
+        topWikiLink: topResult
+          ? {
+              title: topResult.title,
+              wikiId: topResult.wikiId.toString(),
+              score: topResult.score,
+            }
+          : null,
+        hasNavigationSupport: !!navigationFunctions,
+      });
+    } catch (error) {
+      return JSON.stringify({
+        error: 'Failed to search wiki documents',
+        message:
+          error instanceof Error ? error.message : 'Unknown error occurred',
+      });
+    }
   },
 
   get_user_info: async () => {
@@ -88,17 +165,140 @@ const createAvailableFunctions = (
     });
   },
 
+  get_current_date: async (
+    format: 'full' | 'date' | 'time' | 'iso' = 'date',
+  ) => {
+    const now = new Date();
+
+    switch (format) {
+      case 'full':
+        return JSON.stringify({
+          message: 'Current date and time retrieved',
+          date: now.toLocaleDateString('ko-KR'),
+          time: now.toLocaleTimeString('ko-KR'),
+          datetime: now.toLocaleString('ko-KR'),
+          iso: now.toISOString(),
+          timestamp: now.getTime(),
+        });
+      case 'date':
+        return JSON.stringify({
+          message: 'Current date retrieved',
+          date: now.toISOString().split('T')[0], // YYYY-MM-DD format
+          formatted: now.toLocaleDateString('ko-KR'),
+        });
+      case 'time':
+        return JSON.stringify({
+          message: 'Current time retrieved',
+          time: now.toLocaleTimeString('ko-KR'),
+          time24: now.toTimeString().split(' ')[0].substring(0, 5), // HH:MM format
+        });
+      case 'iso':
+        return JSON.stringify({
+          message: 'Current date and time in ISO format',
+          iso: now.toISOString(),
+          timestamp: now.getTime(),
+        });
+      default:
+        return JSON.stringify({
+          message: 'Current date retrieved',
+          date: now.toISOString().split('T')[0],
+        });
+    }
+  },
+
   create_calendar_event: async (
     title: string,
     date: string,
+    time?: string,
+    duration?: number,
     description?: string,
   ) => {
+    if (!googleCalendar?.isAuthed) {
+      return JSON.stringify({
+        error: 'Google Calendar not authorized. Please sign in first.',
+        needsAuth: true,
+      });
+    }
+
+    try {
+      const result = await googleCalendar.createQuickEvent(
+        title,
+        date,
+        time,
+        duration,
+        description,
+      );
+
+      return JSON.stringify({
+        message: `Calendar event "${title}" created successfully for ${date}${time ? ` at ${time}` : ' (all day)'}`,
+        title,
+        date,
+        time: time || null,
+        duration: duration || (time ? 1 : null),
+        description: description || null,
+        status: 'created',
+        eventId: result.id,
+        htmlLink: result.htmlLink,
+      });
+    } catch (error) {
+      return JSON.stringify({
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to create calendar event',
+        status: 'failed',
+      });
+    }
+  },
+
+  list_calendar_events: async (maxResults: number = 5) => {
+    if (!googleCalendar?.isAuthed) {
+      return JSON.stringify({
+        error: 'Google Calendar not authorized. Please sign in first.',
+        needsAuth: true,
+      });
+    }
+
+    try {
+      const events = await googleCalendar.listUpcomingEvents(maxResults);
+      return JSON.stringify({
+        message: `Found ${events.length} upcoming events`,
+        events: events.map((event) => ({
+          id: event.id,
+          title: event.summary,
+          start: event.start?.dateTime || event.start?.date,
+          end: event.end?.dateTime || event.end?.date,
+          description: event.description,
+          location: event.location,
+          htmlLink: event.htmlLink,
+        })),
+      });
+    } catch (error) {
+      return JSON.stringify({
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to list calendar events',
+        status: 'failed',
+      });
+    }
+  },
+
+  check_calendar_auth: async () => {
+    if (!googleCalendar) {
+      return JSON.stringify({
+        isAuthed: false,
+        message: 'Google Calendar not initialized',
+      });
+    }
+
     return JSON.stringify({
-      message: `Calendar event "${title}" created for ${date}`,
-      title,
-      date,
-      description: description || null,
-      status: 'created',
+      isAuthed: googleCalendar.isAuthed,
+      isReady: googleCalendar.isReady,
+      error: googleCalendar.error,
+      message: googleCalendar.isAuthed
+        ? 'Google Calendar is authorized and ready to use'
+        : 'Google Calendar authorization required',
     });
   },
 
@@ -128,16 +328,6 @@ const createAvailableFunctions = (
         condition: 'unknown',
         unit,
       });
-    }
-  },
-
-  calculate: async (expression: string) => {
-    try {
-      // Simple calculator (be careful with eval in production)
-      const result = Function('"use strict"; return (' + expression + ')')();
-      return JSON.stringify({ expression, result: result.toString() });
-    } catch (error) {
-      return JSON.stringify({ expression, error: 'Invalid expression' });
     }
   },
 
@@ -236,6 +426,7 @@ const createAvailableFunctions = (
 // Function definitions for OpenAI
 const createTools = (
   hasNavigation: boolean = false,
+  hasCalendar: boolean = false,
 ): OpenAI.Chat.Completions.ChatCompletionTool[] => {
   const baseTools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
     {
@@ -273,25 +464,18 @@ const createTools = (
     {
       type: 'function',
       function: {
-        name: 'create_calendar_event',
-        description: 'Create a calendar event',
+        name: 'get_current_date',
+        description: 'Get current date and time information',
         parameters: {
           type: 'object',
           properties: {
-            title: {
+            format: {
               type: 'string',
-              description: 'Event title',
-            },
-            date: {
-              type: 'string',
-              description: 'Event date in YYYY-MM-DD format',
-            },
-            description: {
-              type: 'string',
-              description: 'Optional event description',
+              enum: ['full', 'date', 'time', 'iso'],
+              description:
+                'Format of the date/time to return. "date" returns YYYY-MM-DD, "time" returns current time, "full" returns both, "iso" returns ISO format',
             },
           },
-          required: ['title', 'date'],
         },
       },
     },
@@ -317,25 +501,76 @@ const createTools = (
         },
       },
     },
-    {
-      type: 'function',
-      function: {
-        name: 'calculate',
-        description: 'Perform mathematical calculations',
-        parameters: {
-          type: 'object',
-          properties: {
-            expression: {
-              type: 'string',
-              description:
-                'Mathematical expression to calculate (e.g., "2 + 3 * 4")',
+  ];
+
+  const calendarTools: OpenAI.Chat.Completions.ChatCompletionTool[] =
+    hasCalendar
+      ? [
+          {
+            type: 'function',
+            function: {
+              name: 'create_calendar_event',
+              description: 'Create a new Google Calendar event',
+              parameters: {
+                type: 'object',
+                properties: {
+                  title: {
+                    type: 'string',
+                    description: 'Event title/summary',
+                  },
+                  date: {
+                    type: 'string',
+                    description: 'Event date in YYYY-MM-DD format',
+                  },
+                  time: {
+                    type: 'string',
+                    description:
+                      'Event start time in HH:MM format (optional, omit for all-day events)',
+                  },
+                  duration: {
+                    type: 'number',
+                    description:
+                      'Event duration in hours (default: 1 hour, ignored for all-day events)',
+                  },
+                  description: {
+                    type: 'string',
+                    description: 'Optional event description',
+                  },
+                },
+                required: ['title', 'date'],
+              },
             },
           },
-          required: ['expression'],
-        },
-      },
-    },
-  ];
+          {
+            type: 'function',
+            function: {
+              name: 'list_calendar_events',
+              description: 'List upcoming Google Calendar events',
+              parameters: {
+                type: 'object',
+                properties: {
+                  maxResults: {
+                    type: 'number',
+                    description:
+                      'Maximum number of events to return (default: 5)',
+                  },
+                },
+              },
+            },
+          },
+          {
+            type: 'function',
+            function: {
+              name: 'check_calendar_auth',
+              description: 'Check Google Calendar authorization status',
+              parameters: {
+                type: 'object',
+                properties: {},
+              },
+            },
+          },
+        ]
+      : [];
 
   const navigationTools: OpenAI.Chat.Completions.ChatCompletionTool[] =
     hasNavigation
@@ -468,7 +703,7 @@ const createTools = (
         ]
       : [];
 
-  return [...baseTools, ...navigationTools];
+  return [...baseTools, ...calendarTools, ...navigationTools];
 };
 
 // Helper function to get tool descriptions
@@ -476,9 +711,11 @@ const getToolDescription = (toolName: string): string => {
   const descriptions: Record<string, string> = {
     search_wiki: 'Search for information in wiki documents',
     get_user_info: 'Get current user information',
-    create_calendar_event: 'Create a calendar event',
+    get_current_date: 'Get current date and time information',
+    create_calendar_event: 'Create a Google Calendar event',
+    list_calendar_events: 'List upcoming Google Calendar events',
+    check_calendar_auth: 'Check Google Calendar authorization status',
     get_weather: 'Get weather information for a location',
-    calculate: 'Perform mathematical calculations',
     navigate_to_page: 'Navigate to a specific page',
     get_available_pages: 'Get list of available pages',
     search_pages: 'Search for pages by keyword',
@@ -497,6 +734,7 @@ export function useAIAgent(
   navigate?: (options: ToOptions & NavigateOptions) => void,
 ): UseAIAgentReturn {
   const { user } = useCurrentUser();
+  const googleCalendar = useGoogleCalendar();
   const {
     isInitialized,
     isIndexing,
@@ -513,11 +751,16 @@ export function useAIAgent(
     ? createNavigationFunctions(navigate)
     : undefined;
 
-  // Create available functions with navigation support
-  const availableFunctions = createAvailableFunctions(navigationFunctions);
+  // Create available functions with navigation, calendar, and RAG support
+  const availableFunctions = createAvailableFunctions(
+    navigationFunctions,
+    googleCalendar,
+    searchDocuments,
+    user,
+  );
 
-  // Create tools with navigation support
-  const tools = createTools(!!navigationFunctions);
+  // Create tools with navigation and calendar support
+  const tools = createTools(!!navigationFunctions, googleCalendar.isReady);
 
   // Initialize OpenAI client
   const openai = new OpenAI({
@@ -533,8 +776,10 @@ export function useAIAgent(
 
 I'm an advanced AI assistant that can:
 - 🔍 Search wiki documents
-- 📅 Create calendar events${navigationFunctions ? '\n- 🧭 Navigate to different pages' : ''}
+- 📅 Create and manage Google Calendar events${googleCalendar.isAuthed ? ' (authorized ✅)' : ' (authorization needed)'}${navigationFunctions ? '\n- 🧭 Navigate to different pages' : ''}
 - And much more!
+
+${googleCalendar.isReady && !googleCalendar.isAuthed ? 'To use calendar features, please authorize Google Calendar access first.' : ''}
 
 How can I help you today?`,
     timestamp: new Date(),
@@ -554,24 +799,10 @@ How can I help you today?`,
     try {
       switch (functionName) {
         case 'search_wiki':
-          if (isInitialized) {
-            const searchResults = user?.school
-              ? await searchDocuments(args.query, user.school)
-              : await searchDocuments(args.query);
-
-            return JSON.stringify({
-              query: args.query,
-              results: searchResults.map((result) => ({
-                title: result.document.metadata.title,
-                content: result.document.content.substring(0, 200),
-                wikiId: result.document.metadata.wikiId,
-                school: result.document.metadata.school,
-                score: result.score,
-              })),
-            });
-          } else {
-            return JSON.stringify({ error: 'RAG system is not initialized' });
-          }
+          return await (availableFunctions.search_wiki as any)(
+            args.query,
+            args.school,
+          );
 
         case 'get_user_info':
           return JSON.stringify({
@@ -579,6 +810,28 @@ How can I help you today?`,
             email: user?.email || 'Unknown',
             school: user?.school || 'Unknown',
           });
+
+        case 'get_current_date':
+          return await (availableFunctions.get_current_date as any)(
+            args.format,
+          );
+
+        case 'create_calendar_event':
+          return await (availableFunctions.create_calendar_event as any)(
+            args.title,
+            args.date,
+            args.time,
+            args.duration,
+            args.description,
+          );
+
+        case 'list_calendar_events':
+          return await (availableFunctions.list_calendar_events as any)(
+            args.maxResults,
+          );
+
+        case 'check_calendar_auth':
+          return await (availableFunctions.check_calendar_auth as any)();
 
         default:
           const func =
@@ -589,12 +842,18 @@ How can I help you today?`,
               return await (func as any)(
                 args.title,
                 args.date,
+                args.time,
+                args.duration,
                 args.description,
               );
+            } else if (functionName === 'list_calendar_events') {
+              return await (func as any)(args.maxResults);
+            } else if (functionName === 'check_calendar_auth') {
+              return await (func as any)();
+            } else if (functionName === 'get_current_date') {
+              return await (func as any)(args.format);
             } else if (functionName === 'get_weather') {
               return await (func as any)(args.location, args.unit);
-            } else if (functionName === 'calculate') {
-              return await (func as any)(args.expression);
             } else if (functionName === 'navigate_to_page') {
               return await (func as any)(args.page, args.wikiId);
             } else if (functionName === 'search_pages') {
@@ -633,11 +892,37 @@ How can I help you today?`,
         [
           {
             role: 'system',
-            content: `You are Campass AI Agent, a helpful assistant for university students. You have access to various tools including wiki search, weather information, calculations, calendar management${navigationFunctions ? ', and page navigation' : ''}. 
+            content: `You are Campass AI Agent, a helpful assistant for university students. You have access to various tools including wiki search, weather information, calculations, Google Calendar management${navigationFunctions ? ', and page navigation' : ''}. 
 
-IMPORTANT: When a user asks to navigate to a page AND search for content (e.g., "go to wiki about library"), handle both actions in sequence but provide a single comprehensive response that combines the navigation result with the search results. Do not create separate messages for each tool call.
+Google Calendar Features:
+- create_calendar_event: Create new calendar events with date, time, and duration
+- list_calendar_events: List upcoming events
+- check_calendar_auth: Check if user is authorized for calendar access
 
-Use the appropriate tools to provide accurate and helpful responses.${user?.school ? ` The user is from ${user.school}.` : ''}${navigationFunctions ? ' You can help users navigate to different pages in the application by using navigation functions.' : ''}`,
+Date/Time Features:
+- get_current_date: Get current date and time in various formats (useful for scheduling)
+
+Wiki Search & Navigation:
+- search_wiki: Search through university wiki documents
+- When search results include relevant articles (score > 0.6), a smart navigation suggestion will appear above the input field
+- Always mention when relevant articles are found and encourage users to click the navigation button for complete information
+- Provide concise summaries from search results, but always direct users to the full articles for comprehensive details
+${navigationFunctions ? '- Use navigation functions to help users move between different sections of the application' : ''}
+${!googleCalendar.isAuthed ? '\nNote: User needs to authorize Google Calendar for calendar features to work.' : ''}
+
+IMPORTANT Guidelines:
+- When search results include relevant wiki articles, mention that users can click the navigation suggestions to read the full articles
+- If a user asks about a topic and you find relevant wiki articles, suggest they navigate to those articles for comprehensive information
+- Always provide helpful context from search results while encouraging deeper exploration through navigation
+- When a user asks to navigate to a page AND search for content (e.g., "go to wiki about library"), handle both actions in sequence but provide a single comprehensive response that combines the navigation result with the search results. Do not create separate messages for each tool call.
+
+Use the appropriate tools to provide accurate and helpful responses.${user?.school ? ` The user is from ${user.school}.` : ''}${navigationFunctions ? ' You can help users navigate to different pages in the application by using navigation functions.' : ''}
+
+For calendar events:
+- If only date is provided, create an all-day event
+- If time is provided, default to 1-hour duration unless specified
+- Always confirm the event details after creation
+- Check authorization status if calendar operations fail`,
           },
           ...messages
             .filter((msg) => msg.role !== 'tool')
@@ -755,6 +1040,39 @@ Use the appropriate tools to provide accurate and helpful responses.${user?.scho
           temperature: 0.7,
         });
 
+        // Extract top wiki link from search_wiki results
+        let topWikiLink:
+          | { title: string; wikiId: string; score: number }
+          | undefined;
+
+        for (const result of functionResults) {
+          if (
+            result.functionCall?.name === 'search_wiki' &&
+            result.functionCall?.result
+          ) {
+            try {
+              const functionResult = JSON.parse(
+                result.functionCall.result as string,
+              );
+              console.log(
+                'Processing search wiki function result:',
+                functionResult,
+              );
+              if (functionResult.topWikiLink) {
+                topWikiLink = functionResult.topWikiLink;
+                console.log('✅ Found top wiki link for UI:', topWikiLink);
+                break; // Use the first (most recent) search result
+              } else {
+                console.log('❌ No topWikiLink in function result');
+              }
+            } catch (e) {
+              console.error('Error parsing search_wiki result:', e);
+            }
+          }
+        }
+
+        console.log('Final top wiki link to be added to message:', topWikiLink);
+
         const finalMessage: AgentMessage = {
           id: (Date.now() + 2).toString(),
           role: 'assistant',
@@ -763,6 +1081,7 @@ Use the appropriate tools to provide accurate and helpful responses.${user?.scho
             "I've completed the requested actions.",
           timestamp: new Date(),
           usedTools: usedTools.length > 0 ? usedTools : undefined,
+          topWikiLink,
         };
 
         setMessages((prev) => [...prev, finalMessage]);
