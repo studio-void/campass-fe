@@ -3,25 +3,53 @@ import { useState } from 'react';
 import OpenAI from 'openai';
 import { toast } from 'sonner';
 
+// Import all existing API functions
 import { deleteDormCheck } from '../data/delete-dorm-check';
-// Import all API functions
+import { deleteDormStorage } from '../data/delete-dorm-storage';
+import { deleteUser } from '../data/delete-user';
+import { deleteWiki } from '../data/delete-wiki';
+import { getAllFacilities, getFacilityById, createFacility, updateFacility, deleteFacility, useFacility } from '../data/facility';
+import { getAppInfo } from '../data/get-app-info';
 import { getDormCheck } from '../data/get-dorm-check';
+import { getDormCheckById } from '../data/get-dorm-check-by-id';
 import { getDormStorage } from '../data/get-dorm-storage';
+import { getDormStorageById } from '../data/get-dorm-storage-by-id';
 import { getUser, getUserSchool } from '../data/get-user';
+import { getAllUsers } from '../data/get-user-all';
+import { getUserByEmail } from '../data/get-user-by-email';
+import { getUserById } from '../data/get-user-by-id';
 import { getUserVerify } from '../data/get-user-verify';
+import { getWikiById } from '../data/get-wiki-by-id';
+import { getWikiHistory } from '../data/get-wiki-history';
 import { patchDormCheck } from '../data/patch-dorm-check';
 import { patchDormStorage } from '../data/patch-dorm-storage';
+import { updateUser } from '../data/patch-user';
+import { updateWiki } from '../data/patch-wiki';
 import { postDormCheck } from '../data/post-dorm-check';
 import { postDormStorage } from '../data/post-dorm-storage';
 import { postUserVerifyApprove } from '../data/post-user-verify-approve';
 import { postUserVerifyReject } from '../data/post-user-verify-reject';
+import { verifyUser } from '../data/post-user-verify';
+import { createWiki } from '../data/post-wiki';
+import { 
+  getAllEquipment, 
+  getEquipmentById, 
+  createEquipment, 
+  updateEquipment, 
+  deleteEquipment, 
+  getEquipmentHistory, 
+  useEquipment, 
+  stopUsingEquipment 
+} from '../data/research-equipment';
+import { 
+  getAllNotes, 
+  getNoteById, 
+  createNote, 
+  updateNote, 
+  deleteNote 
+} from '../data/research-notes';
 import {
-  createWiki,
-  deleteWiki,
-  getWikiById,
-  getWikiHistory,
   getWikis,
-  updateWiki,
 } from '../data/wiki';
 import { useCurrentUser } from './use-current-user';
 import { useRAG } from './use-rag';
@@ -194,6 +222,200 @@ const availableFunctions = {
   getWikiHistory: async (args: { id: number }) => {
     const result = await getWikiHistory(args.id);
     return JSON.stringify(result || []);
+  },
+
+  // Additional API functions
+  getAppInfo: async () => {
+    const result = await getAppInfo();
+    return JSON.stringify(result || {});
+  },
+
+  getAllUsers: async () => {
+    const result = await getAllUsers();
+    return JSON.stringify(result || []);
+  },
+
+  getUserById: async (args: { id: number }) => {
+    const result = await getUserById(args.id);
+    return JSON.stringify(result || {});
+  },
+
+  getUserByEmail: async (args: { email: string }) => {
+    const result = await getUserByEmail(args.email);
+    return JSON.stringify(result || {});
+  },
+
+  updateUser: async (args: {
+    password?: string;
+    name?: string;
+    nickname?: string;
+    tel?: string;
+  }) => {
+    const result = await updateUser(args);
+    return JSON.stringify(result || { success: false });
+  },
+
+  deleteUser: async () => {
+    const result = await deleteUser();
+    return JSON.stringify(result || { success: false });
+  },
+
+  verifyUser: async (args: { verifyImageUrl: string }) => {
+    const result = await verifyUser(args);
+    return JSON.stringify(result || { success: false });
+  },
+
+  getDormCheckById: async (args: { id: number }) => {
+    const result = await getDormCheckById(args.id);
+    return JSON.stringify(result || {});
+  },
+
+  getDormStorageById: async (args: { id: number }) => {
+    const result = await getDormStorageById(args.id);
+    return JSON.stringify(result || {});
+  },
+
+  deleteDormStorage: async (args: { id: number }) => {
+    await deleteDormStorage(args.id);
+    return JSON.stringify({ success: true, message: 'Dorm storage deleted successfully' });
+  },
+
+  // Research Equipment functions
+  getAllEquipment: async () => {
+    const result = await getAllEquipment();
+    return JSON.stringify(result || []);
+  },
+
+  getEquipmentById: async (args: { id: number }) => {
+    const result = await getEquipmentById(args.id);
+    return JSON.stringify(result || {});
+  },
+
+  createEquipment: async (args: {
+    name: string;
+    description?: string;
+    imageUrl?: string;
+    isAvailable?: boolean;
+  }) => {
+    const result = await createEquipment(args);
+    return JSON.stringify(result || { success: false });
+  },
+
+  updateEquipment: async (args: {
+    id: number;
+    name?: string;
+    description?: string;
+    imageUrl?: string;
+    isAvailable?: boolean;
+  }) => {
+    const { id, ...data } = args;
+    const result = await updateEquipment(id, data);
+    return JSON.stringify(result || { success: false });
+  },
+
+  deleteEquipment: async (args: { id: number }) => {
+    const result = await deleteEquipment(args.id);
+    return JSON.stringify(result || { success: false });
+  },
+
+  getEquipmentHistory: async (args: { id: number }) => {
+    const result = await getEquipmentHistory(args.id);
+    return JSON.stringify(result || {});
+  },
+
+  useEquipment: async (args: { id: number }) => {
+    const result = await useEquipment(args.id);
+    return JSON.stringify(result || { success: false });
+  },
+
+  stopUsingEquipment: async (args: { id: number }) => {
+    const result = await stopUsingEquipment(args.id);
+    return JSON.stringify(result || { success: false });
+  },
+
+  // Research Notes functions
+  getAllNotes: async () => {
+    const result = await getAllNotes();
+    return JSON.stringify(result || []);
+  },
+
+  getNoteById: async (args: { id: number }) => {
+    const result = await getNoteById(args.id);
+    return JSON.stringify(result || {});
+  },
+
+  createNote: async (args: { title: string; content: string }) => {
+    const result = await createNote(args);
+    return JSON.stringify(result || { success: false });
+  },
+
+  updateNote: async (args: {
+    id: number;
+    title?: string;
+    content?: string;
+  }) => {
+    const { id, ...data } = args;
+    const result = await updateNote(id, data);
+    return JSON.stringify(result || { success: false });
+  },
+
+  deleteNote: async (args: { id: number }) => {
+    const result = await deleteNote(args.id);
+    return JSON.stringify(result || { success: false });
+  },
+
+  // Facility functions
+  getAllFacilities: async () => {
+    const result = await getAllFacilities();
+    return JSON.stringify(result || []);
+  },
+
+  getFacilityById: async (args: { id: number }) => {
+    const result = await getFacilityById(args.id);
+    return JSON.stringify(result || {});
+  },
+
+  createFacility: async (args: {
+    name: string;
+    description?: string;
+    imageUrl?: string;
+    location: string;
+    isAvailable?: boolean;
+    openTime: string;
+    closeTime: string;
+  }) => {
+    const result = await createFacility(args);
+    return JSON.stringify(result || { success: false });
+  },
+
+  updateFacility: async (args: {
+    id: number;
+    name?: string;
+    description?: string;
+    imageUrl?: string;
+    location?: string;
+    isAvailable?: boolean;
+    openTime?: string;
+    closeTime?: string;
+  }) => {
+    const { id, ...data } = args;
+    const result = await updateFacility(id, data);
+    return JSON.stringify(result || { success: false });
+  },
+
+  deleteFacility: async (args: { id: number }) => {
+    const result = await deleteFacility(args.id);
+    return JSON.stringify(result || { success: false });
+  },
+
+  useFacility: async (args: {
+    id: number;
+    startTime: string;
+    endTime: string;
+  }) => {
+    const { id, ...data } = args;
+    const result = await useFacility(id, data);
+    return JSON.stringify(result || { success: false });
   },
 };
 
@@ -490,6 +712,425 @@ const tools: FunctionTool[] = [
           id: { type: 'number', description: 'ID of the wiki article' },
         },
         required: ['id'],
+      },
+    },
+  },
+  // Additional API functions tools
+  {
+    type: 'function',
+    function: {
+      name: 'getAppInfo',
+      description: 'Get basic API information',
+      parameters: {
+        type: 'object',
+        properties: {},
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'getAllUsers',
+      description: 'Get all users list (admin can see all info, normal users see basic info)',
+      parameters: {
+        type: 'object',
+        properties: {},
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'getUserById',
+      description: 'Get user information by ID',
+      parameters: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', description: 'User ID' },
+        },
+        required: ['id'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'getUserByEmail',
+      description: 'Get user information by email',
+      parameters: {
+        type: 'object',
+        properties: {
+          email: { type: 'string', description: 'User email' },
+        },
+        required: ['email'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'updateUser',
+      description: 'Update current user information',
+      parameters: {
+        type: 'object',
+        properties: {
+          password: { type: 'string', description: 'New password' },
+          name: { type: 'string', description: 'Real name' },
+          nickname: { type: 'string', description: 'Display nickname' },
+          tel: { type: 'string', description: 'Phone number' },
+        },
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'deleteUser',
+      description: 'Delete current user account (withdrawal)',
+      parameters: {
+        type: 'object',
+        properties: {},
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'verifyUser',
+      description: 'Submit user verification request with student ID image',
+      parameters: {
+        type: 'object',
+        properties: {
+          verifyImageUrl: { type: 'string', description: 'URL of verification image' },
+        },
+        required: ['verifyImageUrl'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'getDormCheckById',
+      description: 'Get detailed dorm check information by ID',
+      parameters: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', description: 'Dorm check ID' },
+        },
+        required: ['id'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'getDormStorageById',
+      description: 'Get detailed dorm storage information by ID',
+      parameters: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', description: 'Dorm storage ID' },
+        },
+        required: ['id'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'deleteDormStorage',
+      description: 'Delete a dorm storage application',
+      parameters: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', description: 'Storage application ID to delete' },
+        },
+        required: ['id'],
+      },
+    },
+  },
+  // Research Equipment Tools
+  {
+    type: 'function',
+    function: {
+      name: 'getAllEquipment',
+      description: 'Get all research equipment for current user school',
+      parameters: {
+        type: 'object',
+        properties: {},
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'getEquipmentById',
+      description: 'Get detailed research equipment information by ID',
+      parameters: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', description: 'Equipment ID' },
+        },
+        required: ['id'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'createEquipment',
+      description: 'Create new research equipment (admin only)',
+      parameters: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', description: 'Equipment name' },
+          description: { type: 'string', description: 'Equipment description' },
+          imageUrl: { type: 'string', description: 'Equipment image URL' },
+          isAvailable: { type: 'boolean', description: 'Whether equipment is available' },
+        },
+        required: ['name'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'updateEquipment',
+      description: 'Update research equipment information (admin only)',
+      parameters: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', description: 'Equipment ID' },
+          name: { type: 'string', description: 'Equipment name' },
+          description: { type: 'string', description: 'Equipment description' },
+          imageUrl: { type: 'string', description: 'Equipment image URL' },
+          isAvailable: { type: 'boolean', description: 'Whether equipment is available' },
+        },
+        required: ['id'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'deleteEquipment',
+      description: 'Delete research equipment (admin only)',
+      parameters: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', description: 'Equipment ID to delete' },
+        },
+        required: ['id'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'getEquipmentHistory',
+      description: 'Get equipment usage history and statistics',
+      parameters: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', description: 'Equipment ID' },
+        },
+        required: ['id'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'useEquipment',
+      description: 'Start using research equipment',
+      parameters: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', description: 'Equipment ID to use' },
+        },
+        required: ['id'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'stopUsingEquipment',
+      description: 'Stop using research equipment',
+      parameters: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', description: 'Equipment ID to stop using' },
+        },
+        required: ['id'],
+      },
+    },
+  },
+  // Research Notes Tools
+  {
+    type: 'function',
+    function: {
+      name: 'getAllNotes',
+      description: 'Get all research notes for current user',
+      parameters: {
+        type: 'object',
+        properties: {},
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'getNoteById',
+      description: 'Get detailed research note by ID',
+      parameters: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', description: 'Note ID' },
+        },
+        required: ['id'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'createNote',
+      description: 'Create new research note',
+      parameters: {
+        type: 'object',
+        properties: {
+          title: { type: 'string', description: 'Note title' },
+          content: { type: 'string', description: 'Note content' },
+        },
+        required: ['title', 'content'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'updateNote',
+      description: 'Update existing research note (author only)',
+      parameters: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', description: 'Note ID' },
+          title: { type: 'string', description: 'Note title' },
+          content: { type: 'string', description: 'Note content' },
+        },
+        required: ['id'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'deleteNote',
+      description: 'Delete research note (author only)',
+      parameters: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', description: 'Note ID to delete' },
+        },
+        required: ['id'],
+      },
+    },
+  },
+  // Facility Tools
+  {
+    type: 'function',
+    function: {
+      name: 'getAllFacilities',
+      description: 'Get all facilities for current user school',
+      parameters: {
+        type: 'object',
+        properties: {},
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'getFacilityById',
+      description: 'Get detailed facility information by ID',
+      parameters: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', description: 'Facility ID' },
+        },
+        required: ['id'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'createFacility',
+      description: 'Create new facility (admin only)',
+      parameters: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', description: 'Facility name' },
+          description: { type: 'string', description: 'Facility description' },
+          imageUrl: { type: 'string', description: 'Facility image URL' },
+          location: { type: 'string', description: 'Facility location' },
+          isAvailable: { type: 'boolean', description: 'Whether facility is available' },
+          openTime: { type: 'string', description: 'Opening time (ISO string)' },
+          closeTime: { type: 'string', description: 'Closing time (ISO string)' },
+        },
+        required: ['name', 'location', 'openTime', 'closeTime'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'updateFacility',
+      description: 'Update facility information (admin only)',
+      parameters: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', description: 'Facility ID' },
+          name: { type: 'string', description: 'Facility name' },
+          description: { type: 'string', description: 'Facility description' },
+          imageUrl: { type: 'string', description: 'Facility image URL' },
+          location: { type: 'string', description: 'Facility location' },
+          isAvailable: { type: 'boolean', description: 'Whether facility is available' },
+          openTime: { type: 'string', description: 'Opening time (ISO string)' },
+          closeTime: { type: 'string', description: 'Closing time (ISO string)' },
+        },
+        required: ['id'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'deleteFacility',
+      description: 'Delete facility (admin only)',
+      parameters: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', description: 'Facility ID to delete' },
+        },
+        required: ['id'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'useFacility',
+      description: 'Reserve facility for specific time period',
+      parameters: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', description: 'Facility ID to reserve' },
+          startTime: { type: 'string', description: 'Reservation start time (ISO string)' },
+          endTime: { type: 'string', description: 'Reservation end time (ISO string)' },
+        },
+        required: ['id', 'startTime', 'endTime'],
       },
     },
   },
