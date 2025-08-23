@@ -7,3 +7,4 @@ export * from './use-auth';
 export * from './use-current-user';
 export * from './use-rag';
 export * from './use-wiki-with-rag';
+export * from './use-ai-agent';
