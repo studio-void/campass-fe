@@ -6,7 +6,7 @@ export default function Hero() {
       aria-label="Campass main hero"
       className="relative flex items-center min-h-[80vh] py-20"
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full">
+      <div className="w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
           <div className="lg:col-span-7">
             <p className="font-medium text-primary text-xl">
