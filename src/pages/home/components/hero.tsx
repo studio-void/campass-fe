@@ -26,7 +26,7 @@ export default function Hero() {
               />
             </div>
 
-            <h2 className="mt-4 font-extrabold leading-tight tracking-wide text-slate-900 text-5xl">
+            <h2 className="mt-4 font-extrabold leading-tight text-slate-900 text-5xl">
               Smart Campus Helpers
               <br className="hidden md:block" />
               for School Life

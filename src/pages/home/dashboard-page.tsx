@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 
+import { useNavigate } from '@tanstack/react-router';
 import { Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { Layout } from '@/components';
 import {
@@ -28,12 +30,13 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { deleteAuthLogout } from '@/data/delete-auth-logout';
 import { useGoogleCalendar } from '@/hooks/use-google-calendar';
 
 const mock = {
   me: { name: 'VO!D', verified: true },
   dormitory: {
-    warehouseNext: '25/08/24 14:00',
+    storageNext: '25/08/24 14:00',
     retirementNext: '25/08/24 14:00',
   },
   facility: { hasReservation: false },
@@ -60,8 +63,17 @@ export default function DashboardPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [teamName, setTeamName] = useState('');
 
-  const { isReady, isAuthed, error, signIn, signOut, listUpcomingEvents } =
-    useGoogleCalendar();
+  const nav = useNavigate();
+  const { isAuthed, error, signIn, listUpcomingEvents } = useGoogleCalendar();
+
+  // Logout handler
+  const handleLogout = async () => {
+    const res = await deleteAuthLogout();
+    if (res?.success) {
+      toast.success('로그아웃 되었습니다.');
+      nav({ to: '/' });
+    }
+  };
   const [eventsOpen, setEventsOpen] = useState(false);
   const [events, setEvents] = useState<any[]>([]);
 
@@ -106,86 +118,92 @@ export default function DashboardPage() {
                 {data.me.name}
               </div>
               {data.me.verified && (
-                <span className="inline-flex items-center rounded-full border border-blue-400 px-3 py-1 text-sm text-blue-600">
+                <Button
+                  variant="outline"
+                  disabled
+                  className="inline-flex items-center rounded-full border border-blue-400 px-3 py-1 text-sm text-blue-600 disabled:opacity-100"
+                >
                   학교 인증 완료 ✓
-                </span>
+                </Button>
               )}
+              <Button
+                variant="destructive"
+                onClick={handleLogout}
+                className="rounded-full px-3 py-1 text-sm"
+              >
+                로그아웃
+              </Button>
             </div>
           </div>
 
-          <div className="flex flex-col items-end gap-1">
-            {!isAuthed ? (
-              <>
-                <div
-                  role="button"
-                  onClick={signIn}
-                  className="flex items-center justify-center gap-3 h-10 px-6 rounded-md border border-neutral-300 shadow-sm bg-white hover:bg-neutral-50 text-sm font-medium text-neutral-700 cursor-pointer"
-                >
-                  <GoogleIcon className="h-5 w-5 shrink-0" />
-                  <span>Sign in with Google</span>
-                </div>
-                <div className="text-xs text-neutral-500 text-right">
-                  Log in to Google account to use ‘Team project’
-                </div>
-                {error && (
-                  <div className="text-xs text-red-600 text-right">
-                    {String(error)}
-                  </div>
-                )}
-              </>
-            ) : (
-              <>
-                <div className="flex items-center gap-2">
-                  <Dialog open={eventsOpen} onOpenChange={setEventsOpen}>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" className="rounded-full">
-                        Upcoming events
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[520px]">
-                      <DialogHeader>
-                        <DialogTitle>Google Calendar</DialogTitle>
-                        <DialogDescription>Next 5 events</DialogDescription>
-                      </DialogHeader>
-                      <div className="max-h-[320px] overflow-auto">
-                        <ul className="text-sm text-slate-800 space-y-2">
-                          {events.length === 0 ? (
-                            <li className="text-slate-500">No events</li>
-                          ) : (
-                            events.map((e) => (
-                              <li key={e.id} className="rounded-lg border p-2">
-                                <div className="font-medium">
-                                  {e.summary || '(no title)'}
-                                </div>
-                                <div className="text-xs text-slate-500">
-                                  {e.start?.dateTime || e.start?.date} —{' '}
-                                  {e.end?.dateTime || e.end?.date}
-                                </div>
-                              </li>
-                            ))
-                          )}
-                        </ul>
-                      </div>
-                      <DialogFooter className="gap-2 sm:gap-0">
-                        <DialogClose asChild>
-                          <Button variant="outline">Close</Button>
-                        </DialogClose>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                  <Button
-                    variant="destructive"
-                    onClick={signOut}
-                    className="rounded-full"
+          <div className="flex items-center gap-2 justify-end">
+            <div className="flex flex-col items-end gap-1">
+              {!isAuthed ? (
+                <>
+                  <div
+                    role="button"
+                    onClick={signIn}
+                    className="flex items-center justify-center gap-3 h-10 px-6 rounded-md border border-neutral-300 shadow-sm bg-white hover:bg-neutral-50 text-sm font-medium text-neutral-700 cursor-pointer"
                   >
-                    Disconnect
-                  </Button>
-                </div>
-                <div className="text-xs text-neutral-500">
-                  Connected to Google Calendar
-                </div>
-              </>
-            )}
+                    <GoogleIcon className="h-5 w-5 shrink-0" />
+                    <span>Sign in with Google</span>
+                  </div>
+                  <div className="text-xs text-neutral-500 text-right">
+                    Log in to Google account to use ‘Team project’
+                  </div>
+                  {error && (
+                    <div className="text-xs text-red-600 text-right">
+                      {String(error)}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2">
+                    <Dialog open={eventsOpen} onOpenChange={setEventsOpen}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" className="rounded-full">
+                          Upcoming events
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[520px]">
+                        <DialogHeader>
+                          <DialogTitle>Google Calendar</DialogTitle>
+                          <DialogDescription>Next 5 events</DialogDescription>
+                        </DialogHeader>
+                        <div className="max-h-[320px] overflow-auto">
+                          <ul className="text-sm text-slate-800 space-y-2">
+                            {events.length === 0 ? (
+                              <li className="text-slate-500">No events</li>
+                            ) : (
+                              events.map((e) => (
+                                <li
+                                  key={e.id}
+                                  className="rounded-lg border p-2"
+                                >
+                                  <div className="font-medium">
+                                    {e.summary || '(no title)'}
+                                  </div>
+                                  <div className="text-xs text-slate-500">
+                                    {e.start?.dateTime || e.start?.date} —{' '}
+                                    {e.end?.dateTime || e.end?.date}
+                                  </div>
+                                </li>
+                              ))
+                            )}
+                          </ul>
+                        </div>
+                        <DialogFooter className="gap-2 sm:gap-0">
+                          <DialogClose asChild>
+                            <Button variant="outline">Close</Button>
+                          </DialogClose>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
@@ -196,8 +214,8 @@ export default function DashboardPage() {
                 <h2 className="text-xl font-semibold mb-4">Dormitory</h2>
                 <div className="space-y-3">
                   <InfoRow
-                    label="Application for warehouse use"
-                    meta={data.dormitory.warehouseNext}
+                    label="Application for storage use"
+                    meta={data.dormitory.storageNext}
                   />
                   <InfoRow
                     label="Application for Maintenance Inspection"

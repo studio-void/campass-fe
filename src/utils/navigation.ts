@@ -33,8 +33,8 @@ export const AVAILABLE_PAGES = {
   dormHome: '/dorm/',
   dormRetirementForm: '/dorm/retirement-form',
   dormRetirementMaintenance: '/dorm/retirement-maintenance',
-  dormWarehouse: '/dorm/warehouse/',
-  dormWarehouseForm: '/dorm/warehouse/form',
+  dormWarehouse: '/dorm/storage/',
+  dormWarehouseForm: '/dorm/storage/form',
 
   // Admin pages
   adminDormCheck: '/admin/dorm-check',
@@ -64,8 +64,8 @@ export const getPageDescription = (pageKey: AvailablePageKey): string => {
     dormHome: 'Dormitory services homepage',
     dormRetirementForm: 'Dormitory retirement application form',
     dormRetirementMaintenance: 'Dormitory retirement and maintenance page',
-    dormWarehouse: 'Dormitory warehouse/storage management',
-    dormWarehouseForm: 'Dormitory warehouse request form',
+    dormWarehouse: 'Dormitory storage/storage management',
+    dormWarehouseForm: 'Dormitory storage request form',
     adminDormCheck: 'Admin page for dormitory inspections',
     adminDormStorage: 'Admin page for dormitory storage management',
     adminSchoolCertificate: 'Admin page for school certificate verification',
