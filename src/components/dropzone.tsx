@@ -107,7 +107,7 @@ export const Dropzone = forwardRef<HTMLDivElement, DropzoneProps>(
         {showAcceptedFiles && displayedFiles.length > 0 && (
           <div className="mt-4">
             <h4 className="text-sm font-medium text-blue-800 mb-2">
-              Files to Upload ({displayedFiles.length})
+              Files ({displayedFiles.length})
             </h4>
             <div className="space-y-2">
               {displayedFiles.map((file, index) => (

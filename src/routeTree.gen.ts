@@ -9,11 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as DocumentParsingRouteImport } from './routes/document-parsing'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthVerificationRouteImport } from './routes/auth/verification'
 import { Route as AuthSignUpRouteImport } from './routes/auth/sign-up'
 import { Route as AuthSignInRouteImport } from './routes/auth/sign-in'
 
+const DocumentParsingRoute = DocumentParsingRouteImport.update({
+  id: '/document-parsing',
+  path: '/document-parsing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -37,12 +43,14 @@ const AuthSignInRoute = AuthSignInRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/document-parsing': typeof DocumentParsingRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verification': typeof AuthVerificationRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/document-parsing': typeof DocumentParsingRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verification': typeof AuthVerificationRoute
@@ -50,18 +58,30 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/document-parsing': typeof DocumentParsingRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verification': typeof AuthVerificationRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth/sign-in' | '/auth/sign-up' | '/auth/verification'
+  fullPaths:
+    | '/'
+    | '/document-parsing'
+    | '/auth/sign-in'
+    | '/auth/sign-up'
+    | '/auth/verification'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth/sign-in' | '/auth/sign-up' | '/auth/verification'
+  to:
+    | '/'
+    | '/document-parsing'
+    | '/auth/sign-in'
+    | '/auth/sign-up'
+    | '/auth/verification'
   id:
     | '__root__'
     | '/'
+    | '/document-parsing'
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/auth/verification'
@@ -69,6 +89,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DocumentParsingRoute: typeof DocumentParsingRoute
   AuthSignInRoute: typeof AuthSignInRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
   AuthVerificationRoute: typeof AuthVerificationRoute
@@ -76,6 +97,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/document-parsing': {
+      id: '/document-parsing'
+      path: '/document-parsing'
+      fullPath: '/document-parsing'
+      preLoaderRoute: typeof DocumentParsingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -109,6 +137,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DocumentParsingRoute: DocumentParsingRoute,
   AuthSignInRoute: AuthSignInRoute,
   AuthSignUpRoute: AuthSignUpRoute,
   AuthVerificationRoute: AuthVerificationRoute,
