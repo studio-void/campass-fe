@@ -1,10 +1,24 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import { Check, ChevronDown } from 'lucide-react';
+import {
+  AlertTriangle,
+  Calendar,
+  Check,
+  ChevronDown,
+  Clock,
+  FileText,
+  User,
+} from 'lucide-react';
 
-import { Layout } from '@/components';
+import { Layout, UserSchoolLogo } from '@/components';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import {
   Command,
   CommandEmpty,
@@ -20,22 +34,53 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
+import { School, getUserSchool } from '@/data/get-user';
+import { cn } from '@/lib/utils';
 
 type Category = 'retirement_all' | 'retirement_one' | 'maintenance';
 
-const CATEGORY_OPTIONS: { value: Category; label: string }[] = [
-  { value: 'retirement_all', label: 'Retirement Inspection (all residents)' },
-  { value: 'retirement_one', label: 'A one person Retirement Inspection' },
-  { value: 'maintenance', label: 'Maintenance Inspection' },
+const CATEGORY_OPTIONS: {
+  value: Category;
+  label: string;
+  description: string;
+}[] = [
+  {
+    value: 'retirement_all',
+    label: 'Full Retirement Inspection',
+    description: 'All residents leaving the room',
+  },
+  {
+    value: 'retirement_one',
+    label: 'Single Person Retirement',
+    description: 'Only one person leaving the room',
+  },
+  {
+    value: 'maintenance',
+    label: 'Maintenance Inspection',
+    description: 'Room condition assessment (existing residents)',
+  },
+];
+
+const GUIDELINES = [
+  'The last resident to leave must submit a full-room checkout.',
+  'The final person leaving cannot apply as a single-person checkout; a full-room checkout is required.',
+  'You are responsible for any incorrect application.',
+  'If you choose the wrong checkout type, your application may be rejected even if the inspection is completed.',
+  'Applications outside the official checkout period are not accepted.',
 ];
 
 export default function RetirementFormPage() {
+  const [school, setSchool] = useState<School | undefined>(undefined);
   const [room, setRoom] = useState('');
   const [category, setCategory] = useState<Category | ''>('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    getUserSchool().then(setSchool);
+  }, []);
 
   const canSubmit = !!room && !!category && !!date && !!time && !submitting;
 
@@ -52,129 +97,207 @@ export default function RetirementFormPage() {
 
   return (
     <Layout>
-      <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
-        <h1 className="text-[28px] md:text-[32px] font-extrabold tracking-tight">
-          Dormitory : Application for Retirement / Maintenance Inspection
-        </h1>
-        <p className="mt-2 text-[15px] md:text-base text-neutral-600">
-          All tasks must be applied at least before 8 p.m. the day before.
-          Please note that the work received after 8 p.m. can be processed the
-          next day.
-        </p>
-
-        <div className="mt-8 grid gap-10 md:gap-12 md:grid-cols-[minmax(0,720px)_360px] items-start">
-          <Card className="rounded-2xl">
-            <CardContent className="p-6 md:p-8 space-y-6">
-              <div>
-                <Label htmlFor="room" className="text-base">
-                  Room number
-                </Label>
-                <Input
-                  id="room"
-                  placeholder="A000"
-                  value={room}
-                  onChange={(e) => setRoom(e.target.value)}
-                  className="mt-2 h-11 text-base"
-                />
-              </div>
-
-              <div>
-                <Label className="text-base">Category</Label>
-                <CategoryCombobox
-                  value={category}
-                  onChange={(v) => setCategory(v)}
-                  placeholder="Choose the category..."
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="date" className="text-base">
-                    Reservation date
-                  </Label>
-                  <Input
-                    id="date"
-                    type="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    className="mt-2 h-11 text-base"
-                  />
+      <div className="space-y-6 mb-24">
+        {/* Header Section */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            {school ? (
+              <UserSchoolLogo
+                school={school}
+                size="xl"
+                display="logo-with-name"
+              />
+            ) : (
+              <div className="flex items-center gap-3">
+                <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center animate-pulse">
+                  <span className="text-xs text-gray-400">?</span>
                 </div>
-                <div>
-                  <Label htmlFor="time" className="text-base">
-                    Reservation time
-                  </Label>
-                  <Input
-                    id="time"
-                    type="time"
-                    value={time}
-                    onChange={(e) => setTime(e.target.value)}
-                    className="mt-2 h-11 text-base"
-                  />
-                </div>
+                <div className="h-7 w-20 bg-gray-200 rounded animate-pulse" />
               </div>
-
-              <div>
-                <Label htmlFor="note" className="text-base">
-                  Notes (optional)
-                </Label>
-                <Textarea
-                  id="note"
-                  rows={4}
-                  value={note}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                    setNote(e.target.value)
-                  }
-                  placeholder="Anything we should know before inspection…"
-                  className="mt-2 text-base"
-                />
-              </div>
-
-              <div className="pt-2 flex justify-end">
-                <Button
-                  disabled={!canSubmit}
-                  onClick={handleSubmit}
-                  className="h-12 md:h-13 px-10 md:px-12 text-base md:text-lg"
-                >
-                  {submitting ? 'Submitting…' : 'Apply'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-2xl md:mt-8">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-red-600">
-                Checkout Inspection Guidelines
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ol className="list-decimal ml-5 space-y-2 text-[15px] md:text-base text-neutral-900">
-                <li>
-                  The last resident to leave must submit a full-room checkout.
-                </li>
-                <li>
-                  The final person leaving cannot apply as a single-person
-                  checkout; a full-room checkout is required.
-                </li>
-                <li>You are responsible for any incorrect application.</li>
-                <li>
-                  If you choose the wrong checkout type, your application may be
-                  rejected even if the inspection is completed.
-                </li>
-                <li>
-                  Applications outside the official checkout period are not
-                  accepted.
-                </li>
-              </ol>
-              <p className="mt-4 text-[15px] md:text-base text-neutral-900">
-                * Exceptions may be allowed only with prior approval from the
-                supervising professor or dormitory office.
-              </p>
-            </CardContent>
-          </Card>
+            )}
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Retirement & Maintenance Inspection Application
+            </h1>
+            <p className="text-lg text-gray-600 mt-2">
+              Schedule your room inspection appointment
+            </p>
+          </div>
         </div>
-      </section>
+
+        {/* Important Notice */}
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-6">
+          <div className="flex items-start gap-3">
+            <Clock className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <h3 className="font-semibold text-amber-900 mb-1">
+                Application Deadline
+              </h3>
+              <p className="text-amber-800 leading-relaxed">
+                All applications must be submitted at least before 8 PM the day
+                before. Applications received after 8 PM will be processed the
+                next business day.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Form Section */}
+          <div className="lg:col-span-2">
+            <Card className="border-2">
+              <CardHeader>
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-primary" />
+                  Inspection Application Form
+                </CardTitle>
+                <CardDescription>
+                  Fill out the form below to schedule your inspection
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="room"
+                    className="text-base font-medium flex items-center gap-2"
+                  >
+                    <User className="w-4 h-4" />
+                    Room Number
+                  </Label>
+                  <Input
+                    id="room"
+                    placeholder="A000"
+                    value={room}
+                    onChange={(e) => setRoom(e.target.value)}
+                    className="h-12 text-base"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-base font-medium flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    Inspection Category
+                  </Label>
+                  <CategoryCombobox
+                    value={category}
+                    onChange={(v) => setCategory(v)}
+                    placeholder="Choose the inspection type..."
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="date"
+                      className="text-base font-medium flex items-center gap-2"
+                    >
+                      <Calendar className="w-4 h-4" />
+                      Date
+                    </Label>
+                    <Input
+                      id="date"
+                      type="date"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      className="h-12 text-base"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="time"
+                      className="text-base font-medium flex items-center gap-2"
+                    >
+                      <Clock className="w-4 h-4" />
+                      Time
+                    </Label>
+                    <Input
+                      id="time"
+                      type="time"
+                      value={time}
+                      onChange={(e) => setTime(e.target.value)}
+                      className="h-12 text-base"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="note" className="text-base font-medium">
+                    Additional Notes (Optional)
+                  </Label>
+                  <Textarea
+                    id="note"
+                    rows={4}
+                    value={note}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                      setNote(e.target.value)
+                    }
+                    placeholder="Any special requirements or notes for the inspection..."
+                    className="text-base resize-none"
+                  />
+                </div>
+
+                <div className="pt-4 border-t">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="text-sm text-gray-600">
+                      <p>Please review all information before submitting.</p>
+                      <p>
+                        You will receive a confirmation email once processed.
+                      </p>
+                    </div>
+                    <Button
+                      disabled={!canSubmit}
+                      onClick={handleSubmit}
+                      size="lg"
+                      className="px-8 min-w-[200px]"
+                    >
+                      {submitting ? 'Submitting...' : 'Submit Application'}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Guidelines Section */}
+          <div>
+            <Card className="border-2 border-red-200 bg-red-50">
+              <CardHeader>
+                <CardTitle className="text-lg text-red-800 flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5" />
+                  Important Guidelines
+                </CardTitle>
+                <CardDescription className="text-red-700">
+                  Please read carefully before applying
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  {GUIDELINES.map((guideline, index) => (
+                    <li
+                      key={index}
+                      className="flex items-start gap-3 text-sm text-red-800"
+                    >
+                      <div className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center mt-0.5 flex-shrink-0">
+                        <span className="text-xs font-semibold">
+                          {index + 1}
+                        </span>
+                      </div>
+                      <span className="leading-relaxed">{guideline}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-4 p-3 bg-red-100 rounded-lg">
+                  <p className="text-sm text-red-800 font-medium">
+                    * Exceptions may be allowed only with prior approval from
+                    the supervising professor or dormitory office.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
     </Layout>
   );
 }
@@ -198,20 +321,28 @@ function CategoryCombobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="mt-2 h-11 w-full justify-between text-base"
+          className={cn(
+            'h-12 w-full justify-between text-base',
+            !selected && 'text-muted-foreground',
+          )}
         >
           {selected ? (
-            selected.label
+            <div className="text-left">
+              <div className="font-medium">{selected.label}</div>
+              <div className="text-sm text-gray-500">
+                {selected.description}
+              </div>
+            </div>
           ) : (
-            <span className="text-neutral-400">{placeholder}</span>
+            <span>{placeholder}</span>
           )}
-          <ChevronDown className="ml-2 h-4 w-4 opacity-70" />
+          <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0 w-[--radix-popover-trigger-width]">
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
         <Command>
-          <CommandInput placeholder="Search category..." />
-          <CommandEmpty>No category found.</CommandEmpty>
+          <CommandInput placeholder="Search inspection type..." />
+          <CommandEmpty>No inspection type found.</CommandEmpty>
           <CommandGroup>
             {CATEGORY_OPTIONS.map((opt) => (
               <CommandItem
@@ -221,14 +352,18 @@ function CategoryCombobox({
                   onChange(opt.value);
                   setOpen(false);
                 }}
-                className="text-sm"
+                className="flex items-start gap-3 p-3"
               >
                 <Check
-                  className={`mr-2 h-4 w-4 ${
-                    value === opt.value ? 'opacity-100' : 'opacity-0'
-                  }`}
+                  className={cn(
+                    'w-4 h-4 mt-0.5',
+                    value === opt.value ? 'opacity-100' : 'opacity-0',
+                  )}
                 />
-                {opt.label}
+                <div>
+                  <div className="font-medium">{opt.label}</div>
+                  <div className="text-sm text-gray-500">{opt.description}</div>
+                </div>
               </CommandItem>
             ))}
           </CommandGroup>

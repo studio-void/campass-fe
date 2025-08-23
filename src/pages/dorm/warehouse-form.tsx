@@ -1,8 +1,16 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import { Layout } from '@/components';
+import { Calendar, Clock, MapPin, Package, User } from 'lucide-react';
+
+import { Layout, UserSchoolLogo } from '@/components';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -13,17 +21,50 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { School, getUserSchool } from '@/data/get-user';
 
 type Category = 'put_in' | 'take_out';
 
 const WAREHOUSE_OPTIONS = [
-  'Building A basement (male, female)',
-  'Building B 4th floor (male)',
-  'Building B 5th floor (female)',
-  'Building B 6th floor (female)',
+  {
+    id: 'building-a-basement',
+    label: 'Building A Basement',
+    description: 'Available for male and female students',
+  },
+  {
+    id: 'building-b-4th',
+    label: 'Building B 4th Floor',
+    description: 'Male students only',
+  },
+  {
+    id: 'building-b-5th',
+    label: 'Building B 5th Floor',
+    description: 'Female students only',
+  },
+  {
+    id: 'building-b-6th',
+    label: 'Building B 6th Floor',
+    description: 'Female students only',
+  },
+];
+
+const CATEGORY_OPTIONS = [
+  {
+    value: 'put_in',
+    label: 'Store Luggage',
+    description: 'Put your belongings into warehouse',
+    icon: Package,
+  },
+  {
+    value: 'take_out',
+    label: 'Retrieve Luggage',
+    description: 'Take your belongings from warehouse',
+    icon: Package,
+  },
 ];
 
 export default function WarehouseFormPage() {
+  const [school, setSchool] = useState<School | undefined>(undefined);
   const [room, setRoom] = useState('');
   const [category, setCategory] = useState<Category | ''>('');
   const [time, setTime] = useState('');
@@ -31,6 +72,10 @@ export default function WarehouseFormPage() {
   const [proxy, setProxy] = useState('');
   const [warehouse, setWarehouse] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    getUserSchool().then(setSchool);
+  }, []);
 
   const canSubmit =
     !!room && !!category && !!time && !!date && !!warehouse && !submitting;
@@ -48,132 +93,229 @@ export default function WarehouseFormPage() {
 
   return (
     <Layout>
-      <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
-        <h1 className="text-[28px] md:text-[32px] font-extrabold tracking-tight">
-          Dormitory : Application for warehouse use
-        </h1>
-        <p className="mt-3 text-neutral-600">
-          All tasks must be applied at least before 8 p.m. the day before.{' '}
-          <br />
-          Please note that the work received after 8 p.m. can be processed the
-          next day.
-        </p>
+      <div className="space-y-6 mb-24">
+        {/* Header Section */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            {school ? (
+              <UserSchoolLogo
+                school={school}
+                size="2xl"
+                display="logo-with-name"
+              />
+            ) : (
+              <div className="flex items-center gap-3">
+                <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center animate-pulse">
+                  <span className="text-xs text-gray-400">?</span>
+                </div>
+                <div className="h-7 w-20 bg-gray-200 rounded animate-pulse" />
+              </div>
+            )}
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Warehouse Use Application
+            </h1>
+            <p className="text-lg text-gray-600 mt-2">
+              Reserve warehouse space for your belongings
+            </p>
+          </div>
+        </div>
 
-        <div className="mx-auto w-full max-w-5xl">
-          <Card className="mt-10 rounded-2xl">
-            <CardContent className="p-7 md:p-10">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
-                <div className="space-y-7">
-                  <div>
-                    <Label htmlFor="room" className="mb-2.5 block text-base">
-                      Room number
+        {/* Important Notice */}
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-6">
+          <div className="flex items-start gap-3">
+            <Clock className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <h3 className="font-semibold text-amber-900 mb-1">
+                Application Deadline
+              </h3>
+              <p className="text-amber-800 leading-relaxed">
+                All applications must be submitted at least before 8 PM the day
+                before. Applications received after 8 PM will be processed the
+                next business day.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Form Section */}
+        <Card className="border-2">
+          <CardHeader>
+            <CardTitle className="text-xl flex items-center gap-2">
+              <Package className="w-5 h-5 text-primary" />
+              Application Form
+            </CardTitle>
+            <CardDescription>
+              Fill out the form below to reserve warehouse space
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left Column */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="room"
+                    className="text-base font-medium flex items-center gap-2"
+                  >
+                    <User className="w-4 h-4" />
+                    Room Number
+                  </Label>
+                  <Input
+                    id="room"
+                    value={room}
+                    onChange={(e) => setRoom(e.target.value)}
+                    placeholder="A000"
+                    className="h-12 text-base"
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="text-base font-medium flex items-center gap-2">
+                    <Package className="w-4 h-4" />
+                    Category
+                  </Label>
+                  <Select
+                    value={category}
+                    onValueChange={(v: Category) => setCategory(v)}
+                  >
+                    <SelectTrigger className="h-12 text-base">
+                      <SelectValue placeholder="Choose the category..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CATEGORY_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          <div className="flex items-center gap-3">
+                            <option.icon className="w-4 h-4" />
+                            <div>
+                              <div className="font-medium">{option.label}</div>
+                              {/* <div className="text-sm text-gray-500">
+                                {option.description}
+                              </div> */}
+                            </div>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="time"
+                      className="text-base font-medium flex items-center gap-2"
+                    >
+                      <Clock className="w-4 h-4" />
+                      Time
                     </Label>
                     <Input
-                      id="room"
-                      value={room}
-                      onChange={(e) => setRoom(e.target.value)}
-                      placeholder="A000"
-                      className="h-11 rounded-xl border-blue-300"
+                      id="time"
+                      type="time"
+                      value={time}
+                      onChange={(e) => setTime(e.target.value)}
+                      className="h-12 text-base"
                     />
                   </div>
-
-                  <div>
-                    <Label className="mb-2.5 block text-base">Category</Label>
-                    <Select
-                      value={category}
-                      onValueChange={(v: Category) => setCategory(v)}
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="date"
+                      className="text-base font-medium flex items-center gap-2"
                     >
-                      <SelectTrigger className="h-11 rounded-xl border-blue-300">
-                        <SelectValue placeholder="Choose the category…" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="put_in">
-                          Put your luggage in
-                        </SelectItem>
-                        <SelectItem value="take_out">
-                          Take off your luggage
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div>
-                      <Label htmlFor="time" className="mb-2.5 block text-base">
-                        Reservation time
-                      </Label>
-                      <Input
-                        id="time"
-                        type="time"
-                        value={time}
-                        onChange={(e) => setTime(e.target.value)}
-                        className="h-11 rounded-xl border-blue-300"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="date" className="mb-2.5 block text-base">
-                        Reservation date
-                      </Label>
-                      <Input
-                        id="date"
-                        type="date"
-                        value={date}
-                        onChange={(e) => setDate(e.target.value)}
-                        className="h-11 rounded-xl border-blue-300"
-                      />
-                    </div>
+                      <Calendar className="w-4 h-4" />
+                      Date
+                    </Label>
+                    <Input
+                      id="date"
+                      type="date"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      className="h-12 text-base"
+                    />
                   </div>
                 </div>
 
-                <div className="space-y-7">
-                  <div>
-                    <Label htmlFor="proxy" className="mb-2.5 block text-base">
-                      Whether to keep it by proxy
-                    </Label>
-                    <Input
-                      id="proxy"
-                      value={proxy}
-                      onChange={(e) => setProxy(e.target.value)}
-                      placeholder="Enter O or X"
-                      className="h-11 rounded-xl border-blue-300"
-                    />
-                  </div>
-
-                  <div>
-                    <Label className="mb-3 block text-base">
-                      Select the warehouse you want
-                    </Label>
-                    <RadioGroup
-                      value={warehouse}
-                      onValueChange={setWarehouse}
-                      className="space-y-3"
-                    >
-                      {WAREHOUSE_OPTIONS.map((opt) => (
-                        <div key={opt} className="flex items-center space-x-3">
-                          <RadioGroupItem value={opt} id={opt} />
-                          <Label htmlFor={opt} className="text-base">
-                            {opt}
-                          </Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="proxy" className="text-base font-medium">
+                    Proxy Storage
+                  </Label>
+                  <Select value={proxy} onValueChange={setProxy}>
+                    <SelectTrigger className="h-12 text-base">
+                      <SelectValue placeholder="Can someone else handle your storage?" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="yes">
+                        Yes, someone will handle it on behalf of me
+                      </SelectItem>
+                      <SelectItem value="no">
+                        No, I'll handle it myself
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
-              <div className="mt-10 flex justify-center">
+              {/* Right Column */}
+              <div className="space-y-4">
+                <div className="space-y-4">
+                  <Label className="text-base font-medium flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    Select Warehouse Location
+                  </Label>
+                  <RadioGroup
+                    value={warehouse}
+                    onValueChange={setWarehouse}
+                    className="space-y-3"
+                  >
+                    {WAREHOUSE_OPTIONS.map((option) => (
+                      <div
+                        key={option.id}
+                        className="flex items-start space-x-3"
+                      >
+                        <RadioGroupItem
+                          value={option.id}
+                          id={option.id}
+                          className="mt-1"
+                        />
+                        <div className="flex-1">
+                          <Label
+                            htmlFor={option.id}
+                            className="text-base font-medium cursor-pointer"
+                          >
+                            {option.label}
+                          </Label>
+                          <p className="text-sm text-gray-600 mt-1">
+                            {option.description}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                </div>
+              </div>
+            </div>
+
+            {/* Submit Section */}
+            <div className="pt-4 border-t">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="text-sm text-gray-600">
+                  <p>Please review all information before submitting.</p>
+                  <p>You will receive a confirmation email once processed.</p>
+                </div>
                 <Button
                   disabled={!canSubmit}
                   onClick={onSubmit}
-                  className="h-12 md:h-14 px-12 md:px-16 min-w-[340px] text-base md:text-lg"
+                  size="lg"
+                  className="px-8 min-w-[200px]"
                 >
-                  {submitting ? 'Submitting…' : 'Apply'}
+                  {submitting ? 'Submitting...' : 'Submit Application'}
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </Layout>
   );
 }

@@ -1,10 +1,18 @@
 import { useEffect, useState } from 'react';
 
 import { Link } from '@tanstack/react-router';
+import { Building2, FileCheck, Package } from 'lucide-react';
 
 import { Layout, UserSchoolLogo } from '@/components';
-import { Card, CardContent } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { School, getUserSchool } from '@/data/get-user';
+import { cn } from '@/lib/utils';
 
 export default function DormIndexPage() {
   const [school, setSchool] = useState<School | undefined>(undefined);
@@ -13,67 +21,114 @@ export default function DormIndexPage() {
     getUserSchool().then(setSchool);
   }, []);
 
+  const services = [
+    {
+      title: 'Retirement Maintenance Inspection',
+      description: 'Apply for dormitory room inspection before departure',
+      icon: FileCheck,
+      href: '/dorm/retirement-maintenance',
+      color: 'bg-blue-50 text-blue-600 border-blue-200',
+      hoverColor: 'hover:bg-blue-100',
+    },
+    {
+      title: 'Warehouse Use Application',
+      description: 'Request access to dormitory storage facilities',
+      icon: Package,
+      href: '/dorm/warehouse',
+      color: 'bg-green-50 text-green-600 border-green-200',
+      hoverColor: 'hover:bg-green-100',
+    },
+  ];
+
   return (
     <Layout>
-      <section className="py-10 md:py-14">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-24 xl:px-48">
-          <div className="mb-8">
+      <div className="space-y-8 mb-24">
+        {/* Header Section */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
             <div className="flex items-center gap-3">
               {school ? (
                 <UserSchoolLogo
                   school={school}
-                  size="4xl"
+                  size="2xl"
                   display="logo-with-name"
                 />
               ) : (
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                    <span className="text-xs text-gray-500">?</span>
+                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center animate-pulse">
+                    <span className="text-xs text-gray-400">?</span>
                   </div>
-                  <p className="text-4xl font-semibold text-gray-500">
-                    Loading...
-                  </p>
+                  <div className="h-8 w-24 bg-gray-200 rounded animate-pulse" />
                 </div>
               )}
             </div>
-            <p className="mt-1 text-2xl text-blue-600">
-              Make campus life more convenient
-            </p>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Dormitory Services
+              </h1>
+              <p className="text-lg text-gray-600">
+                Make campus life more convenient
+              </p>
+            </div>
           </div>
+          <div className="hidden md:block">
+            <Building2 className="w-12 h-12 text-gray-400" />
+          </div>
+        </div>
 
-          <div className="mx-auto w-full max-w-[1100px] rounded-3xl bg-[#CFEBFF] min-h-[520px] md:min-h-[600px] px-6 md:px-10 pt-8 md:pt-12 pb-10">
-            <div className="mx-auto w-full max-w-[920px]">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <Link
-                  to="/dorm/retirement-maintenance"
-                  className="block focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-2xl"
-                >
-                  <Card className="rounded-2xl shadow-lg hover:shadow-2xl transition-shadow">
-                    <CardContent className="p-8 md:p-10">
-                      <div className="text-center text-lg md:text-2xl font-semibold leading-snug">
-                        Application for Retirement <br /> Maintenance Inspection
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
+        {/* Services Grid */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2 max-w-4xl">
+          {services.map((service) => (
+            <Link key={service.href} to={service.href} className="block group">
+              <Card className="h-full transition-all duration-200 hover:shadow-lg hover:scale-105 border-2 hover:border-primary/20">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={cn(
+                        'p-3 rounded-lg transition-colors',
+                        service.color,
+                        service.hoverColor,
+                      )}
+                    >
+                      <service.icon className="w-6 h-6" />
+                    </div>
+                    <div className="flex-1">
+                      <CardTitle className="text-xl group-hover:text-primary transition-colors">
+                        {service.title}
+                      </CardTitle>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-base leading-relaxed">
+                    {service.description}
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
 
-                <Link
-                  to="/dorm/warehouse"
-                  className="block focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-2xl"
-                >
-                  <Card className="rounded-2xl shadow-lg hover:shadow-2xl transition-shadow">
-                    <CardContent className="p-8 md:p-10">
-                      <div className="text-center text-lg md:text-2xl font-semibold leading-snug">
-                        Application for <br /> warehouse use
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              </div>
+        {/* Info Section */}
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
+          <div className="flex items-start gap-4">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <Building2 className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-2">
+                Need Help with Dormitory Services?
+              </h3>
+              <p className="text-gray-600 leading-relaxed">
+                Our dormitory services are designed to make your campus life
+                easier. If you have any questions about the application process
+                or need assistance, please contact the dormitory administration
+                office.
+              </p>
             </div>
           </div>
         </div>
-      </section>
+      </div>
     </Layout>
   );
 }
