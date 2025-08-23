@@ -533,8 +533,6 @@ export function useAIAgent(
 
 I'm an advanced AI assistant that can:
 - 🔍 Search wiki documents
-- 🌤️ Get weather information
-- 🧮 Perform calculations
 - 📅 Create calendar events${navigationFunctions ? '\n- 🧭 Navigate to different pages' : ''}
 - And much more!
 
