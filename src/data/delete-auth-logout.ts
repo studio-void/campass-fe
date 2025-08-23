@@ -14,7 +14,7 @@ export const deleteAuthLogout = async (): Promise<
   DeleteLogoutResponse | undefined
 > => {
   try {
-    const response = await api.post<DeleteLogoutResponse>('/auth/logout');
+    const response = await api.delete<DeleteLogoutResponse>('/auth/logout');
     useToken.getState().saveToken(null);
 
     return response.data;
