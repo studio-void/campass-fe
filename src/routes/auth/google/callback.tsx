@@ -71,11 +71,8 @@ function GoogleCallbackPage() {
 
 async function exchangeCodeForToken(code: string) {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const clientSecret = import.meta.env.VITE_GOOGLE_CLIENT_SECRET;
   const redirectUri = `${window.location.origin}/auth/google/callback`;
-
-  // Note: In a production app, this should be done on your backend server
-  // to keep the client secret secure. For this example, we'll use the
-  // public client flow which doesn't require a client secret.
 
   const response = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
@@ -84,6 +81,7 @@ async function exchangeCodeForToken(code: string) {
     },
     body: new URLSearchParams({
       client_id: clientId,
+      client_secret: clientSecret,
       code: code,
       grant_type: 'authorization_code',
       redirect_uri: redirectUri,
