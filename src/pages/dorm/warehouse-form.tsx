@@ -1,4 +1,3 @@
-// src/pages/dorm/warehouse-form.tsx
 import { useState } from 'react';
 
 import { Layout } from '@/components';
@@ -49,18 +48,18 @@ export default function WarehouseFormPage() {
 
   return (
     <Layout>
-      <section className="mx-auto w-full max-w-7xl px-6 md:px-10 py-14 md:py-16">
-        <div className="mx-auto w-full max-w-[880px]">
-          <h1 className="text-3xl md:text-4xl font-semibold">
-            Dormitory : Application for warehouse use
-          </h1>
-          <p className="mt-3 text-[15px] md:text-base text-neutral-600">
-            All tasks must be applied at least before 8 p.m. the day before.
-            Please note that the work received after 8 p.m. can be processed the
-            next day.
-          </p>
+      <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
+        <h1 className="text-[28px] md:text-[32px] font-extrabold tracking-tight">
+          Dormitory : Application for warehouse use
+        </h1>
+        <p className="mt-3 text-neutral-600">
+          All tasks must be applied at least before 8 p.m. the day before.{' '}
+          <br />
+          Please note that the work received after 8 p.m. can be processed the
+          next day.
+        </p>
 
-          {/* 폼만 있는 단일 카드 (우측 설명 없음) */}
+        <div className="mx-auto w-full max-w-5xl">
           <Card className="mt-10 rounded-2xl">
             <CardContent className="p-7 md:p-10">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
