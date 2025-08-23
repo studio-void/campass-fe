@@ -29,7 +29,7 @@ const ROWS: Row[] = [
   },
 ];
 
-export default function RetirementMaintenanceIntroPage() {
+export default function CheckMaintenanceIntroPage() {
   return (
     <Layout>
       <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
@@ -50,7 +50,7 @@ export default function RetirementMaintenanceIntroPage() {
         </div>
 
         <div className="mt-12 flex justify-end">
-          <Link to="/dorm/retirement-form">
+          <Link to="/dorm/check-form">
             <Button className="h-12 md:h-14 px-10 md:px-12 min-w-[260px] text-base md:text-lg">
               Go to reservation
               <ArrowRight className="ml-2 h-4 w-4" />

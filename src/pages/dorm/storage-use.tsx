@@ -5,15 +5,15 @@ import { Layout } from '@/components';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
-export default function WarehouseUseIntroPage() {
+export default function StorageUseIntroPage() {
   return (
     <Layout>
       <section
         className="mx-auto max-w-6xl px-4 py-10 md:py-14"
-        data-warehouse-guide="true"
+        data-storage-guide="true"
       >
         <h1 className="text-[28px] md:text-[32px] font-extrabold tracking-tight">
-          Dormitory : Application for warehouse use
+          Dormitory : Application for storage use
         </h1>
         <p className="mt-3 text-neutral-600">
           All tasks must be applied at least before 8 p.m. the day before.{' '}
@@ -29,9 +29,9 @@ export default function WarehouseUseIntroPage() {
             bullets={[
               'Time: 10 minutes before the end of the house office hour',
               'Method: Write a pledge in the dormitory room (no proxy pledge required)',
-              'Venue: Only the old building underground warehouse',
+              'Venue: Only the old building underground storage',
               'Period: Until two weeks before the end of the semester when storage began',
-              'Precautions: Leaving due to absence/graduation → pack all luggage. You have to pick it up at the warehouse.',
+              'Precautions: Leaving due to absence/graduation → pack all luggage. You have to pick it up at the storage.',
             ]}
           />
 
@@ -39,17 +39,17 @@ export default function WarehouseUseIntroPage() {
             title="Take off your luggage"
             sectionTitle="During vacation"
             bullets={[
-              'Time: Pre-announced warehouse opening time',
-              'Method: Fill out luggage & written vows in front of the warehouse',
-              'Place: Desired warehouse where you want to put the box',
-              'Period: Period stated in the warehouse pledge',
-              'Note: Refrigerator storage is only available in old office warehouses',
+              'Time: Pre-announced storage opening time',
+              'Method: Fill out luggage & written vows in front of the storage',
+              'Place: Desired storage where you want to put the box',
+              'Period: Period stated in the storage pledge',
+              'Note: Refrigerator storage is only available in old office storages',
             ]}
           />
         </div>
 
         <div className="mt-12 flex justify-end">
-          <Link to="/dorm/warehouse/form">
+          <Link to="/dorm/storage/form">
             <Button className="h-12 md:h-14 px-10 md:px-12 min-w-[260px] text-base md:text-lg">
               Go to reservation
               <ArrowRight className="ml-2 h-4 w-4" />

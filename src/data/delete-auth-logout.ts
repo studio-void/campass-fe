@@ -17,13 +17,6 @@ export const deleteAuthLogout = async (): Promise<
     const response = await api.delete<DeleteLogoutResponse>('/auth/logout');
     useToken.getState().saveToken(null);
 
-    // Clear localStorage for login state
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('isAdmin');
-
-    // Dispatch event to notify other components
-    window.dispatchEvent(new CustomEvent('authStateChanged'));
-
     return response.data;
   } catch (error) {
     console.error('Failed to logout:', error);

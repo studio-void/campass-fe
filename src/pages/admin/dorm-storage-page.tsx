@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Check, ChevronsUpDown } from 'lucide-react';
+import { Check, ChevronsUpDown, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Layout } from '@/components';
@@ -177,7 +177,7 @@ export const DormStoragePage: React.FC = () => {
     return (
       <Layout>
         <div className="flex justify-center items-center h-32">
-          <p>Loading...</p>
+          <Loader2 size={16} className="animate-spin text-blue-600" />
         </div>
       </Layout>
     );

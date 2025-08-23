@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router';
 import { Layout } from '@/components';
 import { Card, CardContent } from '@/components/ui/card';
 
-export default function DormIndexPage() {
+export const AdminHomePage: React.FC = () => {
   return (
     <Layout>
       <section className="py-10 md:py-14">
@@ -26,26 +26,39 @@ export default function DormIndexPage() {
             <div className="mx-auto w-full max-w-[920px]">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <Link
-                  to="/dorm/check-maintenance"
+                  to="/admin/dorm-check"
                   className="block focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-2xl"
                 >
                   <Card className="rounded-2xl shadow-lg hover:shadow-2xl transition-shadow h-full">
                     <CardContent className="w-full h-full p-8 md:p-10">
                       <div className="text-center text-lg md:text-2xl font-semibold leading-snug">
-                        Application for Retirement <br /> Maintenance Inspection
+                        Management for <br /> dormitory check
                       </div>
                     </CardContent>
                   </Card>
                 </Link>
 
                 <Link
-                  to="/dorm/storage"
+                  to="/admin/dorm-storage"
                   className="block focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-2xl"
                 >
                   <Card className="rounded-2xl shadow-lg hover:shadow-2xl transition-shadow h-full">
-                    <CardContent className="w-full h-full p-8 md:p-10 justify-center text-center items-center flex">
+                    <CardContent className="w-full h-full p-8 md:p-10">
                       <div className="text-center text-lg md:text-2xl font-semibold leading-snug">
-                        Application for <br /> storage use
+                        Management for <br /> storage use
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+
+                <Link
+                  to="/admin/school-certificate"
+                  className="block focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-2xl"
+                >
+                  <Card className="rounded-2xl shadow-lg hover:shadow-2xl transition-shadow">
+                    <CardContent className="p-8 md:p-10">
+                      <div className="text-center text-lg md:text-2xl font-semibold leading-snug">
+                        Management for <br /> school certificate requests
                       </div>
                     </CardContent>
                   </Card>
@@ -57,4 +70,4 @@ export default function DormIndexPage() {
       </section>
     </Layout>
   );
-}
+};

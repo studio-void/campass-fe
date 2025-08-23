@@ -33,7 +33,7 @@ import { useGoogleCalendar } from '@/hooks/use-google-calendar';
 const mock = {
   me: { name: 'VO!D', verified: true },
   dormitory: {
-    warehouseNext: '25/08/24 14:00',
+    storageNext: '25/08/24 14:00',
     retirementNext: '25/08/24 14:00',
   },
   facility: { hasReservation: false },
@@ -196,8 +196,8 @@ export default function DashboardPage() {
                 <h2 className="text-xl font-semibold mb-4">Dormitory</h2>
                 <div className="space-y-3">
                   <InfoRow
-                    label="Application for warehouse use"
-                    meta={data.dormitory.warehouseNext}
+                    label="Application for storage use"
+                    meta={data.dormitory.storageNext}
                   />
                   <InfoRow
                     label="Application for Maintenance Inspection"

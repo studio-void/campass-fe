@@ -1,22 +1,18 @@
-import { useEffect, useState } from 'react';
-
 import { Outlet } from '@tanstack/react-router';
 
 import { Layout, UserSchoolLogo } from '@/components';
-import { School, getUserSchool } from '@/data/get-user';
+import { useAuth } from '@/hooks';
 
 function WikiLayout() {
-  const [school, setSchool] = useState<School | undefined>(undefined);
+  const { user } = useAuth();
 
-  useEffect(() => {
-    getUserSchool().then(setSchool);
-  }, []);
+  if (!user) return null;
 
   return (
     <Layout>
       <div className="flex flex-col w-full">
         <div className="flex items-center">
-          {school && <UserSchoolLogo school={school} size="2xl" />}
+          {user.school && <UserSchoolLogo school={user.school} size="2xl" />}
           <span className="ml-2 text-2xl font-semibold text-neutral-500">
             Campus Wiki
           </span>

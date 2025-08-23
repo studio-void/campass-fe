@@ -2,7 +2,6 @@ import * as React from 'react';
 
 import { type VariantProps, cva } from 'class-variance-authority';
 
-import { School } from '@/data/get-user';
 import { cn } from '@/utils/index';
 
 const userSchoolLogoVariants = cva(
@@ -36,16 +35,16 @@ interface SchoolInfo {
   logoUrl: string;
 }
 
-const schoolInfo: Record<School, SchoolInfo> = {
-  [School.GIST]: {
+const schoolInfo: Record<string, SchoolInfo> = {
+  GIST: {
     name: 'GIST',
     logoUrl: '/images/schools/gist.svg',
   },
-  [School.POSTECH]: {
+  POSTECH: {
     name: 'POSTECH',
     logoUrl: '/images/schools/postech.png',
   },
-  [School.KAIST]: {
+  KAIST: {
     name: 'KAIST',
     logoUrl: '/images/schools/kaist.svg',
   },
@@ -64,7 +63,7 @@ const logoSizeMap = {
 export interface UserSchoolLogoProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof userSchoolLogoVariants> {
-  school: School;
+  school: string;
   showFallback?: boolean;
 }
 
