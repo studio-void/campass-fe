@@ -37,6 +37,7 @@ export const SchoolCertificatePage: React.FC = () => {
     data: users = [],
     isLoading,
     error,
+    isFetching,
   } = useQuery({
     queryKey: ['userVerify'],
     queryFn: async () => {
@@ -101,7 +102,7 @@ export const SchoolCertificatePage: React.FC = () => {
       <div className="text-2xl font-semibold mb-12 mt-4 text-start w-full">
         School Certification Manager Page
       </div>
-      <Table>
+      <Table className={isFetching ? 'opacity-50 transition-opacity' : ''}>
         <TableHeader>
           <TableRow>
             <TableHead className="w-[100px]">No.</TableHead>

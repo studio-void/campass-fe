@@ -4,7 +4,20 @@ import { toast } from 'sonner';
 import { api } from '../lib/api';
 
 export interface GetDormCheckResponse {
-  user: { name: string; nickname: string; email: string };
+  user: {
+    id: number;
+    email: string;
+    name: string;
+    nickname: string;
+    tel: string;
+    school: string;
+    number: string;
+    isAdmin: boolean;
+    verifyStatus: 'NONE' | 'PENDING' | 'VERIFIED';
+    verifyImageUrl: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+  };
   id: number;
   createdAt: Date;
   updatedAt: Date;
