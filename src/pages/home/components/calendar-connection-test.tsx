@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { useGoogleCalendar } from '@/hooks/useGoogleCalendar';
+import { useGoogleCalendar } from '@/hooks/use-google-calendar';
 
 export default function CalendarConnectTest() {
   const { isReady, isAuthed, error, signIn, signOut, listUpcomingEvents } =

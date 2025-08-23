@@ -10,15 +10,22 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as DocumentParsingRouteImport } from './routes/document-parsing'
+import { Route as WikiRouteRouteImport } from './routes/wiki/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthVerificationPendingRouteImport } from './routes/auth/verification-pending'
 import { Route as AuthVerificationRouteImport } from './routes/auth/verification'
 import { Route as AuthSignUpRouteImport } from './routes/auth/sign-up'
 import { Route as AuthSignInRouteImport } from './routes/auth/sign-in'
+import { Route as AuthGoogleCallbackRouteImport } from './routes/auth/google/callback'
 
 const DocumentParsingRoute = DocumentParsingRouteImport.update({
   id: '/document-parsing',
   path: '/document-parsing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WikiRouteRoute = WikiRouteRouteImport.update({
+  id: '/wiki',
+  path: '/wiki',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -46,66 +53,85 @@ const AuthSignInRoute = AuthSignInRouteImport.update({
   path: '/auth/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthGoogleCallbackRoute = AuthGoogleCallbackRouteImport.update({
+  id: '/auth/google/callback',
+  path: '/auth/google/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/wiki': typeof WikiRouteRoute
   '/document-parsing': typeof DocumentParsingRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verification': typeof AuthVerificationRoute
   '/auth/verification-pending': typeof AuthVerificationPendingRoute
+  '/auth/google/callback': typeof AuthGoogleCallbackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/wiki': typeof WikiRouteRoute
   '/document-parsing': typeof DocumentParsingRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verification': typeof AuthVerificationRoute
   '/auth/verification-pending': typeof AuthVerificationPendingRoute
+  '/auth/google/callback': typeof AuthGoogleCallbackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/wiki': typeof WikiRouteRoute
   '/document-parsing': typeof DocumentParsingRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verification': typeof AuthVerificationRoute
   '/auth/verification-pending': typeof AuthVerificationPendingRoute
+  '/auth/google/callback': typeof AuthGoogleCallbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/wiki'
     | '/document-parsing'
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/auth/verification'
     | '/auth/verification-pending'
+    | '/auth/google/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/wiki'
     | '/document-parsing'
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/auth/verification'
     | '/auth/verification-pending'
+    | '/auth/google/callback'
   id:
     | '__root__'
     | '/'
+    | '/wiki'
     | '/document-parsing'
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/auth/verification'
     | '/auth/verification-pending'
+    | '/auth/google/callback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  WikiRouteRoute: typeof WikiRouteRoute
   DocumentParsingRoute: typeof DocumentParsingRoute
   AuthSignInRoute: typeof AuthSignInRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
   AuthVerificationRoute: typeof AuthVerificationRoute
   AuthVerificationPendingRoute: typeof AuthVerificationPendingRoute
+  AuthGoogleCallbackRoute: typeof AuthGoogleCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -115,6 +141,13 @@ declare module '@tanstack/react-router' {
       path: '/document-parsing'
       fullPath: '/document-parsing'
       preLoaderRoute: typeof DocumentParsingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wiki': {
+      id: '/wiki'
+      path: '/wiki'
+      fullPath: '/wiki'
+      preLoaderRoute: typeof WikiRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -152,16 +185,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSignInRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/google/callback': {
+      id: '/auth/google/callback'
+      path: '/auth/google/callback'
+      fullPath: '/auth/google/callback'
+      preLoaderRoute: typeof AuthGoogleCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  WikiRouteRoute: WikiRouteRoute,
   DocumentParsingRoute: DocumentParsingRoute,
   AuthSignInRoute: AuthSignInRoute,
   AuthSignUpRoute: AuthSignUpRoute,
   AuthVerificationRoute: AuthVerificationRoute,
   AuthVerificationPendingRoute: AuthVerificationPendingRoute,
+  AuthGoogleCallbackRoute: AuthGoogleCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
