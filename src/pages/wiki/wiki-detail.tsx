@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react';
 
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { ArrowLeft, Calendar, Edit, History, Trash2, User } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
 
+import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getUser } from '@/data/get-user';
 import { type Wiki, deleteWiki, getWikiById } from '@/data/wiki';
 
-// 간단한 확인 다이얼로그 구현
+// Simple confirmation dialog implementation
 function ConfirmDialog({
   open,
   onOpenChange,
@@ -86,7 +86,7 @@ function WikiDetailPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ko-KR', {
+    return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -106,13 +106,13 @@ function WikiDetailPage() {
   if (!wiki) {
     return (
       <div className="text-center py-12">
-        <h2 className="text-xl font-semibold mb-2">위키를 찾을 수 없습니다</h2>
+        <h2 className="text-xl font-semibold mb-2">Wiki not found</h2>
         <p className="text-muted-foreground mb-4">
-          요청하신 위키가 존재하지 않거나 삭제되었습니다.
+          The requested wiki does not exist or has been deleted.
         </p>
         <Button onClick={() => navigate({ to: '/wiki' })}>
           <ArrowLeft className="w-4 h-4 mr-2" />
-          위키 목록으로 돌아가기
+          Back to Wiki List
         </Button>
       </div>
     );
@@ -122,7 +122,7 @@ function WikiDetailPage() {
 
   return (
     <div className="space-y-6">
-      {/* 헤더 */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <Button variant="ghost" onClick={() => navigate({ to: '/wiki' })}>
           <ArrowLeft className="w-4 h-4 mr-2" />
@@ -133,15 +133,15 @@ function WikiDetailPage() {
           <Button
             variant="outline"
             onClick={() => {
-              // 히스토리 페이지로 이동하는 로직을 나중에 구현
+              // Navigate to history page logic to be implemented later
               console.log('Navigate to wiki history:', wiki.id);
             }}
           >
             <History className="w-4 h-4 mr-2" />
-            히스토리
+            History
           </Button>
 
-          {/* 편집은 누구나 가능 */}
+          {/* Anyone can edit */}
           <Button
             variant="outline"
             onClick={() =>
@@ -152,10 +152,10 @@ function WikiDetailPage() {
             }
           >
             <Edit className="w-4 h-4 mr-2" />
-            편집하기
+            Edit
           </Button>
 
-          {/* 삭제는 작성자만 가능 */}
+          {/* Only author can delete */}
           {isAuthor && (
             <Button
               variant="outline"
@@ -163,13 +163,13 @@ function WikiDetailPage() {
               className="text-destructive hover:text-destructive"
             >
               <Trash2 className="w-4 h-4 mr-2" />
-              삭제하기
+              Delete
             </Button>
           )}
         </div>
       </div>
 
-      {/* 위키 내용 */}
+      {/* Wiki Content */}
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">{wiki.title}</CardTitle>
@@ -177,35 +177,33 @@ function WikiDetailPage() {
             <div className="flex items-center space-x-4">
               <div className="flex items-center">
                 <User className="w-4 h-4 mr-1" />
-                <span>{wiki.author?.name || '작성자'}</span>
+                <span>{wiki.author?.name || 'Author'}</span>
               </div>
               <div className="flex items-center">
                 <Calendar className="w-4 h-4 mr-1" />
-                <span>작성일: {formatDate(wiki.createdAt)}</span>
+                <span>Created: {formatDate(wiki.createdAt)}</span>
               </div>
               {wiki.updatedAt !== wiki.createdAt && (
                 <div className="flex items-center">
                   <Edit className="w-4 h-4 mr-1" />
-                  <span>수정일: {formatDate(wiki.updatedAt)}</span>
+                  <span>Updated: {formatDate(wiki.updatedAt)}</span>
                 </div>
               )}
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="prose prose-lg max-w-none">
-            <ReactMarkdown>{wiki.content}</ReactMarkdown>
-          </div>
+          <MarkdownRenderer content={wiki.content} />
         </CardContent>
       </Card>
 
-      {/* 삭제 확인 다이얼로그 */}
+      {/* Delete confirmation dialog */}
       <ConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onConfirm={handleDeleteWiki}
-        title="위키를 삭제하시겠습니까?"
-        description="이 작업은 되돌릴 수 없습니다. 위키와 모든 편집 히스토리가 영구적으로 삭제됩니다."
+        title="Delete this wiki?"
+        description="This action cannot be undone. The wiki and all edit history will be permanently deleted."
       />
     </div>
   );

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 
 import { Calendar, Edit, History, User, X } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
 
+import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -137,9 +137,10 @@ export function WikiDetailModal({
           </div>
 
           <div className="bg-gray-50 rounded-lg p-6">
-            <div className="prose prose-lg max-w-none text-gray-800">
-              <ReactMarkdown>{wiki.content}</ReactMarkdown>
-            </div>
+            <MarkdownRenderer
+              content={wiki.content}
+              className="text-gray-800"
+            />
           </div>
         </div>
       </div>
@@ -451,8 +452,11 @@ export function WikiHistoryModal({ wikiId, onClose }: WikiHistoryModalProps) {
                   </CardHeader>
                   <CardContent>
                     <div className="bg-gray-50 rounded-md p-4 border">
-                      <div className="prose prose-sm max-w-none text-gray-700 max-h-60 overflow-y-auto">
-                        <ReactMarkdown>{entry.content}</ReactMarkdown>
+                      <div className="max-h-60 overflow-y-auto">
+                        <MarkdownRenderer
+                          content={entry.content}
+                          className="prose-sm text-gray-700"
+                        />
                       </div>
                     </div>
                   </CardContent>
