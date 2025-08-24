@@ -52,6 +52,6 @@
 
 ## Our Future
 
-- To all-in-one campus platform with integrated AI Agent in near future
+- To all-in-one campus platform with integrated AI Agent
 - Google calendar integrated time table to manage all schedules (WIP)
-- Integrated campus-wide facility reservation with AI
+- Integrated campus-wide facility reservation with AI (WIP)
