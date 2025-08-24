@@ -103,7 +103,7 @@ export default function DashboardPage() {
 
   return (
     <Layout>
-      <section className="mx-auto w-full py-10 md:py-12">
+      <section className="mx-auto w-full mb-24">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="h-12 w-12 rounded-2xl overflow-hidden bg-neutral-200">
