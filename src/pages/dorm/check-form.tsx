@@ -35,8 +35,8 @@ import { postDormCheck } from '@/data/post-dorm-check';
 import { cn } from '@/lib/utils';
 
 const CATEGORY_OPTIONS = [
-  { value: 'retirement_all', label: 'Retirement Inspection (all residents)' },
-  { value: 'retirement_one', label: 'A one person Retirement Inspection' },
+  { value: 'retirement_all', label: 'Full Room Retirement Inspection' },
+  { value: 'retirement_one', label: 'Single Person Retirement Inspection' },
   { value: 'maintenance', label: 'Maintenance Inspection' },
 ];
 
@@ -66,12 +66,12 @@ function CategoryCombobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="mt-2 h-11 w-full justify-between text-base"
+          className="w-full justify-between"
         >
           {selected ? (
             selected.label
           ) : (
-            <span className="text-neutral-400">{placeholder}</span>
+            <span className="text-muted-foreground">{placeholder}</span>
           )}
           <ChevronDown className="ml-2 h-4 w-4 opacity-70" />
         </Button>
@@ -140,28 +140,33 @@ export default function CheckFormPage() {
         type,
         checkAt,
       });
-      toast.success('Reservation submitted!');
+      toast.success('Application submitted successfully!');
       form.reset();
     } catch (error) {
-      toast.error('Submission failed.');
+      toast.error('Failed to submit application.');
     }
   };
 
   return (
     <Layout>
-      <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
-        <h1 className="text-[28px] md:text-[32px] font-extrabold tracking-tight">
-          Dormitory : Application for Retirement / Maintenance Inspection
-        </h1>
-        <p className="mt-2 text-[15px] md:text-base text-neutral-600">
-          All tasks must be applied at least before 8 p.m. the day before.
-          Please note that the work received after 8 p.m. can be processed the
-          next day.
-        </p>
+      <div className="space-y-6 mb-24 w-full">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold">Inspection Application Form</h1>
+            <p className="text-muted-foreground">
+              Fill out the form to submit your inspection request
+            </p>
+          </div>
+        </div>
 
-        <div className="mt-8 grid gap-10 md:gap-12 md:grid-cols-[minmax(0,720px)_360px] items-start">
-          <Card className="rounded-2xl">
-            <CardContent className="p-6 md:p-8 space-y-6">
+        <div className="grid gap-6 lg:grid-cols-[1fr_400px] items-start">
+          {/* Application Form */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Application Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
               <Form {...form}>
                 <form
                   onSubmit={form.handleSubmit(onSubmit)}
@@ -175,13 +180,9 @@ export default function CheckFormPage() {
                     name="room"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-base">Room number</FormLabel>
+                        <FormLabel>Room Number</FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="A000"
-                            className="mt-2 h-11 text-base"
-                            {...field}
-                          />
+                          <Input placeholder="e.g., A123" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -193,12 +194,12 @@ export default function CheckFormPage() {
                     name="category"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-base">Category</FormLabel>
+                        <FormLabel>Inspection Type</FormLabel>
                         <FormControl>
                           <CategoryCombobox
                             value={field.value}
                             onChange={field.onChange}
-                            placeholder="Choose the category..."
+                            placeholder="Select inspection type..."
                           />
                         </FormControl>
                         <FormMessage />
@@ -206,21 +207,15 @@ export default function CheckFormPage() {
                     )}
                   />
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid gap-4 md:grid-cols-2">
                     <FormField
                       control={form.control}
                       name="date"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-base">
-                            Reservation date
-                          </FormLabel>
+                          <FormLabel>Reservation Date</FormLabel>
                           <FormControl>
-                            <Input
-                              type="date"
-                              className="mt-2 h-11 text-base"
-                              {...field}
-                            />
+                            <Input type="date" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -231,15 +226,9 @@ export default function CheckFormPage() {
                       name="time"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-base">
-                            Reservation time
-                          </FormLabel>
+                          <FormLabel>Reservation Time</FormLabel>
                           <FormControl>
-                            <Input
-                              type="time"
-                              className="mt-2 h-11 text-base"
-                              {...field}
-                            />
+                            <Input type="time" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -252,14 +241,11 @@ export default function CheckFormPage() {
                     name="note"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-base">
-                          Notes (optional)
-                        </FormLabel>
+                        <FormLabel>Additional Notes (Optional)</FormLabel>
                         <FormControl>
                           <Textarea
                             rows={4}
-                            placeholder="Anything we should know before inspection…"
-                            className="mt-2 text-base"
+                            placeholder="Any special requirements or notes for the inspection..."
                             {...field}
                           />
                         </FormControl>
@@ -268,13 +254,16 @@ export default function CheckFormPage() {
                     )}
                   />
 
-                  <div className="pt-2 flex justify-end">
+                  <div className="pt-4">
                     <Button
                       type="submit"
                       disabled={form.formState.isSubmitting}
-                      className="h-12 md:h-13 px-10 md:px-12 text-base md:text-lg"
+                      size="lg"
+                      className="w-full"
                     >
-                      {form.formState.isSubmitting ? 'Submitting…' : 'Apply'}
+                      {form.formState.isSubmitting
+                        ? 'Submitting...'
+                        : 'Submit Application'}
                     </Button>
                   </div>
                 </form>
@@ -282,39 +271,50 @@ export default function CheckFormPage() {
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl md:mt-8">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-red-600">
-                Checkout Inspection Guidelines
+          {/* Guidelines Sidebar */}
+          <Card className="border-red-200 bg-red-50">
+            <CardHeader>
+              <CardTitle className="text-red-700">
+                Important Guidelines
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <ol className="list-decimal ml-5 space-y-2 text-[15px] md:text-base text-neutral-900">
-                <li>
-                  The last resident to leave must submit a full-room checkout.
-                </li>
-                <li>
-                  The final person leaving cannot apply as a single-person
-                  checkout; a full-room checkout is required.
-                </li>
-                <li>You are responsible for any incorrect application.</li>
-                <li>
-                  If you choose the wrong checkout type, your application may be
-                  rejected even if the inspection is completed.
-                </li>
-                <li>
-                  Applications outside the official checkout period are not
-                  accepted.
-                </li>
-              </ol>
-              <p className="mt-4 text-[15px] md:text-base text-neutral-900">
-                * Exceptions may be allowed only with prior approval from the
-                supervising professor or dormitory office.
-              </p>
+            <CardContent className="space-y-4 text-sm text-red-700">
+              <div>
+                <h4 className="font-medium mb-2">Application Rules:</h4>
+                <ul className="space-y-1 list-disc list-inside">
+                  <li>Submit applications before 8 PM the day before</li>
+                  <li>Late applications will be processed the next day</li>
+                  <li>Ensure you select the correct inspection type</li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="font-medium mb-2">Inspection Types:</h4>
+                <ul className="space-y-1 list-disc list-inside">
+                  <li>
+                    <strong>Full Room:</strong> All residents leaving
+                  </li>
+                  <li>
+                    <strong>Single Person:</strong> One person leaving
+                  </li>
+                  <li>
+                    <strong>Maintenance:</strong> Annual room check
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="font-medium mb-2">Important Notes:</h4>
+                <ul className="space-y-1 list-disc list-inside">
+                  <li>Final resident must choose full room checkout</li>
+                  <li>Wrong application type may result in rejection</li>
+                  <li>Applications outside official periods not accepted</li>
+                </ul>
+              </div>
             </CardContent>
           </Card>
         </div>
-      </section>
+      </div>
     </Layout>
   );
 }

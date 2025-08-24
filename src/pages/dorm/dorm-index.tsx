@@ -1,73 +1,116 @@
 import { Link } from '@tanstack/react-router';
+import { Package, Settings } from 'lucide-react';
 
-import { Layout, UserSchoolLogo } from '@/components';
-import { Card, CardContent } from '@/components/ui/card';
-import { useAuth } from '@/hooks';
+import { Layout } from '@/components';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 
 export default function DormIndexPage() {
-  const { user } = useAuth();
-
   return (
     <Layout>
-      <section className="py-10 md:py-14">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-24 xl:px-48">
-          <div className="mb-8">
-            <div className="flex items-center gap-3">
-              {user?.school ? (
-                <UserSchoolLogo
-                  school={user.school}
-                  size="4xl"
-                  display="logo-with-name"
-                />
-              ) : (
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                    <span className="text-xs text-gray-500">?</span>
-                  </div>
-                  <p className="text-4xl font-semibold text-gray-500">
-                    Loading...
-                  </p>
-                </div>
-              )}
-            </div>
-            <p className="mt-1 text-2xl text-blue-600">
-              Make campus life more convenient
+      <div className="space-y-6 mb-24 w-full">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold">Dormitory Services</h1>
+            <p className="text-muted-foreground">
+              Manage your dormitory applications and reservations
             </p>
           </div>
+        </div>
 
-          <div className="mx-auto w-full max-w-[1100px] rounded-3xl bg-[#CFEBFF] h-fit px-6 md:px-10 pt-8 md:pt-12 pb-10">
-            <div className="mx-auto w-full max-w-[920px]">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <Link
-                  to="/dorm/check-maintenance"
-                  className="block focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-2xl"
-                >
-                  <Card className="rounded-2xl shadow-lg hover:shadow-2xl transition-shadow h-full">
-                    <CardContent className="w-full h-full p-8 md:p-10">
-                      <div className="text-center text-lg md:text-2xl font-semibold leading-snug">
-                        Application for Retirement <br /> Maintenance Inspection
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
+        {/* Service Cards */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
+          <Link to="/dorm/check-maintenance" className="block">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+              <CardHeader className="pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                    <Settings className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">
+                      Retirement & Maintenance Inspection
+                    </CardTitle>
+                  </div>
+                </div>
+                <CardDescription className="text-sm leading-relaxed">
+                  Apply for room retirement inspection or maintenance check.
+                  Required before leaving dormitory or for annual maintenance.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-muted-foreground">
+                    Available 24/7
+                  </div>
+                  <Button variant="ghost" size="sm" className="text-blue-600">
+                    Apply →
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
 
-                <Link
-                  to="/dorm/storage"
-                  className="block focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-2xl"
-                >
-                  <Card className="rounded-2xl shadow-lg hover:shadow-2xl transition-shadow h-full">
-                    <CardContent className="w-full h-full p-8 md:p-10 justify-center text-center items-center flex">
-                      <div className="text-center text-lg md:text-2xl font-semibold leading-snug">
-                        Application for <br /> storage use
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
+          <Link to="/dorm/storage" className="block">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+              <CardHeader className="pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-green-100 flex items-center justify-center">
+                    <Package className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">
+                      Storage Application
+                    </CardTitle>
+                  </div>
+                </div>
+                <CardDescription className="text-sm leading-relaxed">
+                  Request to store personal belongings in dormitory storage
+                  facilities during semester breaks or transitions.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-muted-foreground">
+                    Available 24/7
+                  </div>
+                  <Button variant="ghost" size="sm" className="text-green-600">
+                    Apply →
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
+
+        {/* Important Notice */}
+        <Card className="border-amber-200 bg-amber-50">
+          <CardContent>
+            <div className="flex items-start gap-3">
+              <div className="h-5 w-5 rounded-full bg-amber-500 flex items-center justify-center mt-0.5">
+                <span className="text-white text-xs font-bold">!</span>
+              </div>
+              <div>
+                <h3 className="font-semibold text-amber-800 mb-1">
+                  Important Notice
+                </h3>
+                <p className="text-sm text-amber-700 leading-relaxed">
+                  All applications must be submitted at least before 8 PM the
+                  day before your desired date. Applications received after 8 PM
+                  will be processed the following business day.
+                </p>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
+          </CardContent>
+        </Card>
+      </div>
     </Layout>
   );
 }
