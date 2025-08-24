@@ -23,7 +23,6 @@ import { patchDormStorage } from '../data/patch-dorm-storage';
 import { updateUser } from '../data/patch-user';
 import { postDormCheck } from '../data/post-dorm-check';
 import { postDormStorage } from '../data/post-dorm-storage';
-import { postFilesUploadSingle } from '../data/post-files-upload-single';
 // Additional POST operations
 import { postUser } from '../data/post-user';
 import { postUserVerify } from '../data/post-user-verify';

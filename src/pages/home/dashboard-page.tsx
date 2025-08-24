@@ -31,15 +31,23 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { deleteAuthLogout } from '@/data/delete-auth-logout';
+import { getFriends, sendFriendRequest } from '@/data/friend';
+import {
+  getReceivedFriendRequests,
+  getSentFriendRequests,
+} from '@/data/friend';
+import { type GetUserResponse, VerifyStatus } from '@/data/get-user';
+import { getAllUsers } from '@/data/get-user-all';
+import { type Team, listTeams } from '@/data/team';
+import { useAuth } from '@/hooks';
 import { useGoogleCalendar } from '@/hooks/use-google-calendar';
 
 const mock = {
-  me: { name: 'VO!D', verified: true },
+  me: { name: 'VO!D', verified: false },
   dormitory: {
     storageNext: '25/08/24 14:00',
     retirementNext: '25/08/24 14:00',
   },
-  facility: { hasReservation: false },
   friends: ['dogs', 'cats', 'fish', 'sheep'],
   addable: [
     { name: 'frogs', added: false },
@@ -58,10 +66,46 @@ const mock = {
 };
 
 export default function DashboardPage() {
-  const data = mock;
-  const [teams, setTeams] = useState<string[]>(data.teams);
-  const [createOpen, setCreateOpen] = useState(false);
-  const [teamName, setTeamName] = useState('');
+  const { user } = useAuth();
+
+  const [users, setUsers] = useState<GetUserResponse[]>([]);
+  const [friends, setFriends] = useState<string[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [receivedRequests, setReceivedRequests] = useState<any[]>([]);
+  const [sentRequests, setSentRequests] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const users = await getAllUsers();
+      setUsers(users);
+    };
+
+    const fetchFriends = async () => {
+      const friends = await getFriends();
+      setFriends(friends);
+    };
+
+    const fetchTeams = async () => {
+      const teams = await listTeams();
+      if (teams) setTeams(teams);
+    };
+
+    const fetchReceivedRequests = async () => {
+      const requests = await getReceivedFriendRequests();
+      setReceivedRequests(requests);
+    };
+
+    const fetchSentRequests = async () => {
+      const requests = await getSentFriendRequests();
+      setSentRequests(requests);
+    };
+
+    fetchUsers();
+    fetchFriends();
+    fetchTeams();
+    fetchReceivedRequests();
+    fetchSentRequests();
+  }, []);
 
   const nav = useNavigate();
   const { isAuthed, error, signIn, listUpcomingEvents } = useGoogleCalendar();
@@ -74,6 +118,9 @@ export default function DashboardPage() {
       nav({ to: '/' });
     }
   };
+
+  const [createOpen, setCreateOpen] = useState(false);
+  const [teamName, setTeamName] = useState('');
   const [eventsOpen, setEventsOpen] = useState(false);
   const [events, setEvents] = useState<any[]>([]);
 
@@ -85,45 +132,61 @@ export default function DashboardPage() {
     }
   }, [eventsOpen, listUpcomingEvents]);
 
-  const handleConfirmAdd = useCallback((name: string) => {
-    alert(`Added ${name}`);
-  }, []);
+  const handleConfirmAdd = useCallback(
+    async (name: string) => {
+      // Find user by name
+      const userToAdd = users.find((u) => u.name === name);
+      if (!userToAdd) {
+        toast.error('Unknown user');
+        return;
+      }
+      try {
+        await sendFriendRequest(userToAdd.id);
+        toast.success(`Sent friend request to ${name}`);
+        // Optionally refresh friends list
+        const updatedFriends = await getFriends();
+        setFriends(updatedFriends);
+      } catch (e) {
+        // Error handled in API
+      }
+    },
+    [users],
+  );
 
-  const createTeam = useCallback(() => {
-    const name = teamName.trim();
-    if (!name) return;
-    setTeams((prev) => (prev.includes(name) ? prev : [...prev, name]));
-    setTeamName('');
-    setCreateOpen(false);
-  }, [teamName]);
-
-  const deleteTeam = useCallback((name: string) => {
-    setTeams((prev) => prev.filter((t) => t !== name));
-  }, []);
+  if (!user) return null;
 
   return (
     <Layout>
       <section className="mx-auto w-full mb-24">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-2xl overflow-hidden bg-neutral-200">
-              <img
-                src="/images/VO!D_logo.png"
-                alt="VO!D"
-                className="h-full w-full object-cover"
-              />
-            </div>
+            {/* <div className="h-12 w-12 rounded-2xl overflow-hidden bg-neutral-200"> */}
+            <UserCircle className="size-12" />
+            {/* </div> */}
             <div className="flex items-center gap-3">
               <div className="text-2xl md:text-3xl font-extrabold tracking-tight">
-                {data.me.name}
+                {user.name}
               </div>
-              {data.me.verified && (
+              {user.verifyStatus === VerifyStatus.VERIFIED ? (
                 <Button
                   variant="outline"
                   disabled
                   className="inline-flex items-center rounded-full border border-blue-400 px-3 py-1 text-sm text-blue-600 disabled:opacity-100"
                 >
                   School Verified ✓
+                </Button>
+              ) : user.verifyStatus === VerifyStatus.NONE ? (
+                <Link to="/auth/verification">
+                  <Button className="inline-flex items-center rounded-full px-3 py-1 text-sm">
+                    Verify Your School
+                  </Button>
+                </Link>
+              ) : (
+                <Button
+                  disabled
+                  className="inline-flex items-center rounded-full px-3 py-1 text-sm"
+                >
+                  Verification Pending...
                 </Button>
               )}
               <Button
@@ -215,11 +278,11 @@ export default function DashboardPage() {
                 <div className="space-y-3">
                   <InfoRow
                     label="Application for storage use"
-                    meta={data.dormitory.storageNext}
+                    meta={mock.dormitory.storageNext}
                   />
                   <InfoRow
                     label="Application for Maintenance Inspection"
-                    meta={data.dormitory.retirementNext}
+                    meta={mock.dormitory.retirementNext}
                   />
                 </div>
               </CardContent>
@@ -230,21 +293,10 @@ export default function DashboardPage() {
                 <h2 className="text-xl font-semibold mb-4">Timetable</h2>
                 <div className="grid grid-cols-[minmax(220px,1fr)_1fr] gap-6">
                   <div className="rounded-xl border grid place-content-center h-[200px] overflow-hidden">
-                    <img
-                      src="/images/timetable-placeholder.png"
-                      alt="Timetable"
-                      className="object-cover"
-                      onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).src =
-                          'data:image/svg+xml;charset=UTF-8,' +
-                          encodeURIComponent(
-                            `<svg xmlns="http://www.w3.org/2000/svg" width="420" height="200"><rect width="100%" height="100%" fill="#f3f4f6"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#6b7280">Timetable preview</text></svg>`,
-                          );
-                      }}
-                    />
+                    <img src="/images/mock_timetable.png" alt="Timetable" />
                   </div>
                   <ul className="list-disc pl-5 space-y-2 text-neutral-800">
-                    {data.timetableTips.map((t) => (
+                    {mock.timetableTips.map((t) => (
                       <li key={t}>{t}</li>
                     ))}
                   </ul>
@@ -254,30 +306,12 @@ export default function DashboardPage() {
           </div>
 
           <div className="space-y-8">
-            <Card className="rounded-2xl">
-              <CardContent className="p-6 min-h-[180px] flex flex-col justify-center">
-                <h2 className="text-xl font-semibold mb-4">Facility</h2>
-                <div className="rounded-2xl border p-10 text-center">
-                  {data.facility.hasReservation ? (
-                    <div className="text-lg">
-                      You have an active reservation
-                    </div>
-                  ) : (
-                    <>
-                      <div className="text-4xl">✕</div>
-                      <div className="mt-2 text-lg">No reservation</div>
-                    </>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
             <div className="grid gap-8 md:grid-cols-2">
               <Card className="rounded-2xl">
                 <CardContent className="h-full">
                   <h2 className="text-xl font-semibold mb-4">Friends</h2>
                   <div className="flex flex-wrap gap-3">
-                    {data.friends.map((f) => (
+                    {friends.map((f) => (
                       <span
                         key={f}
                         className="rounded-xl border px-3 py-1.5 text-sm"
@@ -341,11 +375,10 @@ export default function DashboardPage() {
                 <CardContent className="h-full">
                   <h2 className="text-xl font-semibold mb-4">Add Friends</h2>
                   <div className="flex flex-col gap-3">
-                    {data.addable.map((p) => (
+                    {users.map((user) => (
                       <AddFriendRow
-                        key={p.name}
-                        name={p.name}
-                        added={p.added}
+                        key={user.name}
+                        name={user.name}
                         onConfirm={handleConfirmAdd}
                       />
                     ))}
@@ -383,21 +416,64 @@ export default function DashboardPage() {
                           <DialogClose asChild>
                             <Button variant="outline">Cancel</Button>
                           </DialogClose>
-                          <Button
-                            onClick={createTeam}
-                            disabled={!teamName.trim()}
-                          >
-                            Create
-                          </Button>
+                          <Link to="/team">
+                            <Button>Create</Button>
+                          </Link>
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>
                   </div>
 
                   <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {teams.map((t) => (
-                      <TeamRow key={t} name={t} onDelete={deleteTeam} />
-                    ))}
+                    {teams.length === 0 ? (
+                      <div className="text-neutral-400 text-sm col-span-2">
+                        No teams found.
+                      </div>
+                    ) : (
+                      teams.map((team) => (
+                        <div
+                          key={team.id}
+                          className="flex items-center justify-between rounded-xl border px-3 py-2 text-sm"
+                        >
+                          <span className="truncate font-medium">
+                            {team.title}
+                          </span>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                className="inline-flex items-center gap-1"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                Delete
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="sm:max-w-[420px]">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  Delete team?
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  “{team.title}” 팀을 삭제합니다. 이 작업은
+                                  되돌릴 수 없습니다.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter className="gap-2 sm:gap-0">
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => {
+                                    /* TODO: implement delete handler */
+                                  }}
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -422,24 +498,11 @@ function InfoRow({ label, meta }: { label: string; meta?: string }) {
 
 function AddFriendRow({
   name,
-  added,
   onConfirm,
 }: {
   name: string;
-  added: boolean;
   onConfirm?: (name: string) => void;
 }) {
-  if (added) {
-    return (
-      <div className="flex items-center justify-between rounded-xl border px-3 py-1.5 text-sm">
-        <span>{name}</span>
-        <span className="inline-flex items-center rounded-md bg-green-100 text-green-700 px-2 py-0.5 text-xs">
-          ✓
-        </span>
-      </div>
-    );
-  }
-
   return (
     <div className="flex items-center justify-between rounded-xl border px-3 py-1.5 text-sm">
       <span>{name}</span>
@@ -466,46 +529,6 @@ function AddFriendRow({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
-}
-
-function TeamRow({
-  name,
-  onDelete,
-}: {
-  name: string;
-  onDelete: (name: string) => void;
-}) {
-  return (
-    <div className="flex items-center justify-between rounded-xl border px-3 py-2 text-sm">
-      <span className="truncate">{name}</span>
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
-          <Button
-            size="sm"
-            variant="destructive"
-            className="inline-flex items-center gap-1"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-            Delete
-          </Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent className="sm:max-w-[420px]">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete team?</AlertDialogTitle>
-            <AlertDialogDescription>
-              “{name}” 팀을 삭제합니다. 이 작업은 되돌릴 수 없습니다.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2 sm:gap-0">
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => onDelete(name)}>
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
