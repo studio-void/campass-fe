@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 
+import { useNavigate } from '@tanstack/react-router';
 import { Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { Layout } from '@/components';
 import {
@@ -28,12 +30,13 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { deleteAuthLogout } from '@/data/delete-auth-logout';
 import { useGoogleCalendar } from '@/hooks/use-google-calendar';
 
 const mock = {
   me: { name: 'VO!D', verified: true },
   dormitory: {
-    warehouseNext: '25/08/24 14:00',
+    storageNext: '25/08/24 14:00',
     retirementNext: '25/08/24 14:00',
   },
   facility: { hasReservation: false },
@@ -60,8 +63,17 @@ export default function DashboardPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [teamName, setTeamName] = useState('');
 
-  const { isReady, isAuthed, error, signIn, signOut, listUpcomingEvents } =
-    useGoogleCalendar();
+  const nav = useNavigate();
+  const { isAuthed, error, signIn, listUpcomingEvents } = useGoogleCalendar();
+
+  // Logout handler
+  const handleLogout = async () => {
+    const res = await deleteAuthLogout();
+    if (res?.success) {
+      toast.success('Logged out successfully');
+      nav({ to: '/' });
+    }
+  };
   const [eventsOpen, setEventsOpen] = useState(false);
   const [events, setEvents] = useState<any[]>([]);
 
@@ -91,7 +103,7 @@ export default function DashboardPage() {
 
   return (
     <Layout>
-      <section className="mx-auto max-w-7xl px-4 py-10 md:py-12">
+      <section className="mx-auto w-full py-10 md:py-12">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="h-12 w-12 rounded-2xl overflow-hidden bg-neutral-200">
@@ -106,86 +118,92 @@ export default function DashboardPage() {
                 {data.me.name}
               </div>
               {data.me.verified && (
-                <span className="inline-flex items-center rounded-full border border-blue-400 px-3 py-1 text-sm text-blue-600">
-                  학교 인증 완료 ✓
-                </span>
+                <Button
+                  variant="outline"
+                  disabled
+                  className="inline-flex items-center rounded-full border border-blue-400 px-3 py-1 text-sm text-blue-600 disabled:opacity-100"
+                >
+                  School Verified ✓
+                </Button>
               )}
+              <Button
+                variant="destructive"
+                onClick={handleLogout}
+                className="rounded-full px-3 py-1 text-sm"
+              >
+                Sign Out
+              </Button>
             </div>
           </div>
 
-          <div className="flex flex-col items-end gap-1">
-            {!isAuthed ? (
-              <>
-                <Button
-                  disabled={!isReady}
-                  onClick={signIn}
-                  className="h-10 px-5 rounded-full bg-sky-200/90 hover:bg-sky-200 text-slate-700 font-medium gap-2 ring-1 ring-sky-300 shadow-sm"
-                >
-                  <GoogleIcon className="h-5 w-5" />
-                  Google Log in
-                </Button>
-                <div className="text-xs text-neutral-500 text-right">
-                  Log in to Google account to use ‘Team project’
-                </div>
-                {error && (
-                  <div className="text-xs text-red-600 text-right">
-                    {String(error)}
-                  </div>
-                )}
-              </>
-            ) : (
-              <>
-                <div className="flex items-center gap-2">
-                  <Dialog open={eventsOpen} onOpenChange={setEventsOpen}>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" className="rounded-full">
-                        Upcoming events
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[520px]">
-                      <DialogHeader>
-                        <DialogTitle>Google Calendar</DialogTitle>
-                        <DialogDescription>Next 5 events</DialogDescription>
-                      </DialogHeader>
-                      <div className="max-h-[320px] overflow-auto">
-                        <ul className="text-sm text-slate-800 space-y-2">
-                          {events.length === 0 ? (
-                            <li className="text-slate-500">No events</li>
-                          ) : (
-                            events.map((e) => (
-                              <li key={e.id} className="rounded-lg border p-2">
-                                <div className="font-medium">
-                                  {e.summary || '(no title)'}
-                                </div>
-                                <div className="text-xs text-slate-500">
-                                  {e.start?.dateTime || e.start?.date} —{' '}
-                                  {e.end?.dateTime || e.end?.date}
-                                </div>
-                              </li>
-                            ))
-                          )}
-                        </ul>
-                      </div>
-                      <DialogFooter className="gap-2 sm:gap-0">
-                        <DialogClose asChild>
-                          <Button variant="outline">Close</Button>
-                        </DialogClose>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                  <Button
-                    variant="destructive"
-                    onClick={signOut}
-                    className="rounded-full"
+          <div className="flex items-center gap-2 justify-end">
+            <div className="flex flex-col items-end gap-1">
+              {!isAuthed ? (
+                <>
+                  <div
+                    role="button"
+                    onClick={signIn}
+                    className="flex items-center justify-center gap-3 h-10 px-6 rounded-md border border-neutral-300 shadow-sm bg-white hover:bg-neutral-50 text-sm font-medium text-neutral-700 cursor-pointer"
                   >
-                    Disconnect
-                  </Button>
-                </div>
-                <div className="text-xs text-neutral-500">
-                  Connected to Google Calendar
-                </div>
-              </>
-            )}
+                    <GoogleIcon className="h-5 w-5 shrink-0" />
+                    <span>Sign in with Google</span>
+                  </div>
+                  <div className="text-xs text-neutral-500 text-right">
+                    Log in to Google account to use ‘Team project’
+                  </div>
+                  {error && (
+                    <div className="text-xs text-red-600 text-right">
+                      {String(error)}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2">
+                    <Dialog open={eventsOpen} onOpenChange={setEventsOpen}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" className="rounded-full">
+                          Upcoming events
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[520px]">
+                        <DialogHeader>
+                          <DialogTitle>Google Calendar</DialogTitle>
+                          <DialogDescription>Next 5 events</DialogDescription>
+                        </DialogHeader>
+                        <div className="max-h-[320px] overflow-auto">
+                          <ul className="text-sm text-slate-800 space-y-2">
+                            {events.length === 0 ? (
+                              <li className="text-slate-500">No events</li>
+                            ) : (
+                              events.map((e) => (
+                                <li
+                                  key={e.id}
+                                  className="rounded-lg border p-2"
+                                >
+                                  <div className="font-medium">
+                                    {e.summary || '(no title)'}
+                                  </div>
+                                  <div className="text-xs text-slate-500">
+                                    {e.start?.dateTime || e.start?.date} —{' '}
+                                    {e.end?.dateTime || e.end?.date}
+                                  </div>
+                                </li>
+                              ))
+                            )}
+                          </ul>
+                        </div>
+                        <DialogFooter className="gap-2 sm:gap-0">
+                          <DialogClose asChild>
+                            <Button variant="outline">Close</Button>
+                          </DialogClose>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
@@ -196,8 +214,8 @@ export default function DashboardPage() {
                 <h2 className="text-xl font-semibold mb-4">Dormitory</h2>
                 <div className="space-y-3">
                   <InfoRow
-                    label="Application for warehouse use"
-                    meta={data.dormitory.warehouseNext}
+                    label="Application for storage use"
+                    meta={data.dormitory.storageNext}
                   />
                   <InfoRow
                     label="Application for Maintenance Inspection"
@@ -446,22 +464,22 @@ function TeamRow({
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" {...props}>
+    <svg viewBox="0 0 18 18" aria-hidden="true" {...props}>
       <path
-        fill="#EA4335"
-        d="M12 10.2v3.6h5.1c-.2 1.3-.9 2.4-1.9 3.1l3.1 2.4c1.8-1.7 2.9-4.2 2.9-7.2 0-.7-.1-1.4-.2-2H12z"
-      />
-      <path
-        fill="#34A853"
-        d="M5.3 14.3a7.2 7.2 0 0 0 6.7 4.7c2 0 3.7-.7 4.9-1.9l-3.1-2.4c-.8.6-1.7.9-2.8.9-2.1 0-3.9-1.4-4.6-3.3l-3.1 2z"
-      />
-      <path
+        d="M17.64 9.2045c0-.6376-.0573-1.251-.1636-1.8405H9v3.481h4.8364a4.138 4.138 0 0 1-1.7945 2.7145v2.256h2.9086c1.7032-1.569 2.6895-3.8776 2.6895-6.611z"
         fill="#4285F4"
-        d="M19.6 8.6c-.3-1-.9-1.9-1.7-2.7-1.2-1.1-2.9-1.9-4.9-1.9-3 0-5.6 1.7-6.8 4.2l3.2 2.5c.6-1.8 2.3-3.1 4.2-3.1 1.1 0 2 .4 2.7 1.1.7.7 1.2 1.6 1.3 2.6h2z"
       />
       <path
+        d="M9 18c2.43 0 4.469-0.8067 5.958-2.1845l-2.9086-2.256c-.8067.54-1.8392.861-3.0494.861-2.3456 0-4.3318-1.5825-5.0426-3.7112H.9573v2.331C2.4382 15.9833 5.4818 18 9 18z"
+        fill="#34A853"
+      />
+      <path
+        d="M3.9574 10.7098A5.9992 5.9992 0 0 1 3.6429 9c0-.5922.1029-1.168.3145-1.7098V4.959H.9573A8.9968 8.9968 0 0 0 0 9c0 1.4627.3491 2.844 0.9573 4.041l3.0001-2.3312z"
         fill="#FBBC05"
-        d="M5.3 8.2l-3.2-2.5A7.8 7.8 0 0 0 4 14.4l3.1-2a4.6 4.6 0 0 1-.1-4.2z"
+      />
+      <path
+        d="M9 3.571c1.3202 0 2.5093.453 3.442 1.342l2.5815-2.5816C13.466 0.896 11.43 0 9 0 5.4818 0 2.4382 2.0167.9573 4.959l3.0001 2.3312C4.6682 5.1619 6.6544 3.571 9 3.571z"
+        fill="#EA4335"
       />
     </svg>
   );

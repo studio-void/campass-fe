@@ -8,8 +8,11 @@ export * from './markdown-renderer';
 export * from './markdown-editor';
 export * from './ai-agent-popup';
 export * from './ai-agent-fab';
+export * from './google-calendar-demo';
 
 export * from './ui/button';
+export * from './ui/label';
+export * from './ui/textarea';
 
 export { default as CampassLogo } from './campass-logo';
 export { default as AIPopupWithRAG } from './ai-popup-with-rag';

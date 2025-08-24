@@ -21,7 +21,7 @@ import { getDormCheck } from '../data/get-dorm-check';
 import { getDormCheckById } from '../data/get-dorm-check-by-id';
 import { getDormStorage } from '../data/get-dorm-storage';
 import { getDormStorageById } from '../data/get-dorm-storage-by-id';
-import { getUser, getUserSchool } from '../data/get-user';
+import { getUser } from '../data/get-user';
 import { getAllUsers } from '../data/get-user-all';
 import { getUserByEmail } from '../data/get-user-by-email';
 import { getUserById } from '../data/get-user-by-id';
@@ -34,7 +34,7 @@ import { updateUser } from '../data/patch-user';
 import { updateWiki } from '../data/patch-wiki';
 import { postDormCheck } from '../data/post-dorm-check';
 import { postDormStorage } from '../data/post-dorm-storage';
-import { verifyUser } from '../data/post-user-verify';
+import { postUserVerify } from '../data/post-user-verify';
 import { postUserVerifyApprove } from '../data/post-user-verify-approve';
 import { postUserVerifyReject } from '../data/post-user-verify-reject';
 import { createWiki } from '../data/post-wiki';
@@ -164,11 +164,6 @@ const availableFunctions = {
     return JSON.stringify(result || {});
   },
 
-  getUserSchool: async () => {
-    const result = await getUserSchool();
-    return JSON.stringify({ school: result || 'Unknown' });
-  },
-
   getUserVerify: async () => {
     const result = await getUserVerify();
     return JSON.stringify(result || []);
@@ -265,8 +260,8 @@ const availableFunctions = {
     return JSON.stringify(result || { success: false });
   },
 
-  verifyUser: async (args: { verifyImageUrl: string }) => {
-    const result = await verifyUser(args);
+  postUserVerify: async (args: { verifyImageUrl: string }) => {
+    const result = await postUserVerify(args);
     return JSON.stringify(result || { success: false });
   },
 

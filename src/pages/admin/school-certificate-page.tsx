@@ -6,7 +6,7 @@ import {
   DialogTitle,
 } from '@radix-ui/react-dialog';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Check, X } from 'lucide-react';
+import { Check, Loader2, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button, Layout } from '@/components';
@@ -91,7 +91,7 @@ export const SchoolCertificatePage: React.FC = () => {
     return (
       <Layout>
         <div className="flex justify-center items-center h-32">
-          <p>Loading...</p>
+          <Loader2 size={16} className="animate-spin text-blue-600" />
         </div>
       </Layout>
     );
