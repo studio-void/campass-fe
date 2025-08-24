@@ -1,7 +1,8 @@
 # Campass
 
-> Your Personalized Campus-wide AI Agent  
-> [FE Repository](https://github.com/studio-void/campass-fe) · [BE Repository](https://github.com/studio-void/campass-be)
+## Your Personalized Campus-wide AI Agent
+
+[Demo](https://campass.scian.xyz/) · [API Docs](https://api.campass.scian.xyz/api) · [FE Repository](https://github.com/studio-void/campass-fe) · [BE Repository](https://github.com/studio-void/campass-be)
 
 ## Tech Stacks
 
