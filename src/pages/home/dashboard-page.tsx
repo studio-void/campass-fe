@@ -69,7 +69,7 @@ export default function DashboardPage() {
   const { user } = useAuth();
 
   const [users, setUsers] = useState<GetUserResponse[]>([]);
-  const [friends, setFriends] = useState<string[]>([]);
+  const [friends, setFriends] = useState<GetUserResponse[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [receivedRequests, setReceivedRequests] = useState<any[]>([]);
   const [sentRequests, setSentRequests] = useState<any[]>([]);
@@ -407,14 +407,27 @@ export default function DashboardPage() {
                         No friends
                       </span>
                     ) : (
-                      friends.map((f) => (
-                        <span
-                          key={f}
-                          className="rounded-xl border px-3 py-1.5 text-sm"
-                        >
-                          {f}
-                        </span>
-                      ))
+                      friends.map((f) => {
+                        // If f is an object, show f.name, else show f
+                        if (typeof f === 'object' && f !== null) {
+                          return (
+                            <span
+                              key={f.name}
+                              className="rounded-xl border px-3 py-1.5 text-sm"
+                            >
+                              {f.name}
+                            </span>
+                          );
+                        }
+                        return (
+                          <span
+                            key={f}
+                            className="rounded-xl border px-3 py-1.5 text-sm"
+                          >
+                            {f}
+                          </span>
+                        );
+                      })
                     )}
                   </div>
                 </CardContent>
