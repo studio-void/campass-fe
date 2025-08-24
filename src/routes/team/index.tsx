@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import Page from '@/pages/home/dashboard-page';
+import TeamProjectIndexPage from '@/pages/team';
 
 export const Route = createFileRoute('/team/')({
-  component: Page,
+  component: TeamProjectIndexPage,
 });

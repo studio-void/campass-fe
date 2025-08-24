@@ -66,8 +66,8 @@ export default function TeamProjectIndexPage() {
 
   return (
     <Layout>
-      <section className="py-10 md:py-14">
-        <div className="mx-auto max-w-7xl px-6 md:px-12 lg:px-24 xl:px-48">
+      <section className="py-10 md:py-14 w-full">
+        <div className="mx-auto w-full">
           <h1 className="text-3xl font-semibold">Team Project</h1>
           <p className="mt-1 text-neutral-600">
             Please choose a team to work on the project with and let me know the

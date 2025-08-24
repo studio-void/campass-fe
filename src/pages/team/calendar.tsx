@@ -75,7 +75,7 @@ export default function TeamCalendarPage() {
 
   return (
     <Layout>
-      <section className="mx-auto max-w-7xl px-6 md:px-12 lg:px-24 xl:px-48 py-10 md:py-14">
+      <section className="mx-auto w-full">
         <h1 className="text-3xl font-semibold">Team Project</h1>
         <p className="mt-1 text-neutral-600">
           Based on the team members&apos; calendars, we will find a team time
@@ -141,7 +141,7 @@ export default function TeamCalendarPage() {
               disabled={!selected}
               className="h-11 px-8"
             >
-              Keep Booking
+              Reserve
             </Button>
           </div>
         </div>
