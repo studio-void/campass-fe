@@ -67,9 +67,15 @@ export default function Hero() {
               <Link to="/auth/sign-in">
                 <Button size="lg">Get started</Button>
               </Link>
-              <Button size="lg" variant="outline">
-                Learn more
-              </Button>
+              <a
+                href="https://github.com/studio-void/campass-fe"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button size="lg" variant="outline">
+                  Source Code
+                </Button>
+              </a>
             </div>
           </div>
         </div>
