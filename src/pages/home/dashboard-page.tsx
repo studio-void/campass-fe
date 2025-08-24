@@ -70,7 +70,7 @@ export default function DashboardPage() {
   const handleLogout = async () => {
     const res = await deleteAuthLogout();
     if (res?.success) {
-      toast.success('로그아웃 되었습니다.');
+      toast.success('Logged out successfully');
       nav({ to: '/' });
     }
   };
@@ -103,7 +103,7 @@ export default function DashboardPage() {
 
   return (
     <Layout>
-      <section className="mx-auto max-w-7xl px-4 py-10 md:py-12">
+      <section className="mx-auto w-full py-10 md:py-12">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="h-12 w-12 rounded-2xl overflow-hidden bg-neutral-200">
@@ -123,7 +123,7 @@ export default function DashboardPage() {
                   disabled
                   className="inline-flex items-center rounded-full border border-blue-400 px-3 py-1 text-sm text-blue-600 disabled:opacity-100"
                 >
-                  학교 인증 완료 ✓
+                  School Verified ✓
                 </Button>
               )}
               <Button
@@ -131,7 +131,7 @@ export default function DashboardPage() {
                 onClick={handleLogout}
                 className="rounded-full px-3 py-1 text-sm"
               >
-                로그아웃
+                Sign Out
               </Button>
             </div>
           </div>
