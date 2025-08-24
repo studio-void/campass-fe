@@ -4,20 +4,13 @@ import { FileText, Image as ImageIcon } from 'lucide-react';
 
 import { Dropzone, Layout } from '@/components';
 import { Button } from '@/components/ui/button';
+import { postFilesUploadSingle } from '@/data/post-files-upload-single';
+import { postUserVerify } from '@/data/post-user-verify';
 
 type VerifiedStatus = 'none' | 'pending' | 'verified';
 
 const ACCEPT = 'image/*,.pdf';
 const MAX_SIZE = 10 * 1024 * 1024;
-async function fetchVerifiedStatusMock(): Promise<VerifiedStatus> {
-  await new Promise((r) => setTimeout(r, 300));
-  return Math.random() < 0.5 ? 'none' : 'pending';
-}
-async function uploadDocumentMock(file: File): Promise<{ ok: true }> {
-  void file;
-  await new Promise((r) => setTimeout(r, 500));
-  return { ok: true };
-}
 
 export default function VerificationPage() {
   const [status, setStatus] = useState<VerifiedStatus>('none');
@@ -28,11 +21,8 @@ export default function VerificationPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      const s = await fetchVerifiedStatusMock();
-      setStatus(s);
-      setLoading(false);
-    })();
+    // TODO: Replace with real API call to fetch verification status
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -59,7 +49,11 @@ export default function VerificationPage() {
     if (!uploadedFile || submitting) return;
     setSubmitting(true);
     try {
-      await uploadDocumentMock(uploadedFile);
+      // Upload file and get URL
+      const uploadRes = await postFilesUploadSingle({ file: uploadedFile });
+      const verifyImageUrl = uploadRes?.url;
+      if (!verifyImageUrl) throw new Error('File upload failed');
+      await postUserVerify({ verifyImageUrl });
       setStatus('pending');
     } finally {
       setSubmitting(false);
