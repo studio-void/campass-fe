@@ -14,9 +14,12 @@ import { Route as AdminRequiredRouteImport } from './routes/_admin-required'
 import { Route as WikiRouteRouteImport } from './routes/wiki/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WikiIndexRouteImport } from './routes/wiki/index'
+import { Route as TeamIndexRouteImport } from './routes/team/index'
 import { Route as HomeIndexRouteImport } from './routes/home/index'
 import { Route as DormIndexRouteImport } from './routes/dorm/index'
 import { Route as WikiWikiIdRouteImport } from './routes/wiki/$wikiId'
+import { Route as TeamDoneRouteImport } from './routes/team/done'
+import { Route as TeamCalendarRouteImport } from './routes/team/calendar'
 import { Route as DormCheckMaintenanceRouteImport } from './routes/dorm/check-maintenance'
 import { Route as DormCheckFormRouteImport } from './routes/dorm/check-form'
 import { Route as AuthVerificationRouteImport } from './routes/auth/verification'
@@ -56,6 +59,11 @@ const WikiIndexRoute = WikiIndexRouteImport.update({
   path: '/',
   getParentRoute: () => WikiRouteRoute,
 } as any)
+const TeamIndexRoute = TeamIndexRouteImport.update({
+  id: '/team/',
+  path: '/team/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HomeIndexRoute = HomeIndexRouteImport.update({
   id: '/home/',
   path: '/home/',
@@ -70,6 +78,16 @@ const WikiWikiIdRoute = WikiWikiIdRouteImport.update({
   id: '/$wikiId',
   path: '/$wikiId',
   getParentRoute: () => WikiRouteRoute,
+} as any)
+const TeamDoneRoute = TeamDoneRouteImport.update({
+  id: '/team/done',
+  path: '/team/done',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TeamCalendarRoute = TeamCalendarRouteImport.update({
+  id: '/team/calendar',
+  path: '/team/calendar',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const DormCheckMaintenanceRoute = DormCheckMaintenanceRouteImport.update({
   id: '/dorm/check-maintenance',
@@ -154,9 +172,12 @@ export interface FileRoutesByFullPath {
   '/auth/verification': typeof AuthVerificationRoute
   '/dorm/check-form': typeof DormCheckFormRoute
   '/dorm/check-maintenance': typeof DormCheckMaintenanceRoute
+  '/team/calendar': typeof TeamCalendarRoute
+  '/team/done': typeof TeamDoneRoute
   '/wiki/$wikiId': typeof WikiWikiIdRouteWithChildren
   '/dorm': typeof DormIndexRoute
   '/home': typeof HomeIndexRoute
+  '/team': typeof TeamIndexRoute
   '/wiki/': typeof WikiIndexRoute
   '/admin/dorm-check': typeof AdminRequiredAdminDormCheckRoute
   '/admin/dorm-storage': typeof AdminRequiredAdminDormStorageRoute
@@ -176,9 +197,12 @@ export interface FileRoutesByTo {
   '/auth/verification': typeof AuthVerificationRoute
   '/dorm/check-form': typeof DormCheckFormRoute
   '/dorm/check-maintenance': typeof DormCheckMaintenanceRoute
+  '/team/calendar': typeof TeamCalendarRoute
+  '/team/done': typeof TeamDoneRoute
   '/wiki/$wikiId': typeof WikiWikiIdRouteWithChildren
   '/dorm': typeof DormIndexRoute
   '/home': typeof HomeIndexRoute
+  '/team': typeof TeamIndexRoute
   '/wiki': typeof WikiIndexRoute
   '/admin/dorm-check': typeof AdminRequiredAdminDormCheckRoute
   '/admin/dorm-storage': typeof AdminRequiredAdminDormStorageRoute
@@ -201,9 +225,12 @@ export interface FileRoutesById {
   '/auth/verification': typeof AuthVerificationRoute
   '/dorm/check-form': typeof DormCheckFormRoute
   '/dorm/check-maintenance': typeof DormCheckMaintenanceRoute
+  '/team/calendar': typeof TeamCalendarRoute
+  '/team/done': typeof TeamDoneRoute
   '/wiki/$wikiId': typeof WikiWikiIdRouteWithChildren
   '/dorm/': typeof DormIndexRoute
   '/home/': typeof HomeIndexRoute
+  '/team/': typeof TeamIndexRoute
   '/wiki/': typeof WikiIndexRoute
   '/_admin-required/admin/dorm-check': typeof AdminRequiredAdminDormCheckRoute
   '/_admin-required/admin/dorm-storage': typeof AdminRequiredAdminDormStorageRoute
@@ -226,9 +253,12 @@ export interface FileRouteTypes {
     | '/auth/verification'
     | '/dorm/check-form'
     | '/dorm/check-maintenance'
+    | '/team/calendar'
+    | '/team/done'
     | '/wiki/$wikiId'
     | '/dorm'
     | '/home'
+    | '/team'
     | '/wiki/'
     | '/admin/dorm-check'
     | '/admin/dorm-storage'
@@ -248,9 +278,12 @@ export interface FileRouteTypes {
     | '/auth/verification'
     | '/dorm/check-form'
     | '/dorm/check-maintenance'
+    | '/team/calendar'
+    | '/team/done'
     | '/wiki/$wikiId'
     | '/dorm'
     | '/home'
+    | '/team'
     | '/wiki'
     | '/admin/dorm-check'
     | '/admin/dorm-storage'
@@ -272,9 +305,12 @@ export interface FileRouteTypes {
     | '/auth/verification'
     | '/dorm/check-form'
     | '/dorm/check-maintenance'
+    | '/team/calendar'
+    | '/team/done'
     | '/wiki/$wikiId'
     | '/dorm/'
     | '/home/'
+    | '/team/'
     | '/wiki/'
     | '/_admin-required/admin/dorm-check'
     | '/_admin-required/admin/dorm-storage'
@@ -297,8 +333,11 @@ export interface RootRouteChildren {
   AuthVerificationRoute: typeof AuthVerificationRoute
   DormCheckFormRoute: typeof DormCheckFormRoute
   DormCheckMaintenanceRoute: typeof DormCheckMaintenanceRoute
+  TeamCalendarRoute: typeof TeamCalendarRoute
+  TeamDoneRoute: typeof TeamDoneRoute
   DormIndexRoute: typeof DormIndexRoute
   HomeIndexRoute: typeof HomeIndexRoute
+  TeamIndexRoute: typeof TeamIndexRoute
   AuthGoogleCallbackRoute: typeof AuthGoogleCallbackRoute
   DormStorageFormRoute: typeof DormStorageFormRoute
   DormStorageIndexRoute: typeof DormStorageIndexRoute
@@ -341,6 +380,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WikiIndexRouteImport
       parentRoute: typeof WikiRouteRoute
     }
+    '/team/': {
+      id: '/team/'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof TeamIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/home/': {
       id: '/home/'
       path: '/home'
@@ -361,6 +407,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/wiki/$wikiId'
       preLoaderRoute: typeof WikiWikiIdRouteImport
       parentRoute: typeof WikiRouteRoute
+    }
+    '/team/done': {
+      id: '/team/done'
+      path: '/team/done'
+      fullPath: '/team/done'
+      preLoaderRoute: typeof TeamDoneRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/team/calendar': {
+      id: '/team/calendar'
+      path: '/team/calendar'
+      fullPath: '/team/calendar'
+      preLoaderRoute: typeof TeamCalendarRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/dorm/check-maintenance': {
       id: '/dorm/check-maintenance'
@@ -520,8 +580,11 @@ const rootRouteChildren: RootRouteChildren = {
   AuthVerificationRoute: AuthVerificationRoute,
   DormCheckFormRoute: DormCheckFormRoute,
   DormCheckMaintenanceRoute: DormCheckMaintenanceRoute,
+  TeamCalendarRoute: TeamCalendarRoute,
+  TeamDoneRoute: TeamDoneRoute,
   DormIndexRoute: DormIndexRoute,
   HomeIndexRoute: HomeIndexRoute,
+  TeamIndexRoute: TeamIndexRoute,
   AuthGoogleCallbackRoute: AuthGoogleCallbackRoute,
   DormStorageFormRoute: DormStorageFormRoute,
   DormStorageIndexRoute: DormStorageIndexRoute,
