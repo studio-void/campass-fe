@@ -67,7 +67,7 @@ export default function TeamProjectIndexPage() {
 
   return (
     <Layout>
-      <section className="py-10 md:py-14 w-full">
+      <section className="w-full">
         <div className="mx-auto w-full">
           <h1 className="text-3xl font-semibold">Team Project</h1>
           <p className="mt-1 text-neutral-600">

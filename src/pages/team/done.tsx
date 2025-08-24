@@ -19,7 +19,7 @@ export default function TeamProjectDonePage() {
 
   return (
     <Layout>
-      <section className="py-16 md:py-20 w-full">
+      <section className="w-full">
         <div className="w-full mx-auto  text-center">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight leading-tight">
             <span className="block">Your reservation has been completed.</span>
