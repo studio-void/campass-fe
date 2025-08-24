@@ -5,7 +5,7 @@ import { api } from '../lib/api';
 
 export interface PostFilesUploadSingleRequest {
   file: File;
-  prefix?: string;
+  prefix: string;
 }
 
 export interface PostFilesUploadSingleResponse {

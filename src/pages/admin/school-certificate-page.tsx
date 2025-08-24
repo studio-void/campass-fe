@@ -49,6 +49,8 @@ export const SchoolCertificatePage: React.FC = () => {
     },
   });
 
+  console.log('Fetched users for verification:', users);
+
   // Handle error with toast
   useEffect(() => {
     if (error) {

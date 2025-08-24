@@ -50,7 +50,10 @@ export default function VerificationPage() {
     setSubmitting(true);
     try {
       // Upload file and get URL
-      const uploadRes = await postFilesUploadSingle({ file: uploadedFile });
+      const uploadRes = await postFilesUploadSingle({
+        prefix: 'verification',
+        file: uploadedFile,
+      });
       const verifyImageUrl = uploadRes?.url;
       if (!verifyImageUrl) throw new Error('File upload failed');
       await postUserVerify({ verifyImageUrl });
