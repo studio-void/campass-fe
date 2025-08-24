@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { useNavigate } from '@tanstack/react-router';
-import { Trash2 } from 'lucide-react';
+import { Link, useNavigate } from '@tanstack/react-router';
+import { Plus, PlusIcon, Trash2, UserCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Layout } from '@/components';
@@ -210,7 +210,7 @@ export default function DashboardPage() {
         <div className="mt-8 grid gap-8 md:grid-cols-2 items-start">
           <div className="space-y-8">
             <Card className="rounded-2xl">
-              <CardContent className="p-6 min-h-[180px] flex flex-col justify-between">
+              <CardContent className="min-h-[180px] flex flex-col justify-between">
                 <h2 className="text-xl font-semibold mb-4">Dormitory</h2>
                 <div className="space-y-3">
                   <InfoRow
@@ -226,7 +226,7 @@ export default function DashboardPage() {
             </Card>
 
             <Card className="rounded-2xl">
-              <CardContent className="p-6">
+              <CardContent className="">
                 <h2 className="text-xl font-semibold mb-4">Timetable</h2>
                 <div className="grid grid-cols-[minmax(220px,1fr)_1fr] gap-6">
                   <div className="rounded-xl border grid place-content-center h-[200px] overflow-hidden">
@@ -274,7 +274,7 @@ export default function DashboardPage() {
 
             <div className="grid gap-8 md:grid-cols-2">
               <Card className="rounded-2xl">
-                <CardContent className="p-6 h-full">
+                <CardContent className="h-full">
                   <h2 className="text-xl font-semibold mb-4">Friends</h2>
                   <div className="flex flex-wrap gap-3">
                     {data.friends.map((f) => (
@@ -290,7 +290,55 @@ export default function DashboardPage() {
               </Card>
 
               <Card className="rounded-2xl">
-                <CardContent className="p-6 h-full">
+                <CardContent className="h-full">
+                  <h2 className="text-xl font-semibold mb-4">
+                    Received Friend Requests
+                  </h2>
+                  <div className="flex flex-wrap gap-3">
+                    {receivedRequests.length === 0 ? (
+                      <span className="text-neutral-400 text-sm">
+                        No received requests
+                      </span>
+                    ) : (
+                      receivedRequests.map((req) => (
+                        <span
+                          key={req.id}
+                          className="rounded-xl border px-3 py-1.5 text-sm"
+                        >
+                          {req.from?.name || req.fromName || req.fromId}
+                        </span>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="rounded-2xl">
+                <CardContent className="h-full">
+                  <h2 className="text-xl font-semibold mb-4">
+                    Sent Friend Requests
+                  </h2>
+                  <div className="flex flex-wrap gap-3">
+                    {sentRequests.length === 0 ? (
+                      <span className="text-neutral-400 text-sm">
+                        No sent requests
+                      </span>
+                    ) : (
+                      sentRequests.map((req) => (
+                        <span
+                          key={req.id}
+                          className="rounded-xl border px-3 py-1.5 text-sm"
+                        >
+                          {req.to?.name || req.toName || req.toId}
+                        </span>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="rounded-2xl">
+                <CardContent className="h-full">
                   <h2 className="text-xl font-semibold mb-4">Add Friends</h2>
                   <div className="flex flex-col gap-3">
                     {data.addable.map((p) => (
@@ -306,7 +354,7 @@ export default function DashboardPage() {
               </Card>
 
               <Card className="rounded-2xl md:col-span-2">
-                <CardContent className="p-6">
+                <CardContent className="">
                   <div className="flex items-center justify-between gap-3">
                     <h2 className="text-xl font-semibold">My team</h2>
 
@@ -397,8 +445,8 @@ function AddFriendRow({
       <span>{name}</span>
       <Dialog>
         <DialogTrigger asChild>
-          <Button size="sm" variant="outline">
-            Add
+          <Button size="icon" className="p-0">
+            <PlusIcon />
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[420px]">
@@ -408,7 +456,7 @@ function AddFriendRow({
               Do you want to add <b>{name}</b> to your friends?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter className="flex gap-2">
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>
