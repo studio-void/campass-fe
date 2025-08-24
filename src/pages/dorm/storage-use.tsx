@@ -1,106 +1,124 @@
 import { Link } from '@tanstack/react-router';
-import { ArrowRight } from 'lucide-react';
+import {
+  ArrowRight,
+  Calendar,
+  CheckCircle,
+  Clock,
+  MapPin,
+  Package,
+  PackageOpen,
+} from 'lucide-react';
 
 import { Layout } from '@/components';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 
 export default function StorageUseIntroPage() {
   return (
     <Layout>
-      <section
-        className="mx-auto max-w-6xl px-4 py-10 md:py-14"
-        data-storage-guide="true"
-      >
-        <h1 className="text-[28px] md:text-[32px] font-extrabold tracking-tight">
-          Dormitory : Application for storage use
-        </h1>
-        <p className="mt-3 text-neutral-600">
-          All tasks must be applied at least before 8 p.m. the day before.{' '}
-          <br />
-          Please note that the work received after 8 p.m. can be processed the
-          next day.
-        </p>
-
-        <div className="mt-12 mx-auto max-w-5xl grid grid-cols-1 md:grid-cols-[360px_40px_1fr] gap-10 items-center">
-          <Row
-            title="Put your luggage in"
-            sectionTitle="During the semester"
-            bullets={[
-              'Time: 10 minutes before the end of the house office hour',
-              'Method: Write a pledge in the dormitory room (no proxy pledge required)',
-              'Venue: Only the old building underground storage',
-              'Period: Until two weeks before the end of the semester when storage began',
-              'Precautions: Leaving due to absence/graduation → pack all luggage. You have to pick it up at the storage.',
-            ]}
-          />
-
-          <Row
-            title="Take off your luggage"
-            sectionTitle="During vacation"
-            bullets={[
-              'Time: Pre-announced storage opening time',
-              'Method: Fill out luggage & written vows in front of the storage',
-              'Place: Desired storage where you want to put the box',
-              'Period: Period stated in the storage pledge',
-              'Note: Refrigerator storage is only available in old office storages',
-            ]}
-          />
+      <div className="space-y-6 mb-24 w-full">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold">Storage Application</h1>
+            <p className="text-muted-foreground">
+              Submit your application for dormitory storage
+            </p>
+          </div>
         </div>
 
-        <div className="mt-12 flex justify-end">
-          <Link to="/dorm/storage/form">
-            <Button className="h-12 md:h-14 px-10 md:px-12 min-w-[260px] text-base md:text-lg">
-              Go to reservation
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </Link>
-        </div>
-      </section>
-    </Layout>
-  );
-}
-
-function Row({
-  title,
-  sectionTitle,
-  bullets,
-}: {
-  title: string;
-  sectionTitle: string;
-  bullets: string[];
-}) {
-  return (
-    <>
-      <div className="rounded-2xl mx-auto md:mx-0" role="presentation">
-        <Card className="rounded-2xl border-2 border-blue-500 shadow-sm cursor-default select-none">
-          <CardContent className="h-24 md:h-28 px-8">
-            <div className="h-full w-full flex items-center justify-center">
-              <div className="text-xl md:text-2xl font-semibold text-center leading-snug whitespace-nowrap">
-                {title}
+        {/* Available Storage Locations */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">
+              Available Storage Locations
+            </CardTitle>
+            <CardDescription>
+              Choose from the following storage facilities
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="flex items-center gap-3 p-3 rounded-lg border">
+                <MapPin className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <div className="font-medium text-sm">Building A Basement</div>
+                  <div className="text-xs text-muted-foreground">
+                    Male & Female
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 rounded-lg border">
+                <MapPin className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <div className="font-medium text-sm">
+                    Building B 4th Floor
+                  </div>
+                  <div className="text-xs text-muted-foreground">Male Only</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 rounded-lg border">
+                <MapPin className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <div className="font-medium text-sm">
+                    Building B 5th Floor
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Female Only
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 rounded-lg border">
+                <MapPin className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <div className="font-medium text-sm">
+                    Building B 6th Floor
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Female Only
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>
         </Card>
-      </div>
 
-      <div
-        className="hidden md:flex items-center justify-center"
-        aria-hidden="true"
-      >
-        <ArrowRight className="h-6 w-6 text-blue-500" />
-      </div>
+        {/* Important Notice */}
+        <Card className="border-amber-200 bg-amber-50">
+          <CardContent>
+            <h3 className="font-semibold text-amber-800 mb-3">
+              Important Guidelines
+            </h3>
+            <div className="space-y-2 text-sm text-amber-700">
+              <p>• Applications must be submitted before 8 PM the day before</p>
+              <p>
+                • Refrigerator storage only available in old building storages
+              </p>
+              <p>
+                • Students leaving due to absence/graduation must collect all
+                items
+              </p>
+              <p>• Storage duration is limited as specified in the agreement</p>
+            </div>
+          </CardContent>
+        </Card>
 
-      <div>
-        <h3 className="text-blue-600 font-semibold text-lg md:text-xl">
-          {sectionTitle}
-        </h3>
-        <ul className="mt-3 space-y-2 list-disc pl-5 text-neutral-900 leading-relaxed text-base md:text-lg">
-          {bullets.map((b, i) => (
-            <li key={i}>{b}</li>
-          ))}
-        </ul>
+        {/* Action Button */}
+        <div className="flex justify-end">
+          <Link to="/dorm/storage/form">
+            <Button size="lg" className="min-w-[200px]">
+              Apply for Storage
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
       </div>
-    </>
+    </Layout>
   );
 }

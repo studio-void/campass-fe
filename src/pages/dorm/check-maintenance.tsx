@@ -1,92 +1,138 @@
 import { Link } from '@tanstack/react-router';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, UserMinus, UserX, Wrench } from 'lucide-react';
 
 import { Layout } from '@/components';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 
-type Row = {
+type InspectionType = {
+  id: string;
   title: string;
-  desc: string;
-  to: string;
+  description: string;
+  icon: any;
+  iconColor: string;
+  requirements: string[];
 };
 
-const ROWS: Row[] = [
+const INSPECTION_TYPES: InspectionType[] = [
   {
-    title: 'Retirement Inspection',
-    desc: 'We apply if all the residents in the room are discharged.',
-    to: '/dorm/retirement-form',
+    id: 'retirement_all',
+    title: 'Full Room Retirement Inspection',
+    description: 'Required when all residents are leaving the room',
+    icon: UserX,
+    iconColor: 'text-red-600 bg-red-100',
+    requirements: [
+      'All roommates must be leaving',
+      'Complete room clearance required',
+      'Final checkout process',
+    ],
   },
   {
-    title: 'A one person Retirement Inspection',
-    desc: 'Only one person leaves the room. If there are any leftovers, you can apply.',
-    to: '/dorm/retirement-form',
+    id: 'retirement_single',
+    title: 'Single Person Retirement Inspection',
+    description: 'For when only one person is leaving the room',
+    icon: UserMinus,
+    iconColor: 'text-orange-600 bg-orange-100',
+    requirements: [
+      'At least one roommate remaining',
+      'Personal belongings clearance',
+      'Partial room inspection',
+    ],
   },
   {
+    id: 'maintenance',
     title: 'Maintenance Inspection',
-    desc: 'Lived more than a year and have not done retirement inspection. Room only. (New student X)',
-    to: '/dorm/retirement-form',
+    description: 'Annual maintenance check for continuing residents',
+    icon: Wrench,
+    iconColor: 'text-blue-600 bg-blue-100',
+    requirements: [
+      'Resided for more than one year',
+      'No previous retirement inspection',
+      'Room condition assessment',
+    ],
   },
 ];
 
 export default function CheckMaintenanceIntroPage() {
   return (
     <Layout>
-      <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
-        <h1 className="text-[28px] md:text-[32px] font-extrabold tracking-tight">
-          Dormitory : Application for Retirement / Maintenance Inspection
-        </h1>
+      <div className="space-y-6 mb-24 w-full">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold">
+              Retirement & Maintenance Inspection
+            </h1>
+            <p className="text-muted-foreground">
+              Choose the appropriate inspection type for your situation
+            </p>
+          </div>
+        </div>
 
-        <p className="mt-3 text-[16px] md:text-[17px] text-neutral-700">
-          All tasks must be applied at least before 8 p.m. the day before.
-          Please note that the work received after 8 p.m. can be processed the
-          next day.
-        </p>
-
-        <div className="mt-10 grid grid-cols-1 md:grid-cols-[520px_56px_1fr] gap-6">
-          {ROWS.map((row) => (
-            <RowItem key={row.title} row={row} />
+        {/* Inspection Types */}
+        <div className="grid gap-6">
+          {INSPECTION_TYPES.map((type) => (
+            <Card key={type.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="flex items-start gap-4">
+                  <div
+                    className={`h-12 w-12 rounded-lg flex items-center justify-center ${type.iconColor}`}
+                  >
+                    <type.icon className="h-6 w-6" />
+                  </div>
+                  <div className="flex-1">
+                    <CardTitle className="text-lg">{type.title}</CardTitle>
+                    <CardDescription className="text-sm mt-1">
+                      {type.description}
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="ml-16">
+                  <h4 className="font-medium text-sm mb-2">Requirements:</h4>
+                  <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                    {type.requirements.map((req, index) => (
+                      <li key={index}>{req}</li>
+                    ))}
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
 
-        <div className="mt-12 flex justify-end">
+        {/* Important Guidelines */}
+        <Card className="border-amber-200 bg-amber-50">
+          <CardContent>
+            <h3 className="font-semibold text-amber-800 mb-3">
+              Important Guidelines
+            </h3>
+            <div className="space-y-2 text-sm text-amber-700">
+              <p>• Applications must be submitted before 8 PM the day before</p>
+              <p>• The last resident cannot apply for single-person checkout</p>
+              <p>• Incorrect application type may result in rejection</p>
+              <p>• Applications outside official periods are not accepted</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Action Button */}
+        <div className="flex justify-end">
           <Link to="/dorm/check-form">
-            <Button className="h-12 md:h-14 px-10 md:px-12 min-w-[260px] text-base md:text-lg">
-              Go to reservation
+            <Button size="lg" className="min-w-[200px]">
+              Proceed to Application
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
         </div>
-      </section>
+      </div>
     </Layout>
-  );
-}
-
-function RowItem({ row }: { row: Row }) {
-  return (
-    <>
-      <div className="rounded-2xl">
-        <Card className="rounded-2xl border-2 border-blue-400/70 shadow-sm cursor-default select-none">
-          <CardContent className="h-24 md:h-28 flex items-center justify-center p-6 md:p-8">
-            <div className="text-[18px] md:text-[22px] font-semibold text-center leading-snug">
-              {row.title}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div
-        className="hidden md:flex items-center justify-center"
-        aria-hidden="true"
-      >
-        <ArrowRight className="h-6 w-6 text-blue-500" />
-      </div>
-
-      <div className="flex items-center">
-        <p className="text-[16px] md:text-[17px] text-neutral-800 leading-relaxed">
-          {row.desc}
-        </p>
-      </div>
-    </>
   );
 }
