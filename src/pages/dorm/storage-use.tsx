@@ -1,13 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import {
-  ArrowRight,
-  Calendar,
-  CheckCircle,
-  Clock,
-  MapPin,
-  Package,
-  PackageOpen,
-} from 'lucide-react';
+import { ArrowRight, MapPin } from 'lucide-react';
 
 import { Layout } from '@/components';
 import { Button } from '@/components/ui/button';
