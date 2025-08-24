@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { Link, useNavigate } from '@tanstack/react-router';
-import { Plus, PlusIcon, Trash2, UserCircle } from 'lucide-react';
+import { PlusIcon, Trash2, UserCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Layout } from '@/components';
@@ -303,6 +303,97 @@ export default function DashboardPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* My team card moved below Timetable */}
+            <Card className="rounded-2xl">
+              <CardContent className="">
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="text-xl font-semibold">My team</h2>
+
+                  <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="ml-auto">Create new team</Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[420px]">
+                      <DialogHeader>
+                        <DialogTitle>Create a team</DialogTitle>
+                        <DialogDescription>
+                          Enter a team name to create.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="grid gap-2 py-2">
+                        <Label htmlFor="teamName">Team name</Label>
+                        <Input
+                          id="teamName"
+                          value={teamName}
+                          onChange={(e) => setTeamName(e.target.value)}
+                          placeholder="e.g. Campass"
+                          autoFocus
+                        />
+                      </div>
+                      <DialogFooter className="gap-2 sm:gap-0">
+                        <DialogClose asChild>
+                          <Button variant="outline">Cancel</Button>
+                        </DialogClose>
+                        <Link to="/team">
+                          <Button>Create</Button>
+                        </Link>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {teams.length === 0 ? (
+                    <div className="text-neutral-400 text-sm col-span-2">
+                      No teams found.
+                    </div>
+                  ) : (
+                    teams.map((team) => (
+                      <div
+                        key={team.id}
+                        className="flex items-center justify-between rounded-xl border px-3 py-2 text-sm"
+                      >
+                        <span className="truncate font-medium">
+                          {team.title}
+                        </span>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              className="inline-flex items-center gap-1"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                              Delete
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="sm:max-w-[420px]">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete team?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                “{team.title}” 팀을 삭제합니다. 이 작업은 되돌릴
+                                수 없습니다.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter className="gap-2 sm:gap-0">
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => {
+                                  /* TODO: implement delete handler */
+                                }}
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           <div className="space-y-8">
@@ -311,14 +402,20 @@ export default function DashboardPage() {
                 <CardContent className="h-full">
                   <h2 className="text-xl font-semibold mb-4">Friends</h2>
                   <div className="flex flex-wrap gap-3">
-                    {friends.map((f) => (
-                      <span
-                        key={f}
-                        className="rounded-xl border px-3 py-1.5 text-sm"
-                      >
-                        {f}
+                    {friends.length === 0 ? (
+                      <span className="text-neutral-400 text-sm">
+                        No friends
                       </span>
-                    ))}
+                    ) : (
+                      friends.map((f) => (
+                        <span
+                          key={f}
+                          className="rounded-xl border px-3 py-1.5 text-sm"
+                        >
+                          {f}
+                        </span>
+                      ))
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -382,98 +479,6 @@ export default function DashboardPage() {
                         onConfirm={handleConfirmAdd}
                       />
                     ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-2xl md:col-span-2">
-                <CardContent className="">
-                  <div className="flex items-center justify-between gap-3">
-                    <h2 className="text-xl font-semibold">My team</h2>
-
-                    <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-                      <DialogTrigger asChild>
-                        <Button className="ml-auto">Create new team</Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-[420px]">
-                        <DialogHeader>
-                          <DialogTitle>Create a team</DialogTitle>
-                          <DialogDescription>
-                            Enter a team name to create.
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="grid gap-2 py-2">
-                          <Label htmlFor="teamName">Team name</Label>
-                          <Input
-                            id="teamName"
-                            value={teamName}
-                            onChange={(e) => setTeamName(e.target.value)}
-                            placeholder="e.g. Campass"
-                            autoFocus
-                          />
-                        </div>
-                        <DialogFooter className="gap-2 sm:gap-0">
-                          <DialogClose asChild>
-                            <Button variant="outline">Cancel</Button>
-                          </DialogClose>
-                          <Link to="/team">
-                            <Button>Create</Button>
-                          </Link>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-
-                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {teams.length === 0 ? (
-                      <div className="text-neutral-400 text-sm col-span-2">
-                        No teams found.
-                      </div>
-                    ) : (
-                      teams.map((team) => (
-                        <div
-                          key={team.id}
-                          className="flex items-center justify-between rounded-xl border px-3 py-2 text-sm"
-                        >
-                          <span className="truncate font-medium">
-                            {team.title}
-                          </span>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                className="inline-flex items-center gap-1"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                                Delete
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent className="sm:max-w-[420px]">
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                  Delete team?
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  “{team.title}” 팀을 삭제합니다. 이 작업은
-                                  되돌릴 수 없습니다.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter className="gap-2 sm:gap-0">
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => {
-                                    /* TODO: implement delete handler */
-                                  }}
-                                >
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      ))
-                    )}
                   </div>
                 </CardContent>
               </Card>
