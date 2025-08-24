@@ -58,7 +58,7 @@ export const Header = forwardRef<
           >
             Team Project
           </Link>
-          <Link
+          {/* <Link
             to="/"
             className={cn(
               BASE,
@@ -68,7 +68,7 @@ export const Header = forwardRef<
             )}
           >
             Timetable
-          </Link>
+          </Link> */}
           <Link
             to="/wiki"
             className={cn(
