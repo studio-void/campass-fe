@@ -39,10 +39,6 @@
 - Request dormitory retirement & maintenance inspection
 - Request for storage usage
 
-### Timetable
-
-- Google calendar integrated time table to manage all schedules
-
 ### Team Projects
 
 - Create and join teams
@@ -57,3 +53,5 @@
 ## Our Future
 
 - To all-in-one campus platform with integrated AI Agent in near future
+- Google calendar integrated time table to manage all schedules (WIP)
+- Integrated campus-wide facility reservation with AI
