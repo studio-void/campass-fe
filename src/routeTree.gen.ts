@@ -20,8 +20,6 @@ import { Route as DormIndexRouteImport } from './routes/dorm/index'
 import { Route as WikiWikiIdRouteImport } from './routes/wiki/$wikiId'
 import { Route as TeamDoneRouteImport } from './routes/team/done'
 import { Route as TeamCalendarRouteImport } from './routes/team/calendar'
-import { Route as DormRetirementMaintenanceRouteImport } from './routes/dorm/retirement-maintenance'
-import { Route as DormRetirementFormRouteImport } from './routes/dorm/retirement-form'
 import { Route as DormCheckMaintenanceRouteImport } from './routes/dorm/check-maintenance'
 import { Route as DormCheckFormRouteImport } from './routes/dorm/check-form'
 import { Route as AuthVerificationRouteImport } from './routes/auth/verification'
@@ -91,15 +89,6 @@ const TeamCalendarRoute = TeamCalendarRouteImport.update({
   path: '/team/calendar',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DormRetirementMaintenanceRoute =
-  DormRetirementMaintenanceRouteImport.update({
-    id: '/dorm/retirement-maintenance',
-    path: '/dorm/retirement-maintenance',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const DormRetirementFormRoute = DormRetirementFormRouteImport.update({
-  id: '/dorm/retirement-form',
-  path: '/dorm/retirement-form',
 const DormCheckMaintenanceRoute = DormCheckMaintenanceRouteImport.update({
   id: '/dorm/check-maintenance',
   path: '/dorm/check-maintenance',
@@ -181,12 +170,10 @@ export interface FileRoutesByFullPath {
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verification': typeof AuthVerificationRoute
-  '/dorm/retirement-form': typeof DormRetirementFormRoute
-  '/dorm/retirement-maintenance': typeof DormRetirementMaintenanceRoute
-  '/team/calendar': typeof TeamCalendarRoute
-  '/team/done': typeof TeamDoneRoute
   '/dorm/check-form': typeof DormCheckFormRoute
   '/dorm/check-maintenance': typeof DormCheckMaintenanceRoute
+  '/team/calendar': typeof TeamCalendarRoute
+  '/team/done': typeof TeamDoneRoute
   '/wiki/$wikiId': typeof WikiWikiIdRouteWithChildren
   '/dorm': typeof DormIndexRoute
   '/home': typeof HomeIndexRoute
@@ -208,12 +195,10 @@ export interface FileRoutesByTo {
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verification': typeof AuthVerificationRoute
-  '/dorm/retirement-form': typeof DormRetirementFormRoute
-  '/dorm/retirement-maintenance': typeof DormRetirementMaintenanceRoute
-  '/team/calendar': typeof TeamCalendarRoute
-  '/team/done': typeof TeamDoneRoute
   '/dorm/check-form': typeof DormCheckFormRoute
   '/dorm/check-maintenance': typeof DormCheckMaintenanceRoute
+  '/team/calendar': typeof TeamCalendarRoute
+  '/team/done': typeof TeamDoneRoute
   '/wiki/$wikiId': typeof WikiWikiIdRouteWithChildren
   '/dorm': typeof DormIndexRoute
   '/home': typeof HomeIndexRoute
@@ -238,12 +223,10 @@ export interface FileRoutesById {
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verification': typeof AuthVerificationRoute
-  '/dorm/retirement-form': typeof DormRetirementFormRoute
-  '/dorm/retirement-maintenance': typeof DormRetirementMaintenanceRoute
-  '/team/calendar': typeof TeamCalendarRoute
-  '/team/done': typeof TeamDoneRoute
   '/dorm/check-form': typeof DormCheckFormRoute
   '/dorm/check-maintenance': typeof DormCheckMaintenanceRoute
+  '/team/calendar': typeof TeamCalendarRoute
+  '/team/done': typeof TeamDoneRoute
   '/wiki/$wikiId': typeof WikiWikiIdRouteWithChildren
   '/dorm/': typeof DormIndexRoute
   '/home/': typeof HomeIndexRoute
@@ -268,12 +251,10 @@ export interface FileRouteTypes {
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/auth/verification'
-    | '/dorm/retirement-form'
-    | '/dorm/retirement-maintenance'
-    | '/team/calendar'
-    | '/team/done'
     | '/dorm/check-form'
     | '/dorm/check-maintenance'
+    | '/team/calendar'
+    | '/team/done'
     | '/wiki/$wikiId'
     | '/dorm'
     | '/home'
@@ -295,12 +276,10 @@ export interface FileRouteTypes {
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/auth/verification'
-    | '/dorm/retirement-form'
-    | '/dorm/retirement-maintenance'
-    | '/team/calendar'
-    | '/team/done'
     | '/dorm/check-form'
     | '/dorm/check-maintenance'
+    | '/team/calendar'
+    | '/team/done'
     | '/wiki/$wikiId'
     | '/dorm'
     | '/home'
@@ -324,12 +303,10 @@ export interface FileRouteTypes {
     | '/auth/sign-in'
     | '/auth/sign-up'
     | '/auth/verification'
-    | '/dorm/retirement-form'
-    | '/dorm/retirement-maintenance'
-    | '/team/calendar'
-    | '/team/done'
     | '/dorm/check-form'
     | '/dorm/check-maintenance'
+    | '/team/calendar'
+    | '/team/done'
     | '/wiki/$wikiId'
     | '/dorm/'
     | '/home/'
@@ -354,12 +331,10 @@ export interface RootRouteChildren {
   AuthSignInRoute: typeof AuthSignInRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
   AuthVerificationRoute: typeof AuthVerificationRoute
-  DormRetirementFormRoute: typeof DormRetirementFormRoute
-  DormRetirementMaintenanceRoute: typeof DormRetirementMaintenanceRoute
-  TeamCalendarRoute: typeof TeamCalendarRoute
-  TeamDoneRoute: typeof TeamDoneRoute
   DormCheckFormRoute: typeof DormCheckFormRoute
   DormCheckMaintenanceRoute: typeof DormCheckMaintenanceRoute
+  TeamCalendarRoute: typeof TeamCalendarRoute
+  TeamDoneRoute: typeof TeamDoneRoute
   DormIndexRoute: typeof DormIndexRoute
   HomeIndexRoute: typeof HomeIndexRoute
   TeamIndexRoute: typeof TeamIndexRoute
@@ -447,11 +422,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TeamCalendarRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dorm/retirement-maintenance': {
-      id: '/dorm/retirement-maintenance'
-      path: '/dorm/retirement-maintenance'
-      fullPath: '/dorm/retirement-maintenance'
-      preLoaderRoute: typeof DormRetirementMaintenanceRouteImport
     '/dorm/check-maintenance': {
       id: '/dorm/check-maintenance'
       path: '/dorm/check-maintenance'
@@ -608,12 +578,10 @@ const rootRouteChildren: RootRouteChildren = {
   AuthSignInRoute: AuthSignInRoute,
   AuthSignUpRoute: AuthSignUpRoute,
   AuthVerificationRoute: AuthVerificationRoute,
-  DormRetirementFormRoute: DormRetirementFormRoute,
-  DormRetirementMaintenanceRoute: DormRetirementMaintenanceRoute,
-  TeamCalendarRoute: TeamCalendarRoute,
-  TeamDoneRoute: TeamDoneRoute,
   DormCheckFormRoute: DormCheckFormRoute,
   DormCheckMaintenanceRoute: DormCheckMaintenanceRoute,
+  TeamCalendarRoute: TeamCalendarRoute,
+  TeamDoneRoute: TeamDoneRoute,
   DormIndexRoute: DormIndexRoute,
   HomeIndexRoute: HomeIndexRoute,
   TeamIndexRoute: TeamIndexRoute,
