@@ -33,11 +33,8 @@ const TEAMS: Team[] = [
 
 const Schema = z.object({
   project: z.string().min(1, 'Please enter project name.'),
-  count: z.coerce.number().int().positive('Enter meeting count.'),
-  duration: z.coerce
-    .number()
-    .int()
-    .positive('Enter meeting duration (minutes).'),
+  count: z.number().int().positive('Enter meeting count.'),
+  duration: z.number().int().positive('Enter meeting duration (minutes).'),
 });
 type FormValues = z.infer<typeof Schema>;
 
@@ -48,7 +45,11 @@ export default function TeamProjectIndexPage() {
   const form = useForm<FormValues>({
     resolver: zodResolver(Schema),
     mode: 'onChange',
-    defaultValues: { project: '', count: 1, duration: 60 },
+    defaultValues: {
+      project: '',
+      count: 1,
+      duration: 60,
+    },
   });
 
   const onSubmit = (values: FormValues) => {
@@ -127,7 +128,7 @@ export default function TeamProjectIndexPage() {
               <FormField
                 control={form.control}
                 name="count"
-                render={({ field }) => (
+                render={({ field: { value, onChange, ...field } }) => (
                   <FormItem>
                     <FormLabel>Team meeting number</FormLabel>
                     <FormControl>
@@ -136,6 +137,8 @@ export default function TeamProjectIndexPage() {
                         min={1}
                         className="mt-2 h-11"
                         placeholder="How many times you need to meet?"
+                        value={value || ''}
+                        onChange={(e) => onChange(Number(e.target.value) || 1)}
                         {...field}
                       />
                     </FormControl>
@@ -147,7 +150,7 @@ export default function TeamProjectIndexPage() {
               <FormField
                 control={form.control}
                 name="duration"
-                render={({ field }) => (
+                render={({ field: { value, onChange, ...field } }) => (
                   <FormItem>
                     <FormLabel>Team meeting duration (minutes)</FormLabel>
                     <FormControl>
@@ -156,6 +159,8 @@ export default function TeamProjectIndexPage() {
                         min={10}
                         className="mt-2 h-11"
                         placeholder="How long will meeting take? (minutes)"
+                        value={value || ''}
+                        onChange={(e) => onChange(Number(e.target.value) || 60)}
                         {...field}
                       />
                     </FormControl>
