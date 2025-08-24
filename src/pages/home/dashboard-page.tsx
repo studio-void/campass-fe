@@ -31,7 +31,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { deleteAuthLogout } from '@/data/delete-auth-logout';
-import { getFriends, sendFriendRequest } from '@/data/friend';
+import {
+  acceptFriendRequest,
+  getFriends,
+  sendFriendRequest,
+} from '@/data/friend';
 import {
   getReceivedFriendRequests,
   getSentFriendRequests,
@@ -152,6 +156,19 @@ export default function DashboardPage() {
     },
     [users],
   );
+
+  // Accept friend request handler
+  const handleAcceptFriendRequest = useCallback(async (requestId: number) => {
+    try {
+      await acceptFriendRequest(requestId);
+      toast.success('Friend request accepted');
+      // Refresh friends and requests
+      setFriends(await getFriends());
+      setReceivedRequests(await getReceivedFriendRequests());
+    } catch (e) {
+      // Error handled in API
+    }
+  }, []);
 
   if (!user) return null;
 
@@ -445,12 +462,21 @@ export default function DashboardPage() {
                       </span>
                     ) : (
                       receivedRequests.map((req) => (
-                        <span
+                        <div
                           key={req.id}
-                          className="rounded-xl border px-3 py-1.5 text-sm"
+                          className="flex items-center gap-2 rounded-xl border px-3 py-1.5 text-sm"
                         >
-                          {req.from?.name || req.fromName || req.fromId}
-                        </span>
+                          <span>
+                            {req.from?.name || req.fromName || req.fromId}
+                          </span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleAcceptFriendRequest(req.id)}
+                          >
+                            Accept
+                          </Button>
+                        </div>
                       ))
                     )}
                   </div>
