@@ -48,10 +48,10 @@ export const Header = forwardRef<
             Dormitory
           </Link>
           <Link
-            to="/"
+            to="/team"
             className={cn(
               BASE,
-              pathname === '/'
+              pathname === '/team'
                 ? ['font-bold', PRIMARY, 'after:w-full']
                 : ['hover:text-blue-600 hover:dark:text-blue-400', 'after:w-0'],
             )}

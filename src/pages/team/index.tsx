@@ -84,7 +84,7 @@ export default function TeamProjectIndexPage() {
                   key={t.id}
                   type="button"
                   onClick={() => setSelected(t)}
-                  aria-pressed={active}
+                  aria-pressed={active ? 'true' : 'false'}
                   className={[
                     'w-full rounded-2xl text-left outline-none transition-all focus-visible:ring-2 focus-visible:ring-blue-500',
                     active ? 'ring-2 ring-blue-500' : 'ring-0',
